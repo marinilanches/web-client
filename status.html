@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Status do Pedido</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <h2>📦 Status do Pedido</h2>
+</header>
+
+<section class="menu">
+
+  <h3>Seu Pedido</h3>
+
+  <div id="pedidoInfo">
+    Carregando...
+  </div>
+
+</section>
+
+<script type="module">
+import { db } from "./firebase.js";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot
+} from "firebase/firestore";
+
+// =======================
+// 🔥 PEGAR ÚLTIMO PEDIDO
+// =======================
+const q = query(
+  collection(db, "pedidos"),
+  orderBy("createdAt", "desc"),
+  limit(1)
+);
+
+// =======================
+// 🔴 REAL TIME
+// =======================
+onSnapshot(q, (snapshot) => {
+  const div = document.getElementById("pedidoInfo");
+
+  snapshot.forEach(doc => {
+    const p = doc.data();
+
+    div.innerHTML = `
+      <div class="item">
+        <h3>Status: ${p.status}</h3>
+        <p>Total: R$ ${p.valorTotal}</p>
+        <p>Pagamento: ${p.pagamentoStatus}</p>
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>

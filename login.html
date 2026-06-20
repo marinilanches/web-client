@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Admin</title>
+</head>
+
+<body>
+
+<h2>Login Admin</h2>
+
+<input id="email" placeholder="email"/>
+<input id="password" type="password" placeholder="senha"/>
+
+<button onclick="login()">Entrar</button>
+
+<script type="module">
+import { auth } from "./firebase.js";
+import {
+  signInWithEmailAndPassword
+} from "firebase/auth";
+
+window.login = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login OK");
+    window.location.href = "/admin.html";
+  } catch (e) {
+    alert("Erro login: " + e.message);
+  }
+};
+</script>
+
+</body>
+</html>

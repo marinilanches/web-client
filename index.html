@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Delivery System</title>
+  <title>Restaurante Digital</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -15,7 +15,7 @@
 
 <section class="highlights">
   <h3>🔥 Mais pedidos</h3>
-  <div class="scroll" id="maisPedidos"></div>
+  <div id="maisPedidos"></div>
 </section>
 
 <section class="menu">
@@ -25,10 +25,11 @@
 
 <footer class="cart">
   🛒 <span id="qtd">0</span> itens |
-  R$ <span id="total">0</span>
-  <button>Finalizar</button>
+  R$ <span id="total">0.00</span>
+  <button id="finalizarBtn">Finalizar Pedido</button>
 </footer>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
+
 </body>
 </html>

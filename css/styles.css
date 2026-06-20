@@ -10,18 +10,8 @@ body {
   padding: 15px;
 }
 
-.scroll {
-  display: flex;
-  overflow-x: auto;
-  gap: 10px;
+.menu {
   padding: 10px;
-}
-
-.card {
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  min-width: 120px;
 }
 
 .item {
@@ -31,6 +21,7 @@ body {
   border-radius: 10px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .cart {
@@ -39,4 +30,23 @@ body {
   width: 100%;
   background: white;
   padding: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  background: #d6001c;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.item {
+  flex-direction: row;
 }

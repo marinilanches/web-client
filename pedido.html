@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - Pedido</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <h2>🛒 Finalizar Pedido</h2>
+</header>
+
+<section class="menu">
+  <h3>Resumo do Carrinho</h3>
+
+  <div id="resumo"></div>
+
+  <h3>Total: R$ <span id="total">0.00</span></h3>
+
+  <button id="btnFinalizar">
+    Confirmar Pedido
+  </button>
+</section>
+
+<script type="module">
+import { db } from "./firebase.js";
+import {
+  addDoc,
+  collection,
+  serverTimestamp
+} from "firebase/firestore";
+
+// =======================
+// 🧠 RECUPERAR CARRINHO
+// =======================
+const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+
+let total = 0;
+const container = document.getElementById("resumo");
+
+// =======================
+// RENDER
+// =======================
+carrinho.forEach(item => {
+  total += item.valorUnitario;
+
+  container.innerHTML += `
+    <div class="item">
+      <div>
+        <h4>${item.nome}</h4>
+        <span>R$ ${item.valorUnitario}</span>
+      </div>
+    </div>
+  `;
+});
+
+document.getElementById("total").innerText = total.toFixed(2);
+
+// =======================
+// FINALIZAR PEDIDO
+// =======================
+document.getElementById("btnFinalizar").onclick = async () => {
+  if (carrinho.length === 0) {
+    alert("Carrinho vazio!");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "pedidos"), {
+      itens: carrinho,
+      valorTotal: total,
+      status: "NOVO",
+      pagamentoStatus: "PENDENTE",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Pedido enviado com sucesso!");
+
+    localStorage.removeItem("carrinho");
+
+    window.location.href = "/status.html";
+
+  } catch (e) {
+    console.error(e);
+  }
+};
+</script>
+
+</body>
+</html>
