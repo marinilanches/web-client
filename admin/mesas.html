@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mesas • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+    <main class="content">
+
+        <!-- Header -->
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Mesas</h1>
+
+            <p class="subtitle">
+                Controle das mesas do restaurante em tempo real.
+            </p>
+
+            <!-- Barra superior -->
+
+            <div class="toolbar">
+
+                <input
+                    type="text"
+                    id="buscarMesa"
+                    placeholder="Pesquisar mesa..."
+                >
+
+                <select id="filtroMesa">
+
+                    <option value="">Todas</option>
+
+                    <option value="LIVRE">Livres</option>
+
+                    <option value="OCUPADA">Ocupadas</option>
+
+                    <option value="RESERVADA">Reservadas</option>
+
+                    <option value="MANUTENCAO">Manutenção</option>
+
+                </select>
+
+                <button id="novaMesa">
+
+                    ➕ Nova Mesa
+
+                </button>
+
+            </div>
+
+            <!-- Cards -->
+
+            <section class="cards">
+
+                <div class="card">
+
+                    <div class="card-icon">🪑</div>
+
+                    <div class="card-title">
+
+                        Total de Mesas
+
+                    </div>
+
+                    <div class="card-value" id="totalMesas">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Cadastradas
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">🟢</div>
+
+                    <div class="card-title">
+
+                        Livres
+
+                    </div>
+
+                    <div class="card-value" id="mesasLivres">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Disponíveis
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">🍽️</div>
+
+                    <div class="card-title">
+
+                        Ocupadas
+
+                    </div>
+
+                    <div class="card-value" id="mesasOcupadas">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Em atendimento
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">👥</div>
+
+                    <div class="card-title">
+
+                        Pessoas
+
+                    </div>
+
+                    <div class="card-value" id="totalPessoas">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        No salão
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Grid das mesas -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    🪑 Mapa das Mesas
+
+                </div>
+
+                <div id="gridMesas" class="mesas-grid">
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/mesas.js"></script>
+
+</body>
+
+</html>

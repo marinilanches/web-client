@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mesa Fácil • Dashboard</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <!-- Sidebar -->
+        <aside id="sidebar"></aside>
+
+        <!-- Conteúdo -->
+
+        <main class="content">
+
+            <!-- Header -->
+            <header id="header"></header>
+
+            <!-- Dashboard -->
+
+            <section class="dashboard">
+
+                <h1>Dashboard</h1>
+
+                <p class="subtitle">
+                    Visão geral da sua loja em tempo real.
+                </p>
+
+                <!-- Cards -->
+
+                <section class="cards">
+
+                    <div id="cardFinalizados"></div>
+
+                    <div id="cardPreparo"></div>
+
+                    <div id="cardProntos"></div>
+
+                    <div id="cardEntregues"></div>
+
+                    <div id="cardLoja"></div>
+
+                    <div id="cardFaturamento"></div>
+
+                </section>
+
+                <!-- Linha 2 -->
+
+                <section class="dashboard-grid">
+
+                    <!-- Últimos pedidos -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+
+                            📦 Últimos Pedidos
+
+                        </div>
+
+                        <div id="ultimosPedidos">
+
+                            Carregando...
+
+                        </div>
+
+                    </div>
+
+                    <!-- Produtos -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+
+                            🔥 Produtos Mais Vendidos
+
+                        </div>
+
+                        <div id="maisVendidos">
+
+                            Carregando...
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- Linha 3 -->
+
+                <section class="dashboard-grid">
+
+                    <!-- Sistema -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+
+                            ⚙️ Status do Sistema
+
+                        </div>
+
+                        <div class="status-list">
+
+                            <div>
+
+                                Firebase
+
+                                <span id="firebaseStatus">
+
+                                    🟢
+
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                Impressora
+
+                                <span id="printerStatus">
+
+                                    🟢
+
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                WhatsApp
+
+                                <span id="whatsappStatus">
+
+                                    🟢
+
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                PagBank
+
+                                <span id="pagbankStatus">
+
+                                    🟢
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Atividade -->
+
+                    <div class="panel">
+
+                        <div class="panel-title">
+
+                            📈 Atividade
+
+                        </div>
+
+                        <canvas id="graficoPedidos"></canvas>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Componentes -->
+
+    <script type="module" src="components/sidebar.js"></script>
+
+    <script type="module" src="components/header.js"></script>
+
+    <script type="module" src="components/cards.js"></script>
+
+    <script type="module" src="components/modal.js"></script>
+
+    <script type="module" src="components/toast.js"></script>
+
+    <!-- Dashboard -->
+
+    <script type="module" src="js/dashboard.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Relatórios • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Relatórios</h1>
+
+            <p class="subtitle">
+
+                Estatísticas completas da loja.
+
+            </p>
+
+            <!-- Barra superior -->
+
+            <div class="toolbar">
+
+                <input type="date" id="dataInicial">
+
+                <input type="date" id="dataFinal">
+
+                <button id="btnAtualizar">
+
+                    Atualizar
+
+                </button>
+
+                <button id="btnExportarPDF">
+
+                    📄 PDF
+
+                </button>
+
+                <button id="btnExportarExcel">
+
+                    📊 Excel
+
+                </button>
+
+            </div>
+
+            <!-- Cards -->
+
+            <section class="cards">
+
+                <div class="card card-faturamento">
+
+                    <div class="card-icon">
+
+                        💰
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Faturamento
+
+                    </div>
+
+                    <div class="card-value" id="relatorioFaturamento">
+
+                        R$ 0,00
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Período
+
+                    </div>
+
+                </div>
+
+                <div class="card card-finalizados">
+
+                    <div class="card-icon">
+
+                        📦
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Pedidos
+
+                    </div>
+
+                    <div class="card-value" id="relatorioPedidos">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Total
+
+                    </div>
+
+                </div>
+
+                <div class="card card-prontos">
+
+                    <div class="card-icon">
+
+                        🍔
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Produtos Vendidos
+
+                    </div>
+
+                    <div class="card-value" id="relatorioProdutos">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Unidades
+
+                    </div>
+
+                </div>
+
+                <div class="card card-loja">
+
+                    <div class="card-icon">
+
+                        👥
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Clientes
+
+                    </div>
+
+                    <div class="card-value" id="relatorioClientes">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Atendidos
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Gráficos -->
+
+            <div class="dashboard-grid">
+
+                <div class="panel">
+
+                    <div class="panel-title">
+
+                        📈 Faturamento
+
+                    </div>
+
+                    <canvas id="graficoFaturamento"></canvas>
+
+                </div>
+
+                <div class="panel">
+
+                    <div class="panel-title">
+
+                        🍔 Produtos Mais Vendidos
+
+                    </div>
+
+                    <canvas id="graficoProdutos"></canvas>
+
+                </div>
+
+            </div>
+
+            <div class="dashboard-grid">
+
+                <div class="panel">
+
+                    <div class="panel-title">
+
+                        💳 Formas de Pagamento
+
+                    </div>
+
+                    <canvas id="graficoPagamentos"></canvas>
+
+                </div>
+
+                <div class="panel">
+
+                    <div class="panel-title">
+
+                        📅 Pedidos por Dia
+
+                    </div>
+
+                    <canvas id="graficoPedidos"></canvas>
+
+                </div>
+
+            </div>
+
+            <!-- Ranking -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    🏆 Ranking de Produtos
+
+                </div>
+
+                <table class="table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Posição</th>
+
+                            <th>Produto</th>
+
+                            <th>Categoria</th>
+
+                            <th>Quantidade</th>
+
+                            <th>Faturamento</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="rankingProdutos">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- Clientes -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    ⭐ Clientes que Mais Compraram
+
+                </div>
+
+                <table class="table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Cliente</th>
+
+                            <th>Pedidos</th>
+
+                            <th>Total Gasto</th>
+
+                            <th>Última Compra</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="rankingClientes">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script type="module" src="js/relatorios.js"></script>
+
+</body>
+
+</html>

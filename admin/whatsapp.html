@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WhatsApp • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>WhatsApp</h1>
+
+            <p class="subtitle">
+
+                Gerencie a conexão do WhatsApp da loja.
+
+            </p>
+
+            <!-- Cards -->
+
+            <section class="cards">
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        📱
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Status
+
+                    </div>
+
+                    <div class="card-value" id="statusWhatsapp">
+
+                        Desconectado
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Conexão
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        📞
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Número
+
+                    </div>
+
+                    <div class="card-value" id="numeroWhatsapp">
+
+                        -
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Conta conectada
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        💬
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Mensagens
+
+                    </div>
+
+                    <div class="card-value" id="mensagensEnviadas">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Hoje
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        🔄
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Última Atualização
+
+                    </div>
+
+                    <div class="card-value" id="ultimaAtualizacao">
+
+                        --
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Serviço
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- QR Code -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    📲 Conectar WhatsApp
+
+                </div>
+
+                <div class="qr-container">
+
+                    <img
+                        id="qrCode"
+                        src=""
+                        alt="QR Code"
+                        style="max-width:300px;display:none;"
+                    >
+
+                    <div id="semQr">
+
+                        Aguardando QR Code...
+
+                    </div>
+
+                </div>
+
+                <div class="toolbar">
+
+                    <button id="btnAtualizarQR">
+
+                        Atualizar QR
+
+                    </button>
+
+                    <button id="btnReconectar">
+
+                        Reconectar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- Configurações -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    ⚙ Configurações Automáticas
+
+                </div>
+
+                <table class="table">
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>Pedido recebido</td>
+
+                            <td>
+
+                                <input type="checkbox" id="msgPedidoRecebido" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Pedido em preparo</td>
+
+                            <td>
+
+                                <input type="checkbox" id="msgPreparando" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Pedido pronto</td>
+
+                            <td>
+
+                                <input type="checkbox" id="msgPronto" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Pedido entregue</td>
+
+                            <td>
+
+                                <input type="checkbox" id="msgEntregue" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Pagamento confirmado</td>
+
+                            <td>
+
+                                <input type="checkbox" id="msgPagamento" checked>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- Histórico -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    📜 Histórico de Mensagens
+
+                </div>
+
+                <table class="table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Cliente</th>
+
+                            <th>Telefone</th>
+
+                            <th>Mensagem</th>
+
+                            <th>Status</th>
+
+                            <th>Data</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="historicoWhatsapp">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/whatsapp.js"></script>
+
+</body>
+
+</html>

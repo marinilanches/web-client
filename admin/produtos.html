@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Produtos • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Produtos</h1>
+
+            <p class="subtitle">
+
+                Gerencie o cardápio da loja.
+
+            </p>
+
+            <!-- Barra superior -->
+
+            <div class="toolbar">
+
+                <input
+                    type="text"
+                    id="buscarProduto"
+                    placeholder="Pesquisar produto..."
+                >
+
+                <select id="categoriaFiltro">
+
+                    <option value="">Todas categorias</option>
+
+                    <option value="Lanches">Lanches</option>
+
+                    <option value="Porções">Porções</option>
+
+                    <option value="Bebidas">Bebidas</option>
+
+                    <option value="Sobremesas">Sobremesas</option>
+
+                    <option value="Combos">Combos</option>
+
+                </select>
+
+                <button id="novoProduto">
+
+                    ➕ Novo Produto
+
+                </button>
+
+            </div>
+
+            <!-- Lista -->
+
+            <div id="listaProdutos"></div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/produtos.js"></script>
+
+</body>
+
+</html>

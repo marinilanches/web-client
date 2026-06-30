@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pedidos • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Pedidos</h1>
+
+            <p class="subtitle">
+                Gerencie todos os pedidos em tempo real.
+            </p>
+
+            <!-- Barra superior -->
+
+            <div class="toolbar">
+
+                <input
+                    id="buscarPedido"
+                    type="text"
+                    placeholder="Pesquisar pedido..."
+                >
+
+                <select id="filtroStatus">
+
+                    <option value="">Todos</option>
+
+                    <option value="RECEBIDO">Recebido</option>
+
+                    <option value="PREPARANDO">Preparando</option>
+
+                    <option value="PRONTO">Pronto</option>
+
+                    <option value="ENTREGUE">Entregue</option>
+
+                    <option value="CANCELADO">Cancelado</option>
+
+                </select>
+
+                <button id="novoPedido">
+
+                    ➕ Novo Pedido
+
+                </button>
+
+            </div>
+
+            <!-- Lista -->
+
+            <div id="listaPedidos">
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/pedidos.js"></script>
+
+</body>
+
+</html>

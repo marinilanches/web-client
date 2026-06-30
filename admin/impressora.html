@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Impressora • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Impressora</h1>
+
+            <p class="subtitle">
+
+                Gerencie a impressão automática da cozinha.
+
+            </p>
+
+            <!-- Cards -->
+
+            <section class="cards">
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        🖨️
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Status
+
+                    </div>
+
+                    <div class="card-value" id="statusImpressora">
+
+                        Offline
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Printer Service
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        📦
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Pendentes
+
+                    </div>
+
+                    <div class="card-value" id="filaImpressao">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Fila
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        ✅
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Impressos
+
+                    </div>
+
+                    <div class="card-value" id="totalImpressoes">
+
+                        0
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Hoje
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-icon">
+
+                        ⚡
+
+                    </div>
+
+                    <div class="card-title">
+
+                        Última Impressão
+
+                    </div>
+
+                    <div class="card-value" id="ultimaImpressao">
+
+                        --
+
+                    </div>
+
+                    <div class="card-footer">
+
+                        Atualização
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Configurações -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    ⚙ Configuração da Impressão
+
+                </div>
+
+                <table class="table">
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>Impressão automática</td>
+
+                            <td>
+
+                                <input type="checkbox" id="autoPrint" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Imprimir observações</td>
+
+                            <td>
+
+                                <input type="checkbox" id="printObs" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Imprimir adicionais</td>
+
+                            <td>
+
+                                <input type="checkbox" id="printExtras" checked>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>Imprimir logo</td>
+
+                            <td>
+
+                                <input type="checkbox" id="printLogo">
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- Ações -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    🧪 Testes
+
+                </div>
+
+                <div class="toolbar">
+
+                    <button id="btnTeste">
+
+                        🖨️ Imprimir Teste
+
+                    </button>
+
+                    <button id="btnReconectar">
+
+                        🔄 Reconectar
+
+                    </button>
+
+                    <button id="btnLimparFila">
+
+                        🗑️ Limpar Fila
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- Histórico -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    📜 Histórico de Impressões
+
+                </div>
+
+                <table class="table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Pedido</th>
+
+                            <th>Cliente</th>
+
+                            <th>Status</th>
+
+                            <th>Data</th>
+
+                            <th>Ações</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="historicoImpressao">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/impressora.js"></script>
+
+</body>
+
+</html>

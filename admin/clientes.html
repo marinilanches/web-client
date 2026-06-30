@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Clientes • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Conteúdo -->
+
+    <main class="content">
+
+        <!-- Header -->
+        <header id="header"></header>
+
+        <section class="dashboard">
+
+            <h1>Clientes</h1>
+
+            <p class="subtitle">
+                Gerencie os clientes cadastrados.
+            </p>
+
+            <!-- Barra superior -->
+
+            <div class="toolbar">
+
+                <input
+                    type="text"
+                    id="buscarCliente"
+                    placeholder="Pesquisar por nome ou telefone..."
+                >
+
+                <button id="novoCliente">
+
+                    ➕ Novo Cliente
+
+                </button>
+
+            </div>
+
+            <!-- Estatísticas -->
+
+            <section class="cards">
+
+                <div class="card">
+                    <div class="card-icon">👤</div>
+                    <div class="card-title">Clientes</div>
+                    <div class="card-value" id="totalClientes">0</div>
+                    <div class="card-footer">Cadastrados</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">⭐</div>
+                    <div class="card-title">Fidelizados</div>
+                    <div class="card-value" id="clientesVip">0</div>
+                    <div class="card-footer">Clientes frequentes</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">🛒</div>
+                    <div class="card-title">Pedidos</div>
+                    <div class="card-value" id="totalPedidosClientes">0</div>
+                    <div class="card-footer">Total realizados</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">💰</div>
+                    <div class="card-title">Ticket Médio</div>
+                    <div class="card-value" id="ticketMedio">
+                        R$ 0,00
+                    </div>
+                    <div class="card-footer">
+                        Média por cliente
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Lista -->
+
+            <div class="panel">
+
+                <div class="panel-title">
+
+                    👥 Lista de Clientes
+
+                </div>
+
+                <table class="table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Nome</th>
+
+                            <th>Telefone</th>
+
+                            <th>Último Pedido</th>
+
+                            <th>Total de Pedidos</th>
+
+                            <th>Gasto Total</th>
+
+                            <th>Status</th>
+
+                            <th>Ações</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="listaClientes">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="components/sidebar.js"></script>
+<script type="module" src="components/header.js"></script>
+<script type="module" src="components/modal.js"></script>
+<script type="module" src="components/toast.js"></script>
+
+<script type="module" src="js/clientes.js"></script>
+
+</body>
+
+</html>
