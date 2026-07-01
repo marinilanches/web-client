@@ -1,17 +1,89 @@
-import { db } from "./firebase.js";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { criarPedido } from "./orders.js";
 
-export async function finalizarPedido(data) {
-  await addDoc(collection(db, "pedidos"), {
-    ...data,
-    status: "NOVO",
-    pagamentoStatus: "PENDENTE",
-    createdAt: serverTimestamp()
-  });
+import {
+
+    getCarrinho,
+
+    getTotal,
+
+    limparCarrinho
+
+} from "./cart.js";
+
+/* ==========================================================
+   FINALIZAR PEDIDO
+========================================================== */
+
+export async function finalizarPedido() {
+
+    const itens = getCarrinho();
+
+    if (itens.length === 0) {
+
+        alert("Carrinho vazio.");
+
+        return;
+
+    }
+
+    try {
+
+        await criarPedido({
+
+            cliente: "",
+
+            telefone: "",
+
+            tipo: "Delivery",
+
+            clienteId: null,
+
+            mesaId: null,
+
+            itens,
+
+            observacoes: "",
+
+            valorTotal: getTotal(),
+
+            pagamentoMetodo: "",
+
+            pagamentoStatus: "PENDENTE"
+
+        });
+
+        alert("Pedido enviado com sucesso!");
+
+        limparCarrinho();
+
+    }
+
+    catch (erro) {
+
+        console.error("Erro ao finalizar pedido:", erro);
+
+        alert("Não foi possível finalizar o pedido.");
+
+    }
+
 }
 
-export function getLocation() {
-  navigator.geolocation.getCurrentPosition((pos) => {
-    console.log(pos.coords.latitude, pos.coords.longitude);
-  });
+/* ==========================================================
+   INICIAR CHECKOUT
+========================================================== */
+
+export function iniciarCheckout() {
+
+    const btn = document.getElementById("finalizarBtn");
+
+    if (!btn) return;
+
+    btn.addEventListener(
+
+        "click",
+
+        finalizarPedido
+
+    );
+
 }
