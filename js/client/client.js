@@ -1,5 +1,5 @@
-import { db } from "./firebase.js";
-import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../services/firebase.js";
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let carrinho = [];
 

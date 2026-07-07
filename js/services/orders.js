@@ -11,7 +11,7 @@ import {
     orderBy,
     onSnapshot,
     serverTimestamp
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
    MESA FÁCIL
@@ -85,11 +85,8 @@ export async function editarPedido(id, dados) {
             doc(db, "pedidos", id),
 
             {
-
                 ...dados,
-
                 updatedAt: serverTimestamp()
-
             }
 
         );
@@ -117,11 +114,8 @@ export async function alterarStatus(id, status) {
             doc(db, "pedidos", id),
 
             {
-
                 status,
-
                 updatedAt: serverTimestamp()
-
             }
 
         );
@@ -155,9 +149,7 @@ export async function excluirPedido(id) {
     try {
 
         await deleteDoc(
-
             doc(db, "pedidos", id)
-
         );
 
     } catch (erro) {
@@ -179,23 +171,16 @@ export async function buscarPedido(id) {
     try {
 
         const pedido = await getDoc(
-
             doc(db, "pedidos", id)
-
         );
 
         if (!pedido.exists()) {
-
             return null;
-
         }
 
         return {
-
             id: pedido.id,
-
             ...pedido.data()
-
         };
 
     } catch (erro) {
@@ -215,11 +200,8 @@ export async function buscarPedido(id) {
 export function ouvirPedidos(callback) {
 
     const q = query(
-
         pedidosRef,
-
         orderBy("createdAt", "desc")
-
     );
 
     return onSnapshot(
@@ -233,11 +215,8 @@ export function ouvirPedidos(callback) {
             snapshot.forEach((docItem) => {
 
                 pedidos.push({
-
                     id: docItem.id,
-
                     ...docItem.data()
-
                 });
 
             });
@@ -277,13 +256,9 @@ export function contarPedidos(pedidos) {
         cancelados: pedidos.filter(p => p.status === "CANCELADO").length,
 
         faturamento: pedidos
-
             .filter(p => p.status === "ENTREGUE")
-
             .reduce((total, pedido) => {
-
                 return total + Number(pedido.valorTotal || 0);
-
             }, 0)
 
     };

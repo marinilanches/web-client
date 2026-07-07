@@ -1,59 +1,204 @@
-console.log("produtos.js carregado");
-
-import { carregarSidebar } from "../components/sidebar.js";
-import { carregarHeader } from "../components/header.js";
-import { abrirModal } from "../components/modal.js";
+import { abrirModal, fecharModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 
-carregarSidebar();
-carregarHeader();
+import {
+    ouvirProdutos,
+    criarProduto
+} from "../../js/services/products.js";
 
-const btn=document.getElementById("novoProduto");
+/* ==========================================
+   ELEMENTOS
+========================================== */
 
-btn?.addEventListener("click",()=>{
+let listaProdutos;
+let btnNovoProduto;
+let buscarProduto;
 
-    abrirModal(
+let produtosCache = [];
 
-        "Novo Produto",
+function initProdutos() {
+    listaProdutos = document.getElementById("listaProdutos");
+    btnNovoProduto = document.getElementById("novoProduto");
+    buscarProduto = document.getElementById("buscarProduto");
 
-        `
+    console.log("produtos.js carregado");
 
-        <label>
+    ouvirProdutos((produtos) => {
+        produtosCache = produtos;
+        aplicarFiltros();
+    });
 
-            Nome
+    buscarProduto?.addEventListener("input", aplicarFiltros);
 
-        </label>
+    btnNovoProduto?.addEventListener("click", abrirModalNovoProduto);
+}
 
-        <input type="text" id="nomeProduto">
+/* ==========================================
+   FILTROS
+========================================== */
 
-        <br><br>
+function aplicarFiltros() {
 
-        <label>
+    let produtos = [...produtosCache];
+    const termo = buscarProduto?.value?.trim().toLowerCase() || "";
 
-            Preço
+    if (termo) {
+        produtos = produtos.filter((produto) => {
+            const nome = (produto.nome || "").toLowerCase();
+            const descricao = (produto.descricao || "").toLowerCase();
+            const categoria = (produto.categoria || "").toLowerCase();
 
-        </label>
+            return (
+                nome.includes(termo) ||
+                descricao.includes(termo) ||
+                categoria.includes(termo)
+            );
+        });
+    }
 
-        <input type="number" id="precoProduto">
+    renderProdutos(produtos);
 
-        <br><br>
+}
 
-        <button id="salvarProduto">
+/* ==========================================
+   RENDER
+========================================== */
 
-            Salvar
+function renderProdutos(produtos) {
 
-        </button>
+    if (!listaProdutos) return;
 
-        `
+    if (!produtos.length) {
+        listaProdutos.innerHTML = `
+            <div class="empty-state">
+                <h3>Nenhum produto encontrado</h3>
+                <p>Os produtos cadastrados aparecerão aqui.</p>
+            </div>
+        `;
+        return;
+    }
 
-    );
+    listaProdutos.innerHTML = "";
 
-    document
-    .getElementById("salvarProduto")
-    .addEventListener("click",()=>{
+    produtos.forEach((produto) => {
 
-        toast("Produto salvo!");
+        const card = document.createElement("div");
+        card.className = "panel";
+
+        card.innerHTML = `
+            <div class="panel-title">
+                ${produto.nome || "Produto sem nome"}
+            </div>
+
+            <p>
+                <strong>Preço:</strong>
+                R$ ${Number(produto.preco || 0).toFixed(2)}
+            </p>
+
+            <p>
+                <strong>Categoria:</strong>
+                ${produto.categoria || "-"}
+            </p>
+
+            <p>
+                <strong>Descrição:</strong>
+                ${produto.descricao || "-"}
+            </p>
+
+            <p>
+                <strong>Vendas:</strong>
+                ${produto.vendas ?? 0}
+            </p>
+        `;
+
+        listaProdutos.appendChild(card);
 
     });
 
-});
+}
+
+/* ==========================================
+   NOVO PRODUTO
+========================================== */
+
+function abrirModalNovoProduto() {
+    abrirModal(
+        "Novo Produto",
+        `
+        <form id="formNovoProduto" class="form-grid">
+
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="nomeProduto" required>
+            </div>
+
+            <div class="form-group">
+                <label>Preço</label>
+                <input type="number" id="precoProduto" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>Categoria</label>
+                <input type="text" id="categoriaProduto">
+            </div>
+
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="descricaoProduto"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    id="cancelarProduto"
+                    class="btn btn-secondary">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+                    Salvar
+                </button>
+            </div>
+
+        </form>
+        `
+    );
+
+    document
+        .getElementById("cancelarProduto")
+        ?.addEventListener("click", fecharModal);
+
+    document
+        .getElementById("formNovoProduto")
+        ?.addEventListener("submit", async (e) => {
+
+            e.preventDefault();
+
+            try {
+
+                await criarProduto({
+                    nome: document.getElementById("nomeProduto").value.trim(),
+                    preco: document.getElementById("precoProduto").value,
+                    categoria: document.getElementById("categoriaProduto").value.trim(),
+                    descricao: document.getElementById("descricaoProduto").value.trim(),
+                    vendas: 0,
+                    ativo: true
+                });
+
+                toast("Produto salvo com sucesso!");
+                fecharModal();
+
+            } catch (erro) {
+
+                console.error(erro);
+                toast("Erro ao salvar produto.");
+
+            }
+
+        });
+
+}
+
+initProdutos();

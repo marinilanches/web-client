@@ -1,13 +1,9 @@
-import { criarPedido } from "./orders.js";
+import { criarPedido } from "../services/orders.js";
 
 import {
-
     getCarrinho,
-
     getTotal,
-
     limparCarrinho
-
 } from "./cart.js";
 
 /* ==========================================================
@@ -17,51 +13,37 @@ import {
 export async function finalizarPedido() {
 
     const itens = getCarrinho();
+    const tipoPedido = document.getElementById("tipoPedido")?.value || "Delivery";
 
     if (itens.length === 0) {
-
         alert("Carrinho vazio.");
-
         return;
-
     }
 
     try {
 
         await criarPedido({
-
             cliente: "",
-
             telefone: "",
-
-            tipo: "Delivery",
-
+            tipo: tipoPedido,
             clienteId: null,
-
             mesaId: null,
-
             itens,
-
             observacoes: "",
-
             valorTotal: getTotal(),
-
             pagamentoMetodo: "",
-
             pagamentoStatus: "PENDENTE"
-
         });
 
         alert("Pedido enviado com sucesso!");
 
         limparCarrinho();
 
-    }
+        window.location.href = "/status.html";
 
-    catch (erro) {
+    } catch (erro) {
 
         console.error("Erro ao finalizar pedido:", erro);
-
         alert("Não foi possível finalizar o pedido.");
 
     }

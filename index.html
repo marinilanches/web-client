@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Restaurante Digital</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./css/styles.css">
 </head>
 
 <body>
@@ -26,10 +26,18 @@
 <footer class="cart">
   🛒 <span id="qtd">0</span> itens |
   R$ <span id="total">0.00</span>
+  <div class="checkout-field">
+    <label for="tipoPedido">Tipo do pedido</label>
+    <select id="tipoPedido">
+        <option value="Delivery">Delivery</option>
+        <option value="Retirada">Retirada</option>
+    </select>
+  </div>
+
   <button id="finalizarBtn">Finalizar Pedido</button>
 </footer>
 
-<script type="module" src="app.js"></script>
+<script type="module" src="./js/client/app.js"></script>
 
 </body>
 </html>
