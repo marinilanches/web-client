@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Checkout - Pedido</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./css/styles.css" />
 </head>
 
 <body>
@@ -13,79 +13,277 @@
 </header>
 
 <section class="menu">
-  <h3>Resumo do Carrinho</h3>
+  <div class="bloco">
+    <h3>Resumo do Carrinho</h3>
+    <div id="resumo"></div>
+    <div class="linha-total">
+      Total: R$ <span id="total">0.00</span>
+    </div>
+  </div>
 
-  <div id="resumo"></div>
+  <div class="bloco">
+    <h3>Seus dados</h3>
 
-  <h3>Total: R$ <span id="total">0.00</span></h3>
+    <form id="checkoutForm" class="checkout-form">
+      <div class="campo">
+        <label for="cliente">Nome</label>
+        <input
+          type="text"
+          id="cliente"
+          placeholder="Digite seu nome"
+          required
+        />
+      </div>
 
-  <button id="btnFinalizar">
-    Confirmar Pedido
-  </button>
+      <div class="campo">
+        <label for="telefone">Telefone</label>
+        <input
+          type="tel"
+          id="telefone"
+          placeholder="(11) 99999-9999"
+          required
+        />
+      </div>
+
+      <div class="campo">
+        <label for="tipoPedido">Tipo do pedido</label>
+        <select id="tipoPedido" required>
+          <option value="Delivery">Delivery</option>
+          <option value="Retirada">Retirada</option>
+        </select>
+      </div>
+
+      <div id="camposDelivery">
+        <div class="campo">
+          <label for="endereco">Endereço</label>
+          <input
+            type="text"
+            id="endereco"
+            placeholder="Rua, número, bairro"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="referencia">Referência</label>
+          <input
+            type="text"
+            id="referencia"
+            placeholder="Ex.: portão preto, casa de esquina"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="observacoes">Observações</label>
+          <textarea
+            id="observacoes"
+            placeholder="Ex.: sem cebola, tocar interfone, troco para R$ 100..."
+          ></textarea>
+        </div>
+      </div>
+
+      <button type="submit" id="btnFinalizar" class="btn-finalizar">
+        Confirmar Pedido
+      </button>
+    </form>
+  </div>
 </section>
 
 <script type="module">
-import { db } from "./js/services/firebase.js";
-import {
-  addDoc,
-  collection,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { criarPedido } from "./js/services/orders.js";
 
-// =======================
-// 🧠 RECUPERAR CARRINHO
-// =======================
-const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+  const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-let total = 0;
-const container = document.getElementById("resumo");
+  const resumo = document.getElementById("resumo");
+  const totalEl = document.getElementById("total");
 
-// =======================
-// RENDER
-// =======================
-carrinho.forEach(item => {
-  total += item.valorUnitario;
+  const form = document.getElementById("checkoutForm");
+  const tipoPedidoEl = document.getElementById("tipoPedido");
 
-  container.innerHTML += `
-    <div class="item">
-      <div>
-        <h4>${item.nome}</h4>
-        <span>R$ ${item.valorUnitario}</span>
-      </div>
-    </div>
-  `;
-});
+  const clienteEl = document.getElementById("cliente");
+  const telefoneEl = document.getElementById("telefone");
 
-document.getElementById("total").innerText = total.toFixed(2);
+  const camposDelivery = document.getElementById("camposDelivery");
+  const enderecoEl = document.getElementById("endereco");
+  const referenciaEl = document.getElementById("referencia");
+  const observacoesEl = document.getElementById("observacoes");
 
-// =======================
-// FINALIZAR PEDIDO
-// =======================
-document.getElementById("btnFinalizar").onclick = async () => {
-  if (carrinho.length === 0) {
-    alert("Carrinho vazio!");
-    return;
+  let total = 0;
+
+  /* ==========================================================
+   TELEFONE
+  ========================================================== */
+  function somenteDigitos(valor) {
+    return String(valor || "").replace(/\D/g, "");
   }
 
-  try {
-    await addDoc(collection(db, "pedidos"), {
-      itens: carrinho,
-      valorTotal: total,
-      status: "NOVO",
-      pagamentoStatus: "PENDENTE",
-      createdAt: serverTimestamp()
+  function normalizarTelefoneBR(valor) {
+    let digits = somenteDigitos(valor);
+
+    if (!digits) return "";
+
+    // remove 55 do começo para tratar a base local primeiro
+    if (digits.startsWith("55")) {
+      digits = digits.slice(2);
+    }
+
+    // sem DDD: 8 ou 9 dígitos -> assume DDD 19
+    if (digits.length === 8 || digits.length === 9) {
+      digits = `19${digits}`;
+    }
+
+    // agora precisa estar com DDD + número
+    if (digits.length !== 10 && digits.length !== 11) {
+      return "";
+    }
+
+    // devolve já no padrão com 55
+    return `55${digits}`;
+  }
+
+  function telefoneValido(valor) {
+    return normalizarTelefoneBR(valor) !== "";
+  }
+
+  /* ==========================================================
+     RENDER DO CARRINHO
+  ========================================================== */
+  function renderCarrinho() {
+    resumo.innerHTML = "";
+    total = 0;
+
+    if (carrinho.length === 0) {
+      resumo.innerHTML = `<p>Seu carrinho está vazio.</p>`;
+      totalEl.innerText = "0.00";
+      return;
+    }
+
+    carrinho.forEach(item => {
+      const quantidade = Number(item.quantidade || 1);
+      const valorUnitario = Number(item.valorUnitario || 0);
+      const subtotal = quantidade * valorUnitario;
+
+      total += subtotal;
+
+      resumo.innerHTML += `
+        <div class="item-resumo">
+          <h4>${item.nome}</h4>
+          <p>Quantidade: ${quantidade}</p>
+          <p>Unitário: R$ ${valorUnitario.toFixed(2)}</p>
+          <p>Subtotal: R$ ${subtotal.toFixed(2)}</p>
+        </div>
+      `;
     });
 
-    alert("Pedido enviado com sucesso!");
-
-    localStorage.removeItem("carrinho");
-
-    window.location.href = "/status.html";
-
-  } catch (e) {
-    console.error(e);
+    totalEl.innerText = total.toFixed(2);
   }
-};
+
+  /* ==========================================================
+     TOGGLE DELIVERY / RETIRADA
+  ========================================================== */
+  function atualizarCamposTipoPedido() {
+    const tipo = tipoPedidoEl.value;
+
+    if (tipo === "Delivery") {
+      camposDelivery.classList.remove("hidden");
+      enderecoEl.required = true;
+    } else {
+      camposDelivery.classList.add("hidden");
+      enderecoEl.required = false;
+
+      enderecoEl.value = "";
+      referenciaEl.value = "";
+      observacoesEl.value = "";
+    }
+  }
+
+  /* ==========================================================
+     VALIDAÇÃO
+  ========================================================== */
+  function validarFormulario() {
+    const cliente = clienteEl.value.trim();
+    const telefone = telefoneEl.value.trim();
+    const tipo = tipoPedidoEl.value;
+    const endereco = enderecoEl.value.trim();
+
+    if (carrinho.length === 0) {
+      alert("Carrinho vazio!");
+      return false;
+    }
+
+    if (!cliente) {
+      alert("Preencha seu nome.");
+      clienteEl.focus();
+      return false;
+    }
+
+    if (!telefone) {
+      alert("Preencha seu telefone.");
+      telefoneEl.focus();
+      return false;
+    }
+
+    if (!telefoneValido(telefone)) {
+      alert("Digite um telefone válido com DDD.");
+      telefoneEl.focus();
+      return false;
+    }
+
+    if (tipo === "Delivery" && !endereco) {
+      alert("Preencha o endereço para delivery.");
+      enderecoEl.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  /* ==========================================================
+     ENVIAR PEDIDO
+  ========================================================== */
+  async function finalizarPedido(event) {
+    event.preventDefault();
+
+    if (!validarFormulario()) return;
+
+    const tipo = tipoPedidoEl.value;
+    const telefoneLimpo = normalizarTelefoneBR(telefoneEl.value);
+
+    try {
+      const docRef = await criarPedido({
+        cliente: clienteEl.value.trim(),
+        telefone: telefoneLimpo,
+        tipo,
+        endereco: tipo === "Delivery" ? enderecoEl.value.trim() : "",
+        referencia: tipo === "Delivery" ? referenciaEl.value.trim() : "",
+        observacoes: tipo === "Delivery" ? observacoesEl.value.trim() : "",
+        clienteId: null,
+        mesaId: null,
+        itens: carrinho,
+        valorTotal: total,
+        pagamentoMetodo: "",
+        pagamentoStatus: "PENDENTE",
+        status: "RECEBIDO"
+      });
+
+      alert("Pedido enviado com sucesso!");
+
+      localStorage.removeItem("carrinho");
+
+      window.location.href = `./status.html?id=${docRef.id}`;
+    } catch (erro) {
+      console.error("Erro ao finalizar pedido:", erro);
+      alert("Não foi possível finalizar o pedido.");
+    }
+  }
+
+  /* ==========================================================
+     INIT
+  ========================================================== */
+  renderCarrinho();
+  atualizarCamposTipoPedido();
+
+  tipoPedidoEl.addEventListener("change", atualizarCamposTipoPedido);
+  form.addEventListener("submit", finalizarPedido);
 </script>
 
 </body>

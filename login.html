@@ -1,32 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="./css/login.css">
   <title>Login Admin</title>
 </head>
 
 <body>
 
-<h2>Login Admin</h2>
+<div class="login-card">
+  <div class="login-logo">🍔</div>
+  <h2 class="login-title">Mesa Fácil</h2>
+  <p class="login-subtitle">Acesso ao painel administrativo</p>
 
-<input id="email" placeholder="email"/>
-<input id="password" type="password" placeholder="senha"/>
+  <div class="login-form">
+    <div>
+      <label for="email">E-mail</label>
+      <input id="email" type="email" placeholder="seuemail@exemplo.com" />
+    </div>
 
-<button onclick="login()">Entrar</button>
+    <div>
+      <label for="password">Senha</label>
+      <input id="password" type="password" placeholder="Digite sua senha" />
+    </div>
+
+    <button class="login-btn" onclick="login()">Entrar</button>
+  </div>
+</div>
 
 <script type="module">
-import { auth } from "./js/services/firebase.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { login } from "./js/services/auth.js";
 
 window.login = async () => {
-  const email = document.getElementById("email").value;
+  const loginValue = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    await login(loginValue, password);
     alert("Login OK");
-    window.location.href = "/admin.html";
+    window.location.href = "./admin/index.html";
   } catch (e) {
-    alert("Erro login: " + e.message);
+    alert("Login ou senha inválidos.");
   }
 };
 </script>

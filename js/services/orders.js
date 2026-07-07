@@ -25,51 +25,47 @@ const pedidosRef = collection(db, "pedidos");
 ========================================================== */
 
 export async function criarPedido(dados) {
-
     try {
-
         const pedido = {
-
             numeroPedido: dados.numeroPedido || null,
-
             cliente: dados.cliente || "",
-
             telefone: dados.telefone || "",
-
             tipo: dados.tipo || "Delivery",
 
-            clienteId: dados.clienteId || null,
+            endereco: dados.endereco || "",
+            referencia: dados.referencia || "",
 
+            clienteId: dados.clienteId || null,
             mesaId: dados.mesaId || null,
 
             itens: dados.itens || [],
-
             observacoes: dados.observacoes || "",
 
             valorTotal: Number(dados.valorTotal || 0),
 
             pagamentoMetodo: dados.pagamentoMetodo || "",
-
             pagamentoStatus: dados.pagamentoStatus || "PENDENTE",
 
             status: "RECEBIDO",
 
+            ultimoStatusNotificado: null,
+
             createdAt: serverTimestamp(),
-
             updatedAt: serverTimestamp()
-
         };
 
-        return await addDoc(pedidosRef, pedido);
+        const docRef = await addDoc(pedidosRef, pedido);
+
+        await updateDoc(doc(db, "pedidos", docRef.id), {
+            numeroPedido: docRef.id
+        });
+
+        return docRef;
 
     } catch (erro) {
-
         console.error("Erro ao criar pedido:", erro);
-
         throw erro;
-
     }
-
 }
 
 /* ==========================================================
@@ -77,28 +73,18 @@ export async function criarPedido(dados) {
 ========================================================== */
 
 export async function editarPedido(id, dados) {
-
     try {
-
         await updateDoc(
-
             doc(db, "pedidos", id),
-
             {
                 ...dados,
                 updatedAt: serverTimestamp()
             }
-
         );
-
     } catch (erro) {
-
         console.error("Erro ao editar pedido:", erro);
-
         throw erro;
-
     }
-
 }
 
 /* ==========================================================
@@ -106,28 +92,18 @@ export async function editarPedido(id, dados) {
 ========================================================== */
 
 export async function alterarStatus(id, status) {
-
     try {
-
         await updateDoc(
-
             doc(db, "pedidos", id),
-
             {
                 status,
                 updatedAt: serverTimestamp()
             }
-
         );
-
     } catch (erro) {
-
         console.error("Erro ao alterar status:", erro);
-
         throw erro;
-
     }
-
 }
 
 /* ==========================================================
@@ -135,9 +111,7 @@ export async function alterarStatus(id, status) {
 ========================================================== */
 
 export async function cancelarPedido(id) {
-
     return alterarStatus(id, "CANCELADO");
-
 }
 
 /* ==========================================================
@@ -145,21 +119,12 @@ export async function cancelarPedido(id) {
 ========================================================== */
 
 export async function excluirPedido(id) {
-
     try {
-
-        await deleteDoc(
-            doc(db, "pedidos", id)
-        );
-
+        await deleteDoc(doc(db, "pedidos", id));
     } catch (erro) {
-
         console.error("Erro ao excluir pedido:", erro);
-
         throw erro;
-
     }
-
 }
 
 /* ==========================================================
@@ -167,12 +132,8 @@ export async function excluirPedido(id) {
 ========================================================== */
 
 export async function buscarPedido(id) {
-
     try {
-
-        const pedido = await getDoc(
-            doc(db, "pedidos", id)
-        );
+        const pedido = await getDoc(doc(db, "pedidos", id));
 
         if (!pedido.exists()) {
             return null;
@@ -182,57 +143,66 @@ export async function buscarPedido(id) {
             id: pedido.id,
             ...pedido.data()
         };
-
     } catch (erro) {
-
         console.error("Erro ao buscar pedido:", erro);
-
         throw erro;
-
     }
-
 }
 
 /* ==========================================================
-   OUVIR PEDIDOS (TEMPO REAL)
+   OUVIR PEDIDOS (LISTA EM TEMPO REAL)
 ========================================================== */
 
 export function ouvirPedidos(callback) {
-
     const q = query(
         pedidosRef,
         orderBy("createdAt", "desc")
     );
 
     return onSnapshot(
-
         q,
-
         (snapshot) => {
-
             const pedidos = [];
 
             snapshot.forEach((docItem) => {
-
                 pedidos.push({
                     id: docItem.id,
                     ...docItem.data()
                 });
-
             });
 
             callback(pedidos);
-
         },
-
         (erro) => {
-
             console.error("Erro ao ouvir pedidos:", erro);
-
         }
-
     );
+}
 
+/* ==========================================================
+   OUVIR UM PEDIDO ESPECÍFICO (TEMPO REAL)
+========================================================== */
+
+export function ouvirPedidoPorId(id, callback, onNotFound = null) {
+    const pedidoRef = doc(db, "pedidos", id);
+
+    return onSnapshot(
+        pedidoRef,
+        (snapshot) => {
+            if (!snapshot.exists()) {
+                if (onNotFound) onNotFound();
+                return;
+            }
+
+            callback({
+                id: snapshot.id,
+                ...snapshot.data()
+            });
+        },
+        (erro) => {
+            console.error("Erro ao ouvir pedido por ID:", erro);
+        }
+    );
 }
 
 /* ==========================================================
@@ -240,27 +210,17 @@ export function ouvirPedidos(callback) {
 ========================================================== */
 
 export function contarPedidos(pedidos) {
-
     return {
-
         total: pedidos.length,
-
         recebidos: pedidos.filter(p => p.status === "RECEBIDO").length,
-
         preparando: pedidos.filter(p => p.status === "PREPARANDO").length,
-
         prontos: pedidos.filter(p => p.status === "PRONTO").length,
-
         entregues: pedidos.filter(p => p.status === "ENTREGUE").length,
-
         cancelados: pedidos.filter(p => p.status === "CANCELADO").length,
-
         faturamento: pedidos
             .filter(p => p.status === "ENTREGUE")
             .reduce((total, pedido) => {
                 return total + Number(pedido.valorTotal || 0);
             }, 0)
-
     };
-
 }

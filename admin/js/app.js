@@ -1,5 +1,6 @@
 import { carregarSidebar } from "../components/sidebar.js";
 import { carregarHeader } from "../components/header.js";
+import { protegerPaginaAdmin } from "../../js/services/auth.js";
 
 /* ==========================================================
    MESA FÁCIL
@@ -7,6 +8,12 @@ import { carregarHeader } from "../components/header.js";
 ========================================================== */
 
 async function iniciarAdmin() {
+
+    const autorizado = protegerPaginaAdmin();
+
+    if (!autorizado) {
+        return;
+    }
 
     carregarSidebar();
     carregarHeader();

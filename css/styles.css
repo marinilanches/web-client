@@ -1,52 +1,383 @@
-body {
-  font-family: Arial;
-  margin: 0;
-  background: #f5f5f5;
+:root {
+  --primary: #d6001c;
+  --primary-dark: #b40018;
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --radius: 14px;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ==========================================================
+   TOPO
+========================================================== */
 
 .topbar {
-  background: #d6001c;
+  background: linear-gradient(135deg, var(--primary), #ff3b4d);
   color: white;
-  padding: 15px;
+  padding: 18px 16px;
+  box-shadow: var(--shadow);
 }
+
+.topbar h1,
+.topbar h2,
+.topbar h3,
+.topbar p {
+  margin: 0;
+}
+
+/* ==========================================================
+   CONTEÚDO
+========================================================== */
 
 .menu {
-  padding: 10px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 18px 14px 100px;
 }
 
+/* ==========================================================
+   CARD DE ITEM / PRODUTO
+========================================================== */
+
 .item {
-  background: white;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 10px;
+  background: var(--card);
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: var(--radius);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
 }
+
+.item h3,
+.item h4 {
+  margin: 0 0 6px;
+}
+
+.item p {
+  margin: 4px 0;
+  color: var(--muted);
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================
+   BLOCO / CARD GERAL
+========================================================== */
+
+.bloco {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.bloco h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+/* ==========================================================
+   RESUMO DO CARRINHO
+========================================================== */
+
+.item-resumo {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.item-resumo:last-child {
+  border-bottom: none;
+}
+
+.item-resumo h4 {
+  margin: 0 0 8px;
+}
+
+.item-resumo p {
+  margin: 4px 0;
+  color: var(--muted);
+}
+
+.linha-total {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 2px solid var(--border);
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* ==========================================================
+   FORMULÁRIOS
+========================================================== */
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.campo {
+  margin-bottom: 4px;
+}
+
+.checkout-form label {
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: block;
+  color: var(--text);
+}
+
+.checkout-form input,
+.checkout-form select,
+.checkout-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.checkout-form input:focus,
+.checkout-form select:focus,
+.checkout-form textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(214, 0, 28, 0.12);
+}
+
+.checkout-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================
+   BOTÕES
+========================================================== */
+
+button,
+.btn-finalizar {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+button:hover,
+.btn-finalizar:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+button:disabled,
+.btn-finalizar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-finalizar {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 16px;
+  padding: 14px;
+}
+
+/* ==========================================================
+   CARRINHO FIXO DO INDEX
+========================================================== */
 
 .cart {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   background: white;
-  padding: 10px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+  z-index: 20;
 }
 
-button {
-  background: #d6001c;
-  color: white;
-  border: none;
-  padding: 6px;
-  border-radius: 5px;
-  cursor: pointer;
+.cart strong {
+  display: block;
+  font-size: 16px;
 }
 
-button:hover {
-  opacity: 0.8;
+.cart small {
+  color: var(--muted);
 }
 
-.item {
-  flex-direction: row;
+/* ==========================================================
+   STATUS DO PEDIDO
+========================================================== */
+
+.status-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+
+.status-card h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.status-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.status-linha:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.status-valor {
+  font-weight: 700;
+  text-align: right;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.status-recebido {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-preparando {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-pronto {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-entregue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-cancelado {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* ==========================================================
+   MENSAGENS / VAZIO
+========================================================== */
+
+.empty-state {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* ==========================================================
+   RESPONSIVO
+========================================================== */
+
+@media (max-width: 640px) {
+  .menu {
+    padding: 14px 12px 100px;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item-actions {
+    justify-content: flex-end;
+  }
+
+  .status-linha {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-valor {
+    text-align: left;
+  }
+
+  .cart {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cart button {
+    width: 100%;
+  }
 }
