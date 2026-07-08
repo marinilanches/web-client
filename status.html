@@ -4,22 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Status do Pedido</title>
+  <link 
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet">
+
   <link rel="stylesheet" href="./css/styles.css" />
+
+  <link rel="stylesheet" href="./css/pedido-status.css" />
 </head>
 
-<body>
+<body class="cliente-body">
 
-<header class="topbar">
-  <h2>📦 Status do Pedido</h2>
+<header class="store-header">
+
+<div class="container py-3 py-lg-4">
+
+<div class="store-hero card border-0 shadow-sm">
+
+<div class="card-body p-4">
+
+<div class="d-flex align-items-center gap-3">
+
+<div class="store-logo">
+<i class="bi bi-bag-check-fill"></i>
+</div>
+
+<div>
+<p class="store-kicker mb-1">
+Acompanhe seu pedido
+</p>
+
+<h2 class="store-title">
+Seus pedidos
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
 </header>
 
-<section class="menu">
-  <h3>Seu Pedido</h3>
-  <div id="pedidoInfo">Carregando...</div>
-</section>
+
+<main class="container py-3">
+
+  <section>
+
+    <div class="mb-4">
+
+      <h2 class="section-title">
+        Seus pedidos
+      </h2>
+
+      <p class="section-subtitle">
+        Acompanhe o andamento do seu pedido em tempo real.
+      </p>
+
+    </div>
+
+
+    <div id="pedidoInfo">
+
+      <div class="status-card mb-3">
+        Carregando...
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
 
 <script type="module">
-  import { ouvirPedidoPorId } from "./js/services/orders.js";
+  import {
+    ouvirPedidosCliente,
+    ouvirPedidoPorId
+  } from "./js/services/orders.js";
+
+  import {
+    garantirClienteAuth,
+    buscarCliente
+  } from "./js/services/customers.js";
 
   const pedidoInfo = document.getElementById("pedidoInfo");
 
@@ -121,7 +191,7 @@
   }
 
   function ativarBotaoCopiarPix() {
-    const botao = document.getElementById("copiarPixBtn");
+    const botao = document.getElementById("btnCopiarPix");
     if (!botao) return;
 
     botao.addEventListener("click", async () => {
@@ -131,6 +201,7 @@
         await navigator.clipboard.writeText(chave);
         const textoOriginal = botao.textContent;
         botao.textContent = "Chave copiada!";
+
         setTimeout(() => {
           botao.textContent = textoOriginal;
         }, 2000);
@@ -138,6 +209,111 @@
         alert("Não foi possível copiar automaticamente. Chave PIX: " + chave);
       }
     });
+  }
+
+  function gerarProgresso(status) {
+
+    const etapas = [
+      {
+        id:"RECEBIDO",
+        nome:"Recebido",
+        emoji:"📥"
+      },
+      {
+        id:"PREPARANDO",
+        nome:"Preparando",
+        emoji:"👨‍🍳"
+      },
+      {
+        id:"PRONTO",
+        nome:"Pronto",
+        emoji:"✅"
+      },
+      {
+        id:"ENTREGUE",
+        nome:"Entregue",
+        emoji:"🚚"
+      }
+    ];
+
+
+    const cancelado = status === "CANCELADO";
+
+
+    const indiceAtual = etapas.findIndex(
+      etapa => etapa.id === status
+    );
+
+
+    const porcentagem = indiceAtual < 0
+      ? 0
+      : (indiceAtual / (etapas.length - 1)) * 100;
+
+
+
+    return `
+
+      <div class="status-progresso">
+
+        <div class="progresso-linha"></div>
+
+        <div 
+          class="progresso-linha-ativa"
+          style="width:${porcentagem}%"
+        ></div>
+
+
+        <div class="progresso-etapas">
+
+          ${etapas.map((etapa,index)=>{
+
+
+            let classe = "";
+
+
+            if(index < indiceAtual){
+
+              classe="concluida";
+
+            }
+
+
+            if(index === indiceAtual){
+
+              classe="ativa";
+
+            }
+
+
+            return `
+
+            <div class="progresso-etapa ${classe}">
+
+              <div class="progresso-bolinha">
+
+                ${etapa.emoji}
+
+              </div>
+
+
+              <span>
+
+                ${etapa.nome}
+
+              </span>
+
+            </div>
+
+            `;
+
+
+          }).join("")}
+
+        </div>
+
+      </div>
+
+    `;
   }
 
   function renderPedido(pedido, pedidoId) {
@@ -175,10 +351,21 @@
       : "";
 
     pedidoInfo.innerHTML = `
-      <div class="item status-card" style="display:block;">
-        <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
-        <p><strong>Status:</strong> ${getStatusLabel(pedido.status)}</p>
+    <div class="item status-card" style="display:block;">
+
+    <h3>
+    Pedido #${pedido.numeroPedido || pedidoId}
+    </h3>
+
+
+    ${gerarProgresso(pedido.status)}
+
+
+    <p>
+    <strong>Status:</strong>
+    ${getStatusLabel(pedido.status)}
+    </p>
         <p><strong>Data:</strong> ${formatarData(pedido.criadoEm || pedido.createdAt)}</p>
 
         <div class="status-section">
@@ -220,22 +407,80 @@
     ativarBotaoCopiarPix();
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const pedidoId = params.get("id");
+  async function carregarMeusPedidos(){
 
-  if (!pedidoId) {
-    renderMensagem("Nenhum pedido foi informado. Volte e finalize um pedido para acompanhar o status.");
-  } else {
-    ouvirPedidoPorId(
-      pedidoId,
-      (pedido) => {
-        renderPedido(pedido, pedidoId);
-      },
-      () => {
-        renderMensagem("Pedido não encontrado.");
-      }
-    );
+    const user = await garantirClienteAuth();
+
+    const cliente = await buscarCliente(user.uid);
+
+    console.log("UID cliente:", user.uid);
+    console.log("Cliente:", cliente);
+    ouvirPedidosCliente(
+      user.uid,
+      pedidos=>{
+        console.log("Pedidos encontrados:", pedidos);
+
+    pedidoInfo.innerHTML=`
+
+    <h3>
+    Olá ${cliente.nome || "cliente"} 👋
+    </h3>
+
+
+    <h3>
+    Seus pedidos:
+    </h3>
+
+
+    ${
+    pedidos.map(p=>`
+
+    <div class="status-card mb-3">
+
+
+    <h4>
+    #${p.numeroPedido || p.id.slice(0,6).toUpperCase()}
+    </h4>
+
+
+    <p>
+    ${p.itens?.map(i=>i.nome).join(", ")}
+    </p>
+
+
+    <strong>
+    ${formatarMoeda(p.valorTotal)}
+    </strong>
+
+
+    ${gerarProgresso(p.status)}
+
+
+    </div>
+
+
+    `).join("")
+    }
+
+
+    <button
+    class="btn btn-danger w-100 mt-3"
+    onclick="location.href='./index.html'"
+    >
+      Novo pedido
+    </button>
+
+
+    `;
+
+    });
+
   }
+  carregarMeusPedidos();
+</script>
+
+<script 
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 </script>
 
 </body>

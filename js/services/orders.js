@@ -10,6 +10,7 @@ import {
   getDoc,
   query,
   orderBy,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -90,8 +91,11 @@ export async function criarPedido(dados) {
   const valorTotal = Number(dados.valorTotal ?? (valorSubtotal + taxaEntrega));
 
   const payload = {
+
+    numeroPedido:
+      Math.floor(1000 + Math.random() * 9000),
+
     cliente: dados.cliente || "",
-    clienteId: dados.clienteId || null,
 
     telefone,
     telefoneWhatsapp,
@@ -277,4 +281,51 @@ export function contarPedidos(pedidos) {
       .filter(p => p.status === "ENTREGUE")
       .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0)
   };
+}
+
+/* ==========================================================
+   OUVIR PEDIDOS DO CLIENTE
+========================================================== */
+
+export function ouvirPedidosCliente(uid, callback){
+
+ const q = query(
+   pedidosRef,
+   where(
+     "clienteId",
+     "==",
+     uid
+   ),
+   orderBy(
+     "criadoEm",
+     "desc"
+   )
+ );
+
+
+ return onSnapshot(
+   q,
+   snapshot=>{
+
+    const pedidos=[];
+
+
+    snapshot.forEach(doc=>{
+
+      pedidos.push({
+
+        id:doc.id,
+
+        ...doc.data()
+
+      });
+
+    });
+
+
+    callback(pedidos);
+
+   }
+ );
+
 }

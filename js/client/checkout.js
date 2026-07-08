@@ -4,21 +4,66 @@
    APENAS REDIRECIONA PARA pedido.html
 ========================================================== */
 
-export function irParaCheckout() {
-    // se não tiver carrinho salvo, o pedido.html ainda valida depois
-    window.location.href = "./pedido.html";
+function obterTipoPedidoSelecionado() {
+  const tipoDesktop = document.getElementById("tipoPedido");
+  const tipoMobile = document.getElementById("tipoPedidoMobile");
+
+  return (
+    tipoDesktop?.value ||
+    tipoMobile?.value ||
+    localStorage.getItem("tipoPedido") ||
+    "Delivery"
+  );
 }
+
+
+export function irParaCheckout() {
+
+  const tipoPedido = obterTipoPedidoSelecionado();
+
+  localStorage.setItem(
+    "tipoPedido",
+    tipoPedido
+  );
+
+
+  window.location.href = "./pedido.html";
+}
+
 
 /* ==========================================================
    INICIAR CHECKOUT
 ========================================================== */
 
 export function iniciarCheckout() {
-    const btn =
-        document.getElementById("finalizarBtn") ||
-        document.getElementById("btnFinalizar");
 
-    if (!btn) return;
+  const btnDesktop =
+    document.getElementById("finalizarBtn");
 
-    btn.addEventListener("click", irParaCheckout);
+
+  const btnMobile =
+    document.getElementById("finalizarBtnMobile");
+
+
+
+  if (btnDesktop) {
+
+    btnDesktop.addEventListener(
+      "click",
+      irParaCheckout
+    );
+
+  }
+
+
+
+  if (btnMobile) {
+
+    btnMobile.addEventListener(
+      "click",
+      irParaCheckout
+    );
+
+  }
+
 }

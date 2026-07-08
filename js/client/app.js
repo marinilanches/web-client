@@ -4,6 +4,10 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { loadProducts } from "../services/products.js";
 import { iniciarCarrinho } from "./cart.js";
 import { iniciarCheckout } from "./checkout.js";
+import { iniciarCliente } from "./customer.js";
+import {
+  iniciarPedidosCliente
+} from "./orders-client.js";
 
 const CONFIG_COLLECTION = "configuracoes";
 const CONFIG_DOC_ID = "geral";
@@ -115,9 +119,23 @@ async function carregarConfiguracoesLoja() {
   }
 }
 
+import {
+  garantirClienteAuth
+} from "../services/customers.js";
+
+
 window.addEventListener("DOMContentLoaded", async () => {
+
+  await garantirClienteAuth();
+
   await carregarConfiguracoesLoja();
+
   await loadProducts();
+
   iniciarCarrinho();
+
   iniciarCheckout();
+
+  await iniciarPedidosCliente();
+
 });

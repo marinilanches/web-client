@@ -4,9 +4,7 @@
 ========================================================== */
 
 let carrinho = [];
-
 let total = 0;
-
 let quantidade = 0;
 
 /* ==========================================================
@@ -14,25 +12,87 @@ let quantidade = 0;
 ========================================================== */
 
 export function iniciarCarrinho() {
+  carregarCarrinho();
+  sincronizarTipoPedido();
+  iniciarEventosCarrinho();
+  updateUI();
+}
 
-    carregarCarrinho();
+function iniciarEventosCarrinho() {
+  document.addEventListener("click", (e) => {
+    const btnAdd = e.target.closest(".btnAdd");
+    if (btnAdd) {
+      addItem(
+        btnAdd.dataset.nome,
+        Number(btnAdd.dataset.preco)
+      );
 
-    updateUI();
+      abrirCarrinhoNoMobile();
+      return;
+    }
 
-    document.addEventListener("click", (e) => {
+    const btnMais = e.target.closest(".btn-cart-plus");
+    if (btnMais) {
+      aumentarQuantidade(btnMais.dataset.nome);
+      return;
+    }
 
-        if (!e.target.classList.contains("btnAdd")) return;
+    const btnMenos = e.target.closest(".btn-cart-minus");
+    if (btnMenos) {
+      diminuirQuantidade(btnMenos.dataset.nome);
+      return;
+    }
 
-        addItem(
+    const btnRemover = e.target.closest(".btn-cart-remove");
+    if (btnRemover) {
+      removerItem(btnRemover.dataset.nome);
+      return;
+    }
+  });
 
-            e.target.dataset.nome,
+  const tipoDesktop = document.getElementById("tipoPedido");
+  const tipoMobile = document.getElementById("tipoPedidoMobile");
 
-            Number(e.target.dataset.preco)
+  if (tipoDesktop) {
+    tipoDesktop.addEventListener("change", () => {
+      if (tipoMobile) tipoMobile.value = tipoDesktop.value;
+      salvarTipoPedido(tipoDesktop.value);
+    });
+  }
 
-        );
+  if (tipoMobile) {
+    tipoMobile.addEventListener("change", () => {
+      if (tipoDesktop) tipoDesktop.value = tipoMobile.value;
+      salvarTipoPedido(tipoMobile.value);
+    });
+  }
 
+  const finalizarDesktop = document.getElementById("finalizarBtn");
+  const finalizarMobile = document.getElementById("finalizarBtnMobile");
+
+  if (finalizarDesktop && finalizarMobile) {
+    const syncDisabled = () => {
+      finalizarMobile.disabled = finalizarDesktop.disabled;
+      finalizarMobile.textContent = finalizarDesktop.textContent;
+      finalizarMobile.title = finalizarDesktop.title || "";
+    };
+
+    syncDisabled();
+
+    const observer = new MutationObserver(syncDisabled);
+    observer.observe(finalizarDesktop, {
+      attributes: true,
+      attributeFilter: ["disabled", "title"]
     });
 
+    // também sincroniza quando o texto mudar
+    const textObserver = new MutationObserver(syncDisabled);
+    textObserver.observe(finalizarDesktop, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
 }
 
 /* ==========================================================
@@ -40,31 +100,19 @@ export function iniciarCarrinho() {
 ========================================================== */
 
 export function addItem(nome, preco) {
+  const item = carrinho.find((produto) => produto.nome === nome);
 
-    const item = carrinho.find(produto => produto.nome === nome);
+  if (item) {
+    item.quantidade++;
+  } else {
+    carrinho.push({
+      nome,
+      quantidade: 1,
+      valorUnitario: preco
+    });
+  }
 
-    if (item) {
-
-        item.quantidade++;
-
-    }
-
-    else {
-
-        carrinho.push({
-
-            nome,
-
-            quantidade: 1,
-
-            valorUnitario: preco
-
-        });
-
-    }
-
-    recalcular();
-
+  recalcular();
 }
 
 /* ==========================================================
@@ -72,11 +120,8 @@ export function addItem(nome, preco) {
 ========================================================== */
 
 export function removerItem(nome) {
-
-    carrinho = carrinho.filter(item => item.nome !== nome);
-
-    recalcular();
-
+  carrinho = carrinho.filter((item) => item.nome !== nome);
+  recalcular();
 }
 
 /* ==========================================================
@@ -84,15 +129,11 @@ export function removerItem(nome) {
 ========================================================== */
 
 export function aumentarQuantidade(nome) {
+  const item = carrinho.find((produto) => produto.nome === nome);
+  if (!item) return;
 
-    const item = carrinho.find(produto => produto.nome === nome);
-
-    if (!item) return;
-
-    item.quantidade++;
-
-    recalcular();
-
+  item.quantidade++;
+  recalcular();
 }
 
 /* ==========================================================
@@ -100,23 +141,17 @@ export function aumentarQuantidade(nome) {
 ========================================================== */
 
 export function diminuirQuantidade(nome) {
+  const item = carrinho.find((produto) => produto.nome === nome);
+  if (!item) return;
 
-    const item = carrinho.find(produto => produto.nome === nome);
+  item.quantidade--;
 
-    if (!item) return;
+  if (item.quantidade <= 0) {
+    removerItem(nome);
+    return;
+  }
 
-    item.quantidade--;
-
-    if (item.quantidade <= 0) {
-
-        removerItem(nome);
-
-        return;
-
-    }
-
-    recalcular();
-
+  recalcular();
 }
 
 /* ==========================================================
@@ -124,23 +159,140 @@ export function diminuirQuantidade(nome) {
 ========================================================== */
 
 function recalcular() {
+  quantidade = 0;
+  total = 0;
 
-    quantidade = 0;
+  carrinho.forEach((item) => {
+    quantidade += item.quantidade;
+    total += item.quantidade * item.valorUnitario;
+  });
 
-    total = 0;
+  updateUI();
+  salvarCarrinho();
+}
 
-    carrinho.forEach(item => {
+/* ==========================================================
+   HELPERS
+========================================================== */
 
-        quantidade += item.quantidade;
+function formatarMoeda(valor) {
+  return Number(valor || 0).toFixed(2);
+}
 
-        total += item.quantidade * item.valorUnitario;
+function escaparHtml(texto = "") {
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-    });
+function getTipoPedidoAtual() {
+  const tipoDesktop = document.getElementById("tipoPedido");
+  const tipoMobile = document.getElementById("tipoPedidoMobile");
 
-    updateUI();
+  return (
+    tipoDesktop?.value ||
+    tipoMobile?.value ||
+    localStorage.getItem("tipoPedido") ||
+    "Delivery"
+  );
+}
 
-    salvarCarrinho();
+function salvarTipoPedido(valor) {
+  localStorage.setItem("tipoPedido", valor);
+}
 
+function sincronizarTipoPedido() {
+  const valorSalvo = localStorage.getItem("tipoPedido") || "Delivery";
+
+  const tipoDesktop = document.getElementById("tipoPedido");
+  const tipoMobile = document.getElementById("tipoPedidoMobile");
+
+  if (tipoDesktop) tipoDesktop.value = valorSalvo;
+  if (tipoMobile) tipoMobile.value = valorSalvo;
+}
+
+/* ==========================================================
+   RENDER DO CARRINHO
+========================================================== */
+
+function getCartItemMarkup(item) {
+  const subtotal = item.quantidade * item.valorUnitario;
+  const nomeEscapado = escaparHtml(item.nome);
+
+  return `
+    <div class="cart-item-card">
+      <div class="cart-item-top">
+        <div class="flex-grow-1">
+          <h4 class="cart-item-title">${nomeEscapado}</h4>
+          <p class="cart-item-unit">R$ ${formatarMoeda(item.valorUnitario)} cada</p>
+        </div>
+
+        <button
+          class="btn-cart-remove"
+          data-nome="${nomeEscapado}"
+          type="button"
+          aria-label="Remover item"
+        >
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>
+
+      <div class="cart-item-bottom">
+        <div class="cart-qty">
+          <button
+            class="btn-cart-minus"
+            data-nome="${nomeEscapado}"
+            type="button"
+            aria-label="Diminuir quantidade"
+          >
+            −
+          </button>
+
+          <span class="cart-qty-value">${item.quantidade}</span>
+
+          <button
+            class="btn-cart-plus"
+            data-nome="${nomeEscapado}"
+            type="button"
+            aria-label="Aumentar quantidade"
+          >
+            +
+          </button>
+        </div>
+
+        <strong class="cart-item-price">R$ ${formatarMoeda(subtotal)}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function getEmptyMarkup() {
+  return `
+    <div class="cart-empty">
+      <div class="cart-empty-icon">
+        <i class="bi bi-bag"></i>
+      </div>
+      <h4 class="mb-2">Seu carrinho está vazio</h4>
+      <p class="mb-0 text-secondary">
+        Adicione itens do cardápio para continuar.
+      </p>
+    </div>
+  `;
+}
+
+function renderCarrinho() {
+  const cartItemsDesktop = document.getElementById("cartItems");
+  const cartItemsMobile = document.getElementById("cartItemsMobile");
+
+  const html = !carrinho.length
+    ? getEmptyMarkup()
+    : carrinho.map(getCartItemMarkup).join("");
+
+  if (cartItemsDesktop) cartItemsDesktop.innerHTML = html;
+  if (cartItemsMobile) cartItemsMobile.innerHTML = html;
 }
 
 /* ==========================================================
@@ -148,23 +300,48 @@ function recalcular() {
 ========================================================== */
 
 export function updateUI() {
+  const qtdEls = [
+    document.getElementById("qtd"),
+    document.getElementById("qtdCarrinho"),
+    document.getElementById("qtdCarrinhoOffcanvas"),
+    document.getElementById("qtdCarrinhoMobile")
+  ].filter(Boolean);
 
-    const qtd = document.getElementById("qtd");
+  const totalEls = [
+    document.getElementById("total"),
+    document.getElementById("totalCarrinho"),
+    document.getElementById("totalCarrinhoOffcanvas"),
+    document.getElementById("totalCarrinhoMobile")
+  ].filter(Boolean);
 
-    const valor = document.getElementById("total");
+  qtdEls.forEach((el) => {
+    el.innerText = quantidade;
+  });
 
-    if (qtd) {
+  totalEls.forEach((el) => {
+    el.innerText = formatarMoeda(total);
+  });
 
-        qtd.innerText = quantidade;
+  // garante que exista um tipo salvo mesmo sem mexer no select
+  salvarTipoPedido(getTipoPedidoAtual());
 
-    }
+  renderCarrinho();
+}
 
-    if (valor) {
+/* ==========================================================
+   MOBILE OFFCANVAS
+========================================================== */
 
-        valor.innerText = total.toFixed(2);
+function abrirCarrinhoNoMobile() {
+  const offcanvasEl = document.getElementById("cartOffcanvas");
+  if (!offcanvasEl) return;
 
-    }
+  if (window.innerWidth >= 1200) return;
 
+  if (window.bootstrap?.Offcanvas) {
+    const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+    instance.show();
+  }
 }
 
 /* ==========================================================
@@ -172,27 +349,15 @@ export function updateUI() {
 ========================================================== */
 
 function salvarCarrinho() {
-
-    localStorage.setItem(
-
-        "carrinho",
-
-        JSON.stringify(carrinho)
-
-    );
-
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
 
 function carregarCarrinho() {
+  const salvo = localStorage.getItem("carrinho");
+  if (!salvo) return;
 
-    const salvo = localStorage.getItem("carrinho");
-
-    if (!salvo) return;
-
-    carrinho = JSON.parse(salvo);
-
-    recalcular();
-
+  carrinho = JSON.parse(salvo);
+  recalcular();
 }
 
 /* ==========================================================
@@ -200,17 +365,11 @@ function carregarCarrinho() {
 ========================================================== */
 
 export function limparCarrinho() {
-
-    carrinho = [];
-
-    quantidade = 0;
-
-    total = 0;
-
-    localStorage.removeItem("carrinho");
-
-    updateUI();
-
+  carrinho = [];
+  quantidade = 0;
+  total = 0;
+  localStorage.removeItem("carrinho");
+  updateUI();
 }
 
 /* ==========================================================
@@ -218,19 +377,13 @@ export function limparCarrinho() {
 ========================================================== */
 
 export function getCarrinho() {
-
-    return carrinho;
-
+  return carrinho;
 }
 
 export function getTotal() {
-
-    return total;
-
+  return total;
 }
 
 export function getQuantidade() {
-
-    return quantidade;
-
+  return quantidade;
 }

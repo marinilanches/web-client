@@ -1,43 +1,460 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Restaurante Digital</title>
-  <link rel="stylesheet" href="./css/styles.css">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>Mesa Fácil</title>
+
+  <!-- Bootstrap 5 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Bootstrap Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+  />
+
+  <link rel="stylesheet" href="./css/styles.css" />
 </head>
+<body class="cliente-body">
 
-<body>
+  <!-- ==========================================================
+       HEADER / HERO
+  ========================================================== -->
+  <header class="store-header">
+    <div class="container py-3 py-lg-4">
+      <div class="store-hero card border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-3 p-md-4 p-lg-5">
+          <div class="row g-3 align-items-center">
+            <div class="col-12 col-lg">
+              <div class="d-flex align-items-start gap-3">
+                <div class="store-logo">
+                  <i class="bi bi-bag-heart-fill"></i>
+                </div>
 
-<header class="topbar">
-  <h2>🍔 Restaurante Digital</h2>
-  <div id="status">🟢 Aberto</div>
-</header>
+                <div class="flex-grow-1">
+                  <p class="store-kicker mb-2">Delivery • Retirada • Pedido online</p>
 
-<section class="highlights">
-  <h3>🔥 Mais pedidos</h3>
-  <div id="maisPedidos"></div>
-</section>
+                  <!-- app.js altera esse h2 pelo seletor .topbar h2 -->
+                  <div class="topbar">
+                    <h2 class="store-title mb-2">🍔 Restaurante Digital</h2>
+                  </div>
 
-<section class="menu">
-  <h3>Cardápio</h3>
-  <div id="produtos"></div>
-</section>
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span id="status" class="badge store-status text-bg-success">
+                      🟢 Aberto
+                    </span>
 
-<footer class="cart">
-  🛒 <span id="qtd">0</span> itens |
-  R$ <span id="total">0.00</span>
-  <div class="checkout-field">
-    <label for="tipoPedido">Tipo do pedido</label>
-    <select id="tipoPedido">
-        <option value="Delivery">Delivery</option>
-        <option value="Retirada">Retirada</option>
-    </select>
+                    <span class="badge store-badge">
+                      <i class="bi bi-lightning-charge-fill me-1"></i>
+                      Pedido rápido
+                    </span>
+
+                    <span class="badge store-badge">
+                      <i class="bi bi-phone-fill me-1"></i>
+                      Mobile first
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA carrinho mobile -->
+            <div class="col-12 d-xl-none">
+              <button
+                id="abrirCarrinhoBtn"
+                type="button"
+                class="btn btn-danger w-100 cart-mobile-trigger"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#cartOffcanvas"
+                aria-controls="cartOffcanvas"
+              >
+                <span class="d-flex align-items-center justify-content-between w-100">
+                  <span class="d-flex align-items-center gap-2">
+                    <i class="bi bi-bag-check-fill fs-5"></i>
+                    <span class="fw-semibold">Ver carrinho</span>
+                  </span>
+
+                  <span class="text-end">
+                    <strong><span id="qtd">0</span> itens</strong>
+                    <small class="d-block opacity-75">R$ <span id="total">0.00</span></small>
+                  </span>
+                </span>
+              </button>
+            </div>
+
+            <!-- resumo desktop no topo -->
+            <div class="col-lg-auto d-none d-xl-block">
+              <div class="hero-cart-mini">
+                <div class="small text-white-50">Seu carrinho</div>
+                <div class="fw-bold fs-5"><span id="qtd">0</span> itens</div>
+                <div class="fw-semibold">R$ <span id="total">0.00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button
+    class="btn btn-light"
+    data-bs-toggle="modal"
+    data-bs-target="#clienteModal"
+    >
+
+    <i class="bi bi-person"></i>
+    Meus dados
+
+    </button>
+  </header>
+
+  <!-- ==========================================================
+       CONTEÚDO
+  ========================================================== -->
+  <main class="pb-5">
+    <div class="container">
+      <div class="row g-4 align-items-start">
+
+        <!-- COLUNA ESQUERDA / CARDÁPIO -->
+        <div class="col-12 col-xl-8 col-xxl-9">
+
+          <!-- Destaques -->
+          <section class="mb-4">
+            <div class="section-heading d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <h3 class="section-title mb-1">Peça agora</h3>
+                <p class="section-subtitle mb-0">
+                  Escolha seus itens e finalize em poucos toques
+                </p>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-12 col-md-6">
+                <div class="highlight-card h-100">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="highlight-icon bg-danger-subtle text-danger">
+                      <i class="bi bi-fire"></i>
+                    </div>
+                    <div>
+                      <h4 class="mb-1">Mais pedidos</h4>
+                      <p class="mb-0 text-secondary">
+                        Seus lanches favoritos em um layout de delivery mais moderno.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="highlight-card h-100">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="highlight-icon bg-success-subtle text-success">
+                      <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                      <h4 class="mb-1">Pedido rápido</h4>
+                      <p class="mb-0 text-secondary">
+                        Adicione, edite o carrinho e finalize sem sair da tela.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ==========================================================
+            MEUS PEDIDOS
+          ========================================================== -->
+
+          <section id="meusPedidosSection" class="mb-4">
+
+            <div class="section-heading mb-3">
+
+              <h3 class="section-title mb-1">
+                Seus pedidos
+              </h3>
+
+              <p class="section-subtitle mb-0">
+                Acompanhe seus pedidos recentes
+              </p>
+
+            </div>
+
+
+            <div id="meusPedidos">
+
+              <div class="cart-empty">
+
+                <div class="cart-empty-icon">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+
+                <h4>
+                  Carregando pedidos...
+                </h4>
+
+              </div>
+
+            </div>
+
+
+          </section>
+
+          <!-- Cardápio -->
+          <section>
+            <div class="section-heading d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <h3 class="section-title mb-1">Cardápio</h3>
+                <p class="section-subtitle mb-0">
+                  Produtos disponíveis para pedido
+                </p>
+              </div>
+            </div>
+
+            <!-- products.js renderiza aqui -->
+            <div id="produtos" class="row g-3"></div>
+          </section>
+        </div>
+
+        <!-- ==========================================================
+             SIDEBAR DESKTOP
+        ========================================================== -->
+        <div class="col-xl-4 col-xxl-3 d-none d-xl-block">
+          <aside class="desktop-cart-sticky">
+            <div id="cartSidebar" class="desktop-cart-card">
+              <div class="desktop-cart-header">
+                <div>
+                  <h3 class="mb-1">Seu carrinho</h3>
+                  <p class="mb-0 text-secondary">
+                    <span id="qtdCarrinho">0</span> itens adicionados
+                  </p>
+                </div>
+              </div>
+
+              <div id="cartItems" class="desktop-cart-items">
+                <div class="cart-empty">
+                  <div class="cart-empty-icon">
+                    <i class="bi bi-bag"></i>
+                  </div>
+                  <h4 class="mb-2">Seu carrinho está vazio</h4>
+                  <p class="mb-0 text-secondary">
+                    Adicione itens do cardápio para continuar.
+                  </p>
+                </div>
+              </div>
+
+              <div class="desktop-cart-footer">
+                <div class="mb-3">
+                  <label for="tipoPedido" class="form-label fw-semibold">
+                    Tipo do pedido
+                  </label>
+                  <select id="tipoPedido" class="form-select form-select-lg">
+                    <option value="Delivery">Delivery</option>
+                    <option value="Retirada">Retirada</option>
+                  </select>
+                </div>
+
+                <div class="cart-summary-box mb-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary fw-semibold">Total</span>
+                    <strong class="cart-total-price">
+                      R$ <span id="totalCarrinho">0.00</span>
+                    </strong>
+                  </div>
+                </div>
+
+                <button id="finalizarBtn" class="btn btn-danger btn-lg w-100">
+                  Finalizar Pedido
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================================
+       BOTTOM BAR MOBILE
+  ========================================================== -->
+  <div class="mobile-cart-bar d-xl-none">
+    <div class="container">
+      <button
+        type="button"
+        class="btn btn-danger w-100 mobile-cart-bar-btn"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#cartOffcanvas"
+        aria-controls="cartOffcanvas"
+      >
+        <span class="d-flex align-items-center justify-content-between w-100 gap-3">
+          <span class="d-flex align-items-center gap-2">
+            <i class="bi bi-bag-fill fs-5"></i>
+            <span class="text-start">
+              <strong class="d-block">Sacola</strong>
+              <small class="opacity-75"><span id="qtdCarrinhoMobile">0</span> itens</small>
+            </span>
+          </span>
+
+          <span class="fw-bold fs-6">
+            R$ <span id="totalCarrinhoMobile">0.00</span>
+          </span>
+        </span>
+      </button>
+    </div>
   </div>
 
-  <button id="finalizarBtn">Finalizar Pedido</button>
-</footer>
+  <!-- ==========================================================
+       OFFCANVAS MOBILE
+  ========================================================== -->
+  <div
+    class="offcanvas offcanvas-bottom mobile-cart-offcanvas"
+    tabindex="-1"
+    id="cartOffcanvas"
+    aria-labelledby="cartOffcanvasLabel"
+  >
+    <div class="offcanvas-header border-bottom">
+      <div>
+        <h5 class="offcanvas-title mb-1" id="cartOffcanvasLabel">Seu carrinho</h5>
+        <p class="mb-0 text-secondary">
+          <span id="qtdCarrinhoOffcanvas">0</span> itens adicionados
+        </p>
+      </div>
 
-<script type="module" src="./js/client/app.js"></script>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="offcanvas"
+        aria-label="Fechar"
+      ></button>
+    </div>
 
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <div id="cartItemsMobile" class="mobile-cart-items p-3">
+        <div class="cart-empty">
+          <div class="cart-empty-icon">
+            <i class="bi bi-bag"></i>
+          </div>
+          <h4 class="mb-2">Seu carrinho está vazio</h4>
+          <p class="mb-0 text-secondary">
+            Adicione itens do cardápio para continuar.
+          </p>
+        </div>
+      </div>
+
+      <div class="mobile-cart-footer border-top p-3">
+        <div class="mb-3">
+          <label for="tipoPedidoMobile" class="form-label fw-semibold">
+            Tipo do pedido
+          </label>
+          <select id="tipoPedidoMobile" class="form-select form-select-lg">
+            <option value="Delivery">Delivery</option>
+            <option value="Retirada">Retirada</option>
+          </select>
+        </div>
+
+        <div class="cart-summary-box mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-secondary fw-semibold">Total</span>
+            <strong class="cart-total-price">
+              R$ <span id="totalCarrinhoOffcanvas">0.00</span>
+            </strong>
+          </div>
+        </div>
+
+        <button id="finalizarBtnMobile" class="btn btn-danger btn-lg w-100">
+          Finalizar Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cliente -->
+
+  <div 
+  class="modal fade"
+  id="clienteModal"
+  tabindex="-1"
+  >
+
+  <div class="modal-dialog">
+
+  <div class="modal-content">
+
+
+  <div class="modal-header">
+
+  <h5 class="modal-title">
+  Seus dados
+  </h5>
+
+  <button 
+  class="btn-close"
+  data-bs-dismiss="modal">
+  </button>
+
+  </div>
+
+
+  <div class="modal-body">
+
+
+  <label class="form-label">
+  Nome
+  </label>
+
+  <input
+  id="clienteNome"
+  class="form-control mb-3"
+  placeholder="Seu nome">
+
+
+  <label class="form-label">
+  Telefone
+  </label>
+
+  <input
+  id="clienteTelefone"
+  class="form-control"
+  placeholder="(19) 99999-9999">
+
+
+  </div>
+
+
+
+  <div class="modal-footer">
+
+
+  <button
+  id="salvarClienteBtn"
+  class="btn btn-danger">
+
+  Salvar
+
+  </button>
+
+
+  </div>
+
+
+  </div>
+
+  </div>
+
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Seu app -->
+  <script type="module" src="./js/client/app.js"></script>
 </body>
 </html>

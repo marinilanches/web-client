@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Checkout - Pedido</title>
   <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/pedido-status.css" />
   <style>
     .checkout-form {
       display: flex;
@@ -203,14 +204,13 @@
 
 <script type="module">
   import { criarPedido } from "./js/services/orders.js";
-  import { db } from "./js/services/firebase.js";
-  import {
-    collection,
-    getDocs,
-    query,
-    orderBy
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
+
+  import {
+    garantirClienteAnonimo,
+    buscarCliente,
+    salvarCliente
+  } from "./js/services/customers.js";
 
   const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
@@ -288,6 +288,46 @@
       style: "currency",
       currency: "BRL"
     });
+  }
+
+  async function carregarDadosCliente() {
+
+    try {
+
+      const cliente = await buscarCliente();
+
+
+      if (!cliente) {
+        console.log("Cliente novo");
+        return;
+      }
+
+
+      if (cliente.nome) {
+        clienteEl.value = cliente.nome || "";
+      }
+
+
+      if (cliente.telefone) {
+        telefoneEl.value = cliente.telefone || "";
+      }
+
+
+      console.log(
+        "Cliente carregado:",
+        cliente
+      );
+
+
+    } catch (erro) {
+
+      console.error(
+        "Erro ao carregar cliente:",
+        erro
+      );
+
+    }
+
   }
 
   function renderCarrinho() {
@@ -471,6 +511,15 @@
 
     if (!validarFormulario()) return;
 
+
+    const clienteAuth = await garantirClienteAnonimo();
+
+
+    await salvarCliente({
+      nome: clienteEl.value.trim(),
+      telefone: telefoneEl.value.trim()
+    });
+
     const tipo = tipoPedidoEl.value;
     const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
     const telefoneFormatado = formatarTelefone(telefoneWhatsapp);
@@ -528,7 +577,7 @@
       valorSubtotal,
       valorTotal: valorSubtotal + taxaFinal,
 
-      clienteId: null,
+      clienteId: clienteAuth.uid,
       mesaId: null,
 
       ultimoStatusNotificado: null,
@@ -538,6 +587,15 @@
     };
 
     try {
+      await salvarCliente({
+
+        nome:clienteEl.value.trim(),
+
+        telefone:telefoneFormatado
+
+      });
+
+
       const docRef = await criarPedido(pedido);
 
       alert("Pedido enviado com sucesso!");
@@ -551,15 +609,48 @@
   }
 
   async function init() {
+
+
+    const cliente = await buscarCliente();
+
+
+    clienteEl.value = cliente.nome || "";
+
+    telefoneEl.value = cliente.telefone || "";
+
+
     renderCarrinho();
+
     atualizarCamposTipoPedido();
+
     atualizarCampoTroco();
+
     await carregarBairros();
 
-    tipoPedidoEl.addEventListener("change", atualizarCamposTipoPedido);
-    bairroEl.addEventListener("change", recalcularTotal);
-    pagamentoMetodoEl.addEventListener("change", atualizarCampoTroco);
-    form.addEventListener("submit", finalizarPedido);
+
+    tipoPedidoEl.addEventListener(
+      "change",
+      atualizarCamposTipoPedido
+    );
+
+
+    bairroEl.addEventListener(
+      "change",
+      recalcularTotal
+    );
+
+
+    pagamentoMetodoEl.addEventListener(
+      "change",
+      atualizarCampoTroco
+    );
+
+
+    form.addEventListener(
+      "submit",
+      finalizarPedido
+    );
+
   }
 
   init();
