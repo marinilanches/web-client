@@ -69,14 +69,30 @@ function montarItensHtml(itens = []) {
 function gerarHtmlPedido(pedido) {
   const numero = pedido.numeroPedido || pedido.id || "-";
   const cliente = pedido.cliente || "Cliente sem nome";
+
   const telefone = pedido.telefone || "-";
+  const telefoneWhatsapp = pedido.telefoneWhatsapp || "-";
+
   const tipo = pedido.tipo || "Delivery";
+  const status = pedido.status || "RECEBIDO";
+
+  const bairro = pedido.bairro || "-";
+  const taxaEntrega = Number(pedido.taxaEntrega || 0);
+
   const endereco = pedido.endereco || "-";
   const referencia = pedido.referencia || "-";
   const observacoes = pedido.observacoes || "-";
-  const total = formatarMoeda(pedido.valorTotal || 0);
-  const status = pedido.status || "RECEBIDO";
+
+  const pagamentoMetodo = pedido.pagamentoMetodo || "-";
+  const pagamentoStatus = pedido.pagamentoStatus || "-";
+  const trocoPara = pedido.trocoPara ? formatarMoeda(pedido.trocoPara) : null;
+
+  const valorSubtotal = Number(pedido.valorSubtotal || 0);
+  const valorTotal = Number(pedido.valorTotal || 0);
+
   const data = new Date().toLocaleString("pt-BR");
+
+  const isDelivery = tipo === "Delivery";
 
   return `
 <!DOCTYPE html>
@@ -92,7 +108,7 @@ function gerarHtmlPedido(pedido) {
 
     body {
       margin: 0;
-      padding: 20px;
+      padding: 18px;
       color: #000;
       background: #fff;
     }
@@ -102,12 +118,12 @@ function gerarHtmlPedido(pedido) {
       max-width: 760px;
       margin: 0 auto;
       border: 2px dashed #000;
-      padding: 20px;
+      padding: 18px;
     }
 
     .topo {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .topo h1 {
@@ -117,7 +133,7 @@ function gerarHtmlPedido(pedido) {
 
     .topo p {
       margin: 4px 0;
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .linha {
@@ -150,23 +166,46 @@ function gerarHtmlPedido(pedido) {
       padding-bottom: 8px;
     }
 
+    .item:last-child {
+      border-bottom: none;
+    }
+
     .subtexto {
       font-size: 13px;
       color: #333;
       margin-top: 4px;
     }
 
-    .total {
-      font-size: 22px;
+    .total-box {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 2px dashed #000;
+    }
+
+    .total-linha {
+      display: flex;
+      justify-content: space-between;
+      margin: 6px 0;
+      font-size: 16px;
+    }
+
+    .total-geral {
+      font-size: 24px;
       font-weight: bold;
-      text-align: right;
-      margin-top: 16px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
     }
 
     .rodape {
       margin-top: 20px;
       text-align: center;
       font-size: 13px;
+    }
+
+    .destaque {
+      font-weight: bold;
+      font-size: 16px;
     }
 
     @media print {
@@ -188,38 +227,101 @@ function gerarHtmlPedido(pedido) {
       <h1>MESA FÁCIL</h1>
       <p><strong>PEDIDO #${escapeHtml(numero)}</strong></p>
       <p>${escapeHtml(data)}</p>
+      <p><strong>VIA ÚNICA - COZINHA / ENTREGA</strong></p>
     </div>
 
     <div class="linha"></div>
 
     <div class="bloco">
       <div class="titulo">DADOS DO PEDIDO</div>
-
       <div class="grid">
         <div><strong>Cliente:</strong> ${escapeHtml(cliente)}</div>
-        <div><strong>Telefone:</strong> ${escapeHtml(telefone)}</div>
-        <div><strong>Tipo:</strong> ${escapeHtml(tipo)}</div>
         <div><strong>Status:</strong> ${escapeHtml(status)}</div>
+
+        <div><strong>Telefone:</strong> ${escapeHtml(telefone)}</div>
+        <div><strong>WhatsApp:</strong> ${escapeHtml(telefoneWhatsapp)}</div>
+
+        <div><strong>Tipo:</strong> ${escapeHtml(tipo)}</div>
+        <div><strong>Pagamento:</strong> ${escapeHtml(pagamentoMetodo)}</div>
+
+        <div><strong>Status pagamento:</strong> ${escapeHtml(pagamentoStatus)}</div>
+        <div><strong>Troco para:</strong> ${trocoPara ? `R$ ${escapeHtml(trocoPara)}` : "-"}</div>
       </div>
     </div>
 
     <div class="linha"></div>
 
     <div class="bloco">
-      <div class="titulo">ENTREGA</div>
-      <p><strong>Endereço:</strong> ${escapeHtml(endereco)}</p>
-      <p><strong>Referência:</strong> ${escapeHtml(referencia)}</p>
+      <div class="titulo">${isDelivery ? "ENTREGA" : "RETIRADA"}</div>
+
+      ${
+        isDelivery
+          ? `
+            <p><strong>Bairro:</strong> ${escapeHtml(bairro)} ${taxaEntrega > 0 ? `(Taxa: R$ ${formatarMoeda(taxaEntrega)})` : ""}</p>
+            <p><strong>Endereço:</strong> ${escapeHtml(endereco)}</p>
+            <p><strong>Referência:</strong> ${escapeHtml(referencia)}</p>
+          `
+          : `
+            <p><strong>Pedido para retirada no balcão</strong></p>
+          `
+      }
+
       <p><strong>Observações:</strong> ${escapeHtml(observacoes)}</p>
     </div>
 
     <div class="linha"></div>
 
-    ${montarItensHtml(pedido.itens)}
+    <div class="bloco">
+      <div class="titulo">ITENS</div>
+      ${
+        Array.isArray(pedido.itens) && pedido.itens.length
+          ? pedido.itens.map((item) => {
+              const nome = escapeHtml(item.nome || "Item");
+              const quantidade = Number(item.quantidade || 1);
+              const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+              const subtotal = Number(item.subtotal || (quantidade * valorUnitario));
+
+              const adicionais = Array.isArray(item.adicionais) && item.adicionais.length
+                ? `
+                  <div class="subtexto">
+                    Adicionais: ${item.adicionais.map(a => escapeHtml(a.nome || a)).join(", ")}
+                  </div>
+                `
+                : "";
+
+              return `
+                <div class="item">
+                  <div>
+                    <strong>${quantidade}x ${nome}</strong>
+                    <div class="subtexto">Unitário: R$ ${formatarMoeda(valorUnitario)}</div>
+                    <div class="subtexto">Subtotal: R$ ${formatarMoeda(subtotal)}</div>
+                    ${adicionais}
+                  </div>
+                  <div class="destaque">R$ ${formatarMoeda(subtotal)}</div>
+                </div>
+              `;
+            }).join("")
+          : `<p>Nenhum item informado.</p>`
+      }
+    </div>
 
     <div class="linha"></div>
 
-    <div class="total">
-      TOTAL: R$ ${total}
+    <div class="total-box">
+      <div class="total-linha">
+        <span>Subtotal</span>
+        <strong>R$ ${formatarMoeda(valorSubtotal)}</strong>
+      </div>
+
+      <div class="total-linha">
+        <span>Taxa de entrega</span>
+        <strong>R$ ${formatarMoeda(taxaEntrega)}</strong>
+      </div>
+
+      <div class="total-geral">
+        <span>TOTAL</span>
+        <span>R$ ${formatarMoeda(valorTotal)}</span>
+      </div>
     </div>
 
     <div class="rodape">
@@ -260,15 +362,38 @@ app.post("/print/test", (req, res) => {
       numeroPedido: "TESTE-001",
       cliente: "Teste Mesa Fácil",
       telefone: "(19) 99999-9999",
+      telefoneWhatsapp: "5519999999999",
+
       tipo: "Delivery",
+      status: "RECEBIDO",
+
+      bairro: "Centro",
+      taxaEntrega: 5,
+
       endereco: "Rua de Teste, 123",
       referencia: "Casa azul",
       observacoes: "Sem cebola",
-      status: "RECEBIDO",
-      valorTotal: 39.9,
+
+      pagamentoMetodo: "DINHEIRO",
+      pagamentoStatus: "PENDENTE",
+      trocoPara: 50,
+
+      valorSubtotal: 39.9,
+      valorTotal: 44.9,
+
       itens: [
-        { nome: "X-Burguer", quantidade: 2, valorUnitario: 17 },
-        { nome: "Coca-Cola 2L", quantidade: 1, valorUnitario: 5.9 }
+        {
+          nome: "X-Burguer",
+          quantidade: 2,
+          valorUnitario: 17,
+          subtotal: 34
+        },
+        {
+          nome: "Coca-Cola 2L",
+          quantidade: 1,
+          valorUnitario: 5.9,
+          subtotal: 5.9
+        }
       ]
     };
 

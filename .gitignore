@@ -2,3 +2,7 @@ node_modules
 server/node_modules
 server/serviceAccountKey.json
 .env
+node_modules/
+server/.wwebjs_auth/
+server/.wwebjs_cache/
+server/node_modules/

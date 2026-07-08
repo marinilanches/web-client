@@ -1,5 +1,0 @@
-2026/07/07-19:25:55.313 3bcc Creating DB C:\Users\mathe\Desktop\MesaFacil\web-client\.wwebjs_auth\session-mesa-facil\Default\EdgeCoupons/coupons_data.db since it was missing.
-2026/07/07-19:25:55.323 3bcc Reusing MANIFEST C:\Users\mathe\Desktop\MesaFacil\web-client\.wwebjs_auth\session-mesa-facil\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
-2026/07/07-19:25:55.448 1fc8 Level-0 table #5: started
-2026/07/07-19:25:55.456 1fc8 Level-0 table #5: 682901 bytes OK
-2026/07/07-19:25:55.458 1fc8 Delete type=0 #3

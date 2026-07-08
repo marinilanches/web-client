@@ -1,16 +1,16 @@
 import { db } from "./firebase.js";
 
 import {
-    collection,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    getDoc,
-    doc,
-    query,
-    orderBy,
-    onSnapshot,
-    serverTimestamp
+  collection,
+ addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  query,
+  orderBy,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -21,51 +21,107 @@ import {
 const pedidosRef = collection(db, "pedidos");
 
 /* ==========================================================
+   HELPERS
+========================================================== */
+
+function somenteNumeros(valor = "") {
+  return String(valor).replace(/\D/g, "");
+}
+
+function normalizarTelefoneWhatsapp(telefone) {
+  let numero = somenteNumeros(telefone);
+
+  if (!numero) return "";
+
+  // remove zeros à esquerda
+  numero = numero.replace(/^0+/, "");
+
+  // se vier sem DDI e com 8/9 dígitos -> assume Capivari/SP (19)
+  if (numero.length === 8 || numero.length === 9) {
+    numero = `19${numero}`;
+  }
+
+  // se vier com DDD + número (10 ou 11 dígitos) -> adiciona 55
+  if (numero.length === 10 || numero.length === 11) {
+    numero = `55${numero}`;
+  }
+
+  // se vier com 13 dígitos e já começar com 55, mantém
+  if (numero.length === 12 && numero.startsWith("55")) {
+    return numero;
+  }
+
+  if (numero.length === 13 && numero.startsWith("55")) {
+    return numero;
+  }
+
+  // se vier com 12/13 sem 55 mas já parecer Brasil, força 55
+  if ((numero.length === 12 || numero.length === 13) && !numero.startsWith("55")) {
+    numero = `55${numero}`;
+  }
+
+  return numero;
+}
+
+function extrairBairro(endereco = "") {
+  if (!endereco) return "";
+  const partes = endereco.split(",").map(p => p.trim()).filter(Boolean);
+
+  // heurística simples:
+  // "Rua X, 123, Centro"
+  // tenta usar a 3ª parte como bairro, senão a última
+  if (partes.length >= 3) return partes[2];
+  if (partes.length >= 2) return partes[partes.length - 1];
+  return "";
+}
+
+/* ==========================================================
    CRIAR PEDIDO
 ========================================================== */
 
 export async function criarPedido(dados) {
-    try {
-        const pedido = {
-            numeroPedido: dados.numeroPedido || null,
-            cliente: dados.cliente || "",
-            telefone: dados.telefone || "",
-            tipo: dados.tipo || "Delivery",
+  const agora = serverTimestamp();
 
-            endereco: dados.endereco || "",
-            referencia: dados.referencia || "",
+  const telefone = dados.telefone || "";
+  const telefoneWhatsapp = dados.telefoneWhatsapp || normalizarTelefoneWhatsapp(telefone);
 
-            clienteId: dados.clienteId || null,
-            mesaId: dados.mesaId || null,
+  const valorSubtotal = Number(dados.valorSubtotal ?? dados.valorTotal ?? 0);
+  const taxaEntrega = Number(dados.taxaEntrega ?? 0);
+  const valorTotal = Number(dados.valorTotal ?? (valorSubtotal + taxaEntrega));
 
-            itens: dados.itens || [],
-            observacoes: dados.observacoes || "",
+  const payload = {
+    cliente: dados.cliente || "",
+    clienteId: dados.clienteId || null,
 
-            valorTotal: Number(dados.valorTotal || 0),
+    telefone,
+    telefoneWhatsapp,
 
-            pagamentoMetodo: dados.pagamentoMetodo || "",
-            pagamentoStatus: dados.pagamentoStatus || "PENDENTE",
+    tipo: dados.tipo || "Delivery",
+    status: dados.status || "RECEBIDO",
 
-            status: "RECEBIDO",
+    endereco: dados.endereco || "",
+    referencia: dados.referencia || "",
+    observacoes: dados.observacoes || "",
+    bairro: dados.bairro || extrairBairro(dados.endereco || ""),
 
-            ultimoStatusNotificado: null,
+    itens: Array.isArray(dados.itens) ? dados.itens : [],
 
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        };
+    pagamentoMetodo: dados.pagamentoMetodo || "",
+    pagamentoStatus: dados.pagamentoStatus || "PENDENTE",
 
-        const docRef = await addDoc(pedidosRef, pedido);
+    valorSubtotal,
+    taxaEntrega,
+    valorTotal,
 
-        await updateDoc(doc(db, "pedidos", docRef.id), {
-            numeroPedido: docRef.id
-        });
+    mesaId: dados.mesaId || null,
 
-        return docRef;
+    ultimoStatusNotificado: dados.ultimoStatusNotificado || null,
 
-    } catch (erro) {
-        console.error("Erro ao criar pedido:", erro);
-        throw erro;
-    }
+    criadoEm: agora,
+    atualizadoEm: agora
+  };
+
+  return await addDoc(pedidosRef, payload);
 }
 
 /* ==========================================================
@@ -73,18 +129,21 @@ export async function criarPedido(dados) {
 ========================================================== */
 
 export async function editarPedido(id, dados) {
-    try {
-        await updateDoc(
-            doc(db, "pedidos", id),
-            {
-                ...dados,
-                updatedAt: serverTimestamp()
-            }
-        );
-    } catch (erro) {
-        console.error("Erro ao editar pedido:", erro);
-        throw erro;
+  try {
+    const updatePayload = {
+      ...dados,
+      atualizadoEm: serverTimestamp()
+    };
+
+    if ("telefone" in dados && !("telefoneWhatsapp" in dados)) {
+      updatePayload.telefoneWhatsapp = normalizarTelefoneWhatsapp(dados.telefone);
     }
+
+    await updateDoc(doc(db, "pedidos", id), updatePayload);
+  } catch (erro) {
+    console.error("Erro ao editar pedido:", erro);
+    throw erro;
+  }
 }
 
 /* ==========================================================
@@ -92,18 +151,15 @@ export async function editarPedido(id, dados) {
 ========================================================== */
 
 export async function alterarStatus(id, status) {
-    try {
-        await updateDoc(
-            doc(db, "pedidos", id),
-            {
-                status,
-                updatedAt: serverTimestamp()
-            }
-        );
-    } catch (erro) {
-        console.error("Erro ao alterar status:", erro);
-        throw erro;
-    }
+  try {
+    await updateDoc(doc(db, "pedidos", id), {
+      status,
+      atualizadoEm: serverTimestamp()
+    });
+  } catch (erro) {
+    console.error("Erro ao alterar status:", erro);
+    throw erro;
+  }
 }
 
 /* ==========================================================
@@ -111,7 +167,7 @@ export async function alterarStatus(id, status) {
 ========================================================== */
 
 export async function cancelarPedido(id) {
-    return alterarStatus(id, "CANCELADO");
+  return alterarStatus(id, "CANCELADO");
 }
 
 /* ==========================================================
@@ -119,12 +175,12 @@ export async function cancelarPedido(id) {
 ========================================================== */
 
 export async function excluirPedido(id) {
-    try {
-        await deleteDoc(doc(db, "pedidos", id));
-    } catch (erro) {
-        console.error("Erro ao excluir pedido:", erro);
-        throw erro;
-    }
+  try {
+    await deleteDoc(doc(db, "pedidos", id));
+  } catch (erro) {
+    console.error("Erro ao excluir pedido:", erro);
+    throw erro;
+  }
 }
 
 /* ==========================================================
@@ -132,21 +188,21 @@ export async function excluirPedido(id) {
 ========================================================== */
 
 export async function buscarPedido(id) {
-    try {
-        const pedido = await getDoc(doc(db, "pedidos", id));
+  try {
+    const pedidoSnap = await getDoc(doc(db, "pedidos", id));
 
-        if (!pedido.exists()) {
-            return null;
-        }
-
-        return {
-            id: pedido.id,
-            ...pedido.data()
-        };
-    } catch (erro) {
-        console.error("Erro ao buscar pedido:", erro);
-        throw erro;
+    if (!pedidoSnap.exists()) {
+      return null;
     }
+
+    return {
+      id: pedidoSnap.id,
+      ...pedidoSnap.data()
+    };
+  } catch (erro) {
+    console.error("Erro ao buscar pedido:", erro);
+    throw erro;
+  }
 }
 
 /* ==========================================================
@@ -154,55 +210,55 @@ export async function buscarPedido(id) {
 ========================================================== */
 
 export function ouvirPedidos(callback) {
-    const q = query(
-        pedidosRef,
-        orderBy("createdAt", "desc")
-    );
+  const q = query(
+    pedidosRef,
+    orderBy("criadoEm", "desc")
+  );
 
-    return onSnapshot(
-        q,
-        (snapshot) => {
-            const pedidos = [];
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const pedidos = [];
 
-            snapshot.forEach((docItem) => {
-                pedidos.push({
-                    id: docItem.id,
-                    ...docItem.data()
-                });
-            });
+      snapshot.forEach((docItem) => {
+        pedidos.push({
+          id: docItem.id,
+          ...docItem.data()
+        });
+      });
 
-            callback(pedidos);
-        },
-        (erro) => {
-            console.error("Erro ao ouvir pedidos:", erro);
-        }
-    );
+      callback(pedidos);
+    },
+    (erro) => {
+      console.error("Erro ao ouvir pedidos:", erro);
+    }
+  );
 }
 
 /* ==========================================================
    OUVIR UM PEDIDO ESPECÍFICO (TEMPO REAL)
 ========================================================== */
 
-export function ouvirPedidoPorId(id, callback, onNotFound = null) {
-    const pedidoRef = doc(db, "pedidos", id);
+export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
+  const ref = doc(db, "pedidos", pedidoId);
 
-    return onSnapshot(
-        pedidoRef,
-        (snapshot) => {
-            if (!snapshot.exists()) {
-                if (onNotFound) onNotFound();
-                return;
-            }
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (!snap.exists()) {
+        onNotFound?.();
+        return;
+      }
 
-            callback({
-                id: snapshot.id,
-                ...snapshot.data()
-            });
-        },
-        (erro) => {
-            console.error("Erro ao ouvir pedido por ID:", erro);
-        }
-    );
+      onSuccess({
+        id: snap.id,
+        ...snap.data()
+      });
+    },
+    (erro) => {
+      console.error("Erro ao ouvir pedido por ID:", erro);
+    }
+  );
 }
 
 /* ==========================================================
@@ -210,17 +266,15 @@ export function ouvirPedidoPorId(id, callback, onNotFound = null) {
 ========================================================== */
 
 export function contarPedidos(pedidos) {
-    return {
-        total: pedidos.length,
-        recebidos: pedidos.filter(p => p.status === "RECEBIDO").length,
-        preparando: pedidos.filter(p => p.status === "PREPARANDO").length,
-        prontos: pedidos.filter(p => p.status === "PRONTO").length,
-        entregues: pedidos.filter(p => p.status === "ENTREGUE").length,
-        cancelados: pedidos.filter(p => p.status === "CANCELADO").length,
-        faturamento: pedidos
-            .filter(p => p.status === "ENTREGUE")
-            .reduce((total, pedido) => {
-                return total + Number(pedido.valorTotal || 0);
-            }, 0)
-    };
+  return {
+    total: pedidos.length,
+    recebidos: pedidos.filter(p => p.status === "RECEBIDO").length,
+    preparando: pedidos.filter(p => p.status === "PREPARANDO").length,
+    prontos: pedidos.filter(p => p.status === "PRONTO").length,
+    entregues: pedidos.filter(p => p.status === "ENTREGUE").length,
+    cancelados: pedidos.filter(p => p.status === "CANCELADO").length,
+    faturamento: pedidos
+      .filter(p => p.status === "ENTREGUE")
+      .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0)
+  };
 }

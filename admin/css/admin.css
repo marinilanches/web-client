@@ -4856,3 +4856,107 @@ button{
     background:#3498db;
 
 }
+
+/* ==========================================================
+   TAXAS DE ENTREGA
+========================================================== */
+
+.taxas-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.taxas-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.taxas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.taxas-campo {
+  margin-bottom: 12px;
+}
+
+.taxas-campo label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.taxas-campo input,
+.taxas-campo select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.taxas-acoes-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.taxas-table-wrap {
+  overflow-x: auto;
+}
+
+.taxas-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.taxas-table th,
+.taxas-table td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.taxas-table th {
+  background: #fafafa;
+  font-size: 14px;
+}
+
+.taxas-acoes-linha {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.taxas-muted {
+  color: #666;
+  font-size: 14px;
+}
+
+.taxas-empty {
+  padding: 20px 0;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .taxas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .taxas-page {
+    padding: 16px;
+  }
+
+  .taxas-table {
+    min-width: 100%;
+  }
+}

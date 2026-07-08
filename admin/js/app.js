@@ -8,7 +8,6 @@ import { protegerPaginaAdmin } from "../../js/services/auth.js";
 ========================================================== */
 
 async function iniciarAdmin() {
-
     const autorizado = protegerPaginaAdmin();
 
     if (!autorizado) {
@@ -23,7 +22,6 @@ async function iniciarAdmin() {
     console.log("Página:", pagina);
 
     switch (pagina) {
-
         case "index.html":
             console.log("Carregando dashboard.js");
             await import("./dashboard.js");
@@ -75,12 +73,15 @@ async function iniciarAdmin() {
             await import("./config.js");
             break;
 
+        case "taxas.html":
+            console.log("Carregando taxas.js");
+            await import("./pages/taxas.js");
+            break;
+
         default:
             console.warn("Nenhum módulo encontrado para a página:", pagina);
             break;
-
     }
-
 }
 
 iniciarAdmin();

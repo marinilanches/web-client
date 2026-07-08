@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Status do Pedido</title>
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
@@ -14,10 +15,7 @@
 
 <section class="menu">
   <h3>Seu Pedido</h3>
-
-  <div id="pedidoInfo">
-    Carregando...
-  </div>
+  <div id="pedidoInfo">Carregando...</div>
 </section>
 
 <script type="module">
@@ -32,98 +30,131 @@
     });
   }
 
-  function getClasseStatus(status) {
-  switch (status) {
-    case "RECEBIDO":
-      return "status-recebido";
-    case "PREPARANDO":
-      return "status-preparando";
-    case "PRONTO":
-      return "status-pronto";
-    case "ENTREGUE":
-      return "status-entregue";
-    case "CANCELADO":
-      return "status-cancelado";
-    default:
-      return "status-cancelado";
+  function formatarData(data) {
+    if (!data) return "—";
+
+    // Firestore Timestamp
+    if (typeof data.toDate === "function") {
+      return data.toDate().toLocaleString("pt-BR");
+    }
+
+    // string / Date comum
+    try {
+      return new Date(data).toLocaleString("pt-BR");
+    } catch {
+      return "—";
+    }
   }
-}
 
   function renderMensagem(texto) {
     pedidoInfo.innerHTML = `
-      <div class="empty-state">
+      <div class="item status-card" style="display:block;">
         <p>${texto}</p>
       </div>
     `;
   }
 
-  function renderPedido(pedido) {
-    const status = pedido.status || "—";
-    const classeStatus = getClasseStatus(status);
+  function getStatusLabel(status) {
+    switch (status) {
+      case "RECEBIDO":
+        return "🟡 Recebido";
+      case "PREPARANDO":
+        return "👨‍🍳 Em preparo";
+      case "PRONTO":
+        return "✅ Pronto";
+      case "ENTREGUE":
+        return "🚚 Entregue";
+      case "CANCELADO":
+        return "❌ Cancelado";
+      default:
+        return status || "—";
+    }
+  }
+
+  function renderPedido(pedido, pedidoId) {
+    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+
+    const itensHtml = itens.length
+      ? itens.map(item => {
+          const quantidade = Number(item.quantidade || 1);
+          const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+          const subtotal = Number(item.subtotal || quantidade * valorUnitario);
+
+          return `
+            <div class="status-item-linha">
+              <strong>${quantidade}x ${item.nome || "Item"}</strong>
+              <div>Unitário: ${formatarMoeda(valorUnitario)}</div>
+              <div>Subtotal: ${formatarMoeda(subtotal)}</div>
+            </div>
+          `;
+        }).join("")
+      : "<p>Nenhum item.</p>";
+
+    const isDelivery = pedido.tipo === "Delivery";
+
+    const blocoEntrega = isDelivery
+      ? `
+        <div class="status-section">
+          <h4>Entrega</h4>
+          <p><strong>Bairro:</strong> ${pedido.bairro || "—"}</p>
+          <p><strong>Endereço:</strong> ${pedido.endereco || "—"}</p>
+          <p><strong>Referência:</strong> ${pedido.referencia || "—"}</p>
+        </div>
+      `
+      : "";
 
     pedidoInfo.innerHTML = `
-      <div class="status-card">
-        <h3>Pedido #${pedido.numeroPedido || pedido.id}</h3>
+      <div class="item status-card" style="display:block;">
+        <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
-        <div class="status-linha">
-          <span class="status-label">Status</span>
-          <span class="status-badge ${classeStatus}">${status}</span>
+        <p><strong>Status:</strong> ${getStatusLabel(pedido.status)}</p>
+        <p><strong>Data:</strong> ${formatarData(pedido.criadoEm || pedido.createdAt)}</p>
+
+        <div class="status-section">
+          <h4>Cliente</h4>
+          <p><strong>Nome:</strong> ${pedido.cliente || "—"}</p>
+          <p><strong>Telefone:</strong> ${pedido.telefone || pedido.telefoneWhatsapp || "—"}</p>
+          <p><strong>Tipo:</strong> ${pedido.tipo || "—"}</p>
         </div>
 
-        <div class="status-linha">
-          <span class="status-label">Total</span>
-          <span class="status-valor">${formatarMoeda(pedido.valorTotal)}</span>
+        <div class="status-section">
+          <h4>Pagamento</h4>
+          <p><strong>Método:</strong> ${pedido.pagamentoMetodo || "—"}</p>
+          <p><strong>Status do pagamento:</strong> ${pedido.pagamentoStatus || "—"}</p>
         </div>
 
-        <div class="status-linha">
-          <span class="status-label">Pagamento</span>
-          <span class="status-valor">${pedido.pagamentoStatus || "—"}</span>
+        ${blocoEntrega}
+
+        <div class="status-section">
+          <h4>Observações</h4>
+          <p>${pedido.observacoes || "—"}</p>
         </div>
 
-        <div class="status-linha">
-          <span class="status-label">Tipo</span>
-          <span class="status-valor">${pedido.tipo || "—"}</span>
+        <div class="status-section">
+          <h4>Itens</h4>
+          ${itensHtml}
         </div>
 
-        ${
-          pedido.tipo === "Delivery"
-            ? `
-              <div class="status-linha">
-                <span class="status-label">Endereço</span>
-                <span class="status-valor">${pedido.endereco || "—"}</span>
-              </div>
-
-              <div class="status-linha">
-                <span class="status-label">Referência</span>
-                <span class="status-valor">${pedido.referencia || "—"}</span>
-              </div>
-            `
-            : ""
-        }
-
-        <div class="status-linha">
-          <span class="status-label">Observações</span>
-          <span class="status-valor">${pedido.observacoes || "—"}</span>
+        <div class="status-section">
+          <h4>Resumo</h4>
+          <p><strong>Subtotal:</strong> ${formatarMoeda(pedido.valorSubtotal)}</p>
+          <p><strong>Taxa de entrega:</strong> ${formatarMoeda(pedido.taxaEntrega)}</p>
+          <p><strong>Total:</strong> ${formatarMoeda(pedido.valorTotal)}</p>
         </div>
       </div>
     `;
   }
 
-  // =======================
-  // LER ID DA URL
-  // =======================
   const params = new URLSearchParams(window.location.search);
   const pedidoId = params.get("id");
 
-  // se não tiver ?id=...
   if (!pedidoId) {
     renderMensagem("Nenhum pedido foi informado. Volte e finalize um pedido para acompanhar o status.");
   } else {
-    // ouvir SOMENTE esse pedido em tempo real
     ouvirPedidoPorId(
       pedidoId,
       (pedido) => {
-        renderPedido(pedido);
+        renderPedido(pedido, pedidoId);
       },
       () => {
         renderMensagem("Pedido não encontrado.");

@@ -114,7 +114,8 @@ function montarMensagemStatus(pedido) {
 }
 
 async function enviarMensagemPedido(pedidoId, pedido) {
-  const telefoneNormalizado = normalizarTelefone(pedido.telefone);
+  const telefoneNormalizado =
+    pedido.telefoneWhatsapp || normalizarTelefone(pedido.telefone);
 
   if (!telefoneNormalizado) {
     console.log(`[BOT] Pedido ${pedidoId} sem telefone válido. Notificação ignorada.`);
@@ -151,7 +152,7 @@ function iniciarListenerPedidos() {
   db.collection("pedidos").onSnapshot(
     async (snapshot) => {
       for (const change of snapshot.docChanges()) {
-        if (change.type !== "modified") continue;
+        if (change.type !== "added" && change.type !== "modified") continue;
 
         const pedidoId = change.doc.id;
         const pedido = change.doc.data();
@@ -183,10 +184,10 @@ function iniciarListenerPedidos() {
   console.log("[BOT] Listener de pedidos iniciado.");
 }
 
-function criarClienteWhatsapp() {
+async function criarClienteWhatsapp() {
   if (client) {
     try {
-      client.destroy();
+      await client.destroy();
     } catch (e) {
       console.warn("[BOT] Erro ao destruir cliente anterior:", e.message);
     }
@@ -259,13 +260,20 @@ function criarClienteWhatsapp() {
     console.error("[BOT] Falha na autenticação:", msg);
   });
 
-  client.on("disconnected", (reason) => {
+  client.on("disconnected", async (reason) => {
     atualizarEstado({
       status: "DESCONECTADO",
-      numero: null
+      numero: null,
+      qrCode: null
     });
 
     console.warn("[BOT] WhatsApp desconectado:", reason);
+
+    try {
+      await client.destroy();
+    } catch (e) {
+      console.warn("[BOT] Erro ao destruir cliente após desconexão:", e.message);
+    }
   });
 
   client.initialize();

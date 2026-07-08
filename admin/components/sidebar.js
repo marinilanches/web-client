@@ -1,57 +1,53 @@
 export function carregarSidebar() {
+  document.getElementById("sidebar").innerHTML = `
+    <div class="logo">
+      🍔 Mesa Fácil
+    </div>
 
-    document.getElementById("sidebar").innerHTML = `
+    <nav class="menu">
+      <a href="index.html" class="active">
+        🏠 Dashboard
+      </a>
 
-        <div class="logo">
+      <a href="pedidos.html">
+        📦 Pedidos
+      </a>
 
-            🍔 Mesa Fácil
+      <a href="produtos.html">
+        🍔 Produtos
+      </a>
 
-        </div>
+      <a href="clientes.html">
+        👥 Clientes
+      </a>
 
-        <nav class="menu">
+      <a href="mesas.html">
+        🪑 Mesas
+      </a>
 
-            <a href="index.html" class="active">
-                🏠 Dashboard
-            </a>
+      <a href="taxas.html">
+        🚚 Taxas de Entrega
+      </a>
 
-            <a href="pedidos.html">
-                📦 Pedidos
-            </a>
+      <a href="financeiro.html">
+        💰 Financeiro
+      </a>
 
-            <a href="produtos.html">
-                🍔 Produtos
-            </a>
+      <a href="relatorios.html">
+        📈 Relatórios
+      </a>
 
-            <a href="clientes.html">
-                👥 Clientes
-            </a>
+      <a href="whatsapp.html">
+        📱 WhatsApp
+      </a>
 
-            <a href="mesas.html">
-                🪑 Mesas
-            </a>
+      <a href="impressora.html">
+        🖨 Impressora
+      </a>
 
-            <a href="financeiro.html">
-                💰 Financeiro
-            </a>
-
-            <a href="relatorios.html">
-                📈 Relatórios
-            </a>
-
-            <a href="whatsapp.html">
-                📱 WhatsApp
-            </a>
-
-            <a href="impressora.html">
-                🖨 Impressora
-            </a>
-
-            <a href="configuracoes.html">
-                ⚙ Configurações
-            </a>
-
-        </nav>
-
-    `;
-
+      <a href="configuracoes.html">
+        ⚙ Configurações
+      </a>
+    </nav>
+  `;
 }
