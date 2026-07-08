@@ -33,12 +33,10 @@
   function formatarData(data) {
     if (!data) return "—";
 
-    // Firestore Timestamp
     if (typeof data.toDate === "function") {
       return data.toDate().toLocaleString("pt-BR");
     }
 
-    // string / Date comum
     try {
       return new Date(data).toLocaleString("pt-BR");
     } catch {
@@ -71,6 +69,77 @@
     }
   }
 
+  function isPix(metodo) {
+    if (!metodo) return false;
+    const texto = String(metodo).toLowerCase().trim();
+    return texto === "pix" || texto.includes("pix");
+  }
+
+  function getPixHtml(pedido) {
+    if (!isPix(pedido.pagamentoMetodo)) return "";
+
+    return `
+      <div class="pix-box">
+        <div class="pix-pago-topo">
+          <h4>Pagamento via PIX</h4>
+          <span class="pix-selo">PIX disponível</span>
+        </div>
+
+        <div class="pix-grid">
+          <div class="pix-linha">
+            <span class="pix-label">Tipo da chave</span>
+            <div class="pix-value">Celular</div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Chave PIX</span>
+            <div class="pix-value">
+              <span id="pixChave">(19) 99162-0881</span>
+            </div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Titular</span>
+            <div class="pix-value">Darci Cândido Gonçalves</div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Banco / conta</span>
+            <div class="pix-value">PagSeguro</div>
+          </div>
+        </div>
+
+        <button class="btn-copiar-pix" id="btnCopiarPix" type="button">
+          Copiar chave PIX
+        </button>
+
+        <div class="pix-aviso">
+          Após realizar o pagamento, aguarde a confirmação da loja.
+        </div>
+      </div>
+    `;
+  }
+
+  function ativarBotaoCopiarPix() {
+    const botao = document.getElementById("copiarPixBtn");
+    if (!botao) return;
+
+    botao.addEventListener("click", async () => {
+      const chave = "(19) 99162-0881";
+
+      try {
+        await navigator.clipboard.writeText(chave);
+        const textoOriginal = botao.textContent;
+        botao.textContent = "Chave copiada!";
+        setTimeout(() => {
+          botao.textContent = textoOriginal;
+        }, 2000);
+      } catch {
+        alert("Não foi possível copiar automaticamente. Chave PIX: " + chave);
+      }
+    });
+  }
+
   function renderPedido(pedido, pedidoId) {
     const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
 
@@ -91,6 +160,8 @@
       : "<p>Nenhum item.</p>";
 
     const isDelivery = pedido.tipo === "Delivery";
+
+    const blocoPix = getPixHtml(pedido);
 
     const blocoEntrega = isDelivery
       ? `
@@ -123,6 +194,8 @@
           <p><strong>Status do pagamento:</strong> ${pedido.pagamentoStatus || "—"}</p>
         </div>
 
+        ${blocoPix}
+
         ${blocoEntrega}
 
         <div class="status-section">
@@ -143,6 +216,8 @@
         </div>
       </div>
     `;
+
+    ativarBotaoCopiarPix();
   }
 
   const params = new URLSearchParams(window.location.search);
