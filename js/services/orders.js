@@ -1,8 +1,9 @@
 import { db } from "./firebase.js";
+import { incrementarVendasProdutos } from "./products.js";
 
 import {
   collection,
- addDoc,
+  addDoc,
   onSnapshot,
   doc,
   updateDoc,
@@ -11,7 +12,8 @@ import {
   query,
   orderBy,
   where,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -20,6 +22,21 @@ import {
 ========================================================== */
 
 const pedidosRef = collection(db, "pedidos");
+
+function getInicioEFimDeHoje() {
+  const agora = new Date();
+
+  const inicioHoje = new Date(agora);
+  inicioHoje.setHours(0, 0, 0, 0);
+
+  const inicioAmanha = new Date(inicioHoje);
+  inicioAmanha.setDate(inicioAmanha.getDate() + 1);
+
+  return {
+    inicioHoje: Timestamp.fromDate(inicioHoje),
+    inicioAmanha: Timestamp.fromDate(inicioAmanha)
+  };
+}
 
 /* ==========================================================
    HELPERS
@@ -84,18 +101,22 @@ export async function criarPedido(dados) {
   const agora = serverTimestamp();
 
   const telefone = dados.telefone || "";
-  const telefoneWhatsapp = dados.telefoneWhatsapp || normalizarTelefoneWhatsapp(telefone);
+  const telefoneWhatsapp =
+    dados.telefoneWhatsapp || normalizarTelefoneWhatsapp(telefone);
 
   const valorSubtotal = Number(dados.valorSubtotal ?? dados.valorTotal ?? 0);
   const taxaEntrega = Number(dados.taxaEntrega ?? 0);
   const valorTotal = Number(dados.valorTotal ?? (valorSubtotal + taxaEntrega));
 
-  const payload = {
+  const itens = Array.isArray(dados.itens) ? dados.itens : [];
 
-    numeroPedido:
-      Math.floor(1000 + Math.random() * 9000),
+  const payload = {
+    numeroPedido: dados.numeroPedido || Math.floor(1000 + Math.random() * 9000),
+
+    origem: dados.origem || "CLIENTE_WEB",
 
     cliente: dados.cliente || "",
+    clienteId: dados.clienteId || null,
 
     telefone,
     telefoneWhatsapp,
@@ -106,26 +127,39 @@ export async function criarPedido(dados) {
     endereco: dados.endereco || "",
     referencia: dados.referencia || "",
     observacoes: dados.observacoes || "",
-    bairro: dados.bairro || extrairBairro(dados.endereco || ""),
 
-    itens: Array.isArray(dados.itens) ? dados.itens : [],
+    bairro: dados.bairro || extrairBairro(dados.endereco || ""),
+    bairroId: dados.bairroId || null,
+    bairroLabel: dados.bairroLabel || "",
+
+    latitude: dados.latitude ?? null,
+    longitude: dados.longitude ?? null,
+
+    itens,
 
     pagamentoMetodo: dados.pagamentoMetodo || "",
     pagamentoStatus: dados.pagamentoStatus || "PENDENTE",
+    trocoPara: dados.trocoPara ?? null,
 
     valorSubtotal,
     taxaEntrega,
     valorTotal,
 
     mesaId: dados.mesaId || null,
-
     ultimoStatusNotificado: dados.ultimoStatusNotificado || null,
+
+    impresso: Boolean(dados.impresso),
+    impressoEm: dados.impressoEm || null,
 
     criadoEm: agora,
     atualizadoEm: agora
   };
 
-  return await addDoc(pedidosRef, payload);
+  const pedidoRef = await addDoc(pedidosRef, payload);
+
+  await incrementarVendasProdutos(itens);
+
+  return pedidoRef;
 }
 
 /* ==========================================================
@@ -214,8 +248,12 @@ export async function buscarPedido(id) {
 ========================================================== */
 
 export function ouvirPedidos(callback) {
+  const { inicioHoje, inicioAmanha } = getInicioEFimDeHoje();
+
   const q = query(
     pedidosRef,
+    where("criadoEm", ">=", inicioHoje),
+    where("criadoEm", "<", inicioAmanha),
     orderBy("criadoEm", "desc")
   );
 
@@ -287,45 +325,33 @@ export function contarPedidos(pedidos) {
    OUVIR PEDIDOS DO CLIENTE
 ========================================================== */
 
-export function ouvirPedidosCliente(uid, callback){
+export function ouvirPedidosCliente(uid, callback) {
+  const { inicioHoje, inicioAmanha } = getInicioEFimDeHoje();
 
- const q = query(
-   pedidosRef,
-   where(
-     "clienteId",
-     "==",
-     uid
-   ),
-   orderBy(
-     "criadoEm",
-     "desc"
-   )
- );
+  const q = query(
+    pedidosRef,
+    where("clienteId", "==", uid),
+    where("criadoEm", ">=", inicioHoje),
+    where("criadoEm", "<", inicioAmanha),
+    orderBy("criadoEm", "desc")
+  );
 
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const pedidos = [];
 
- return onSnapshot(
-   q,
-   snapshot=>{
-
-    const pedidos=[];
-
-
-    snapshot.forEach(doc=>{
-
-      pedidos.push({
-
-        id:doc.id,
-
-        ...doc.data()
-
+      snapshot.forEach((docItem) => {
+        pedidos.push({
+          id: docItem.id,
+          ...docItem.data()
+        });
       });
 
-    });
-
-
-    callback(pedidos);
-
-   }
- );
-
+      callback(pedidos);
+    },
+    (erro) => {
+      console.error("Erro ao ouvir pedidos do cliente:", erro);
+    }
+  );
 }

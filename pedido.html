@@ -148,11 +148,28 @@
 
         <div class="campo">
           <label for="endereco">Endereço</label>
+
           <input
             type="text"
             id="endereco"
             placeholder="Rua, número"
           />
+
+          <button
+            type="button"
+            id="btnLocalizacao"
+            style="
+              margin-top:8px;
+              padding:10px;
+              border:none;
+              border-radius:8px;
+              cursor:pointer;
+            "
+          >
+            📍 Usar localização atual
+          </button>
+
+          <small id="statusLocalizacao"></small>
         </div>
 
         <div class="campo">
@@ -207,12 +224,18 @@
   import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
 
   import {
-    garantirClienteAnonimo,
-    buscarCliente,
+      garantirClienteAuth,
+      buscarCliente,
     salvarCliente
   } from "./js/services/customers.js";
 
-  const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+  const carrinho = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("carrinho")) || [];
+    } catch {
+      return [];
+    }
+  })();
 
   const resumo = document.getElementById("resumo");
   const subtotalEl = document.getElementById("subtotal");
@@ -231,6 +254,12 @@
   const enderecoEl = document.getElementById("endereco");
   const referenciaEl = document.getElementById("referencia");
   const observacoesEl = document.getElementById("observacoes");
+
+  const btnLocalizacaoEl = document.getElementById("btnLocalizacao");
+  const statusLocalizacaoEl = document.getElementById("statusLocalizacao");
+
+  let latitudeCliente = null;
+  let longitudeCliente = null;
 
   const pagamentoMetodoEl = document.getElementById("pagamentoMetodo");
   const campoTrocoParaEl = document.getElementById("campoTrocoPara");
@@ -334,15 +363,17 @@
     resumo.innerHTML = "";
     valorSubtotal = 0;
 
-    if (carrinho.length === 0) {
+    if (!Array.isArray(carrinho) || carrinho.length === 0) {
       resumo.innerHTML = `<p>Seu carrinho está vazio.</p>`;
+      taxaEntrega = 0;
+      valorTotal = 0;
       subtotalEl.innerText = "0.00";
       taxaEntregaEl.innerText = "0.00";
       totalEl.innerText = "0.00";
       return;
     }
 
-    carrinho.forEach(item => {
+    carrinho.forEach((item) => {
       const quantidade = Number(item.quantidade || 1);
       const valorUnitario = Number(item.valorUnitario || item.preco || 0);
       const subtotalItem = quantidade * valorUnitario;
@@ -506,13 +537,246 @@
     return true;
   }
 
+  // ======================================================
+  // LOCALIZAÇÃO ATUAL + GEOCODIFICAÇÃO REVERSA
+  // ======================================================
+
+  function normalizarTexto(texto) {
+
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  }
+
+
+  function encontrarBairro(nomeBairroAPI) {
+
+    if (!nomeBairroAPI) return null;
+
+
+    const busca = normalizarTexto(nomeBairroAPI);
+
+
+    // 1 - comparação exata
+    let encontrado = bairrosEntrega.find(b =>
+      normalizarTexto(b.nome) === busca
+    );
+
+
+    if (encontrado) return encontrado;
+
+
+
+    // 2 - ignorando maiúsculas/minúsculas + acentos
+    encontrado = bairrosEntrega.find(b =>
+      normalizarTexto(b.nome).includes(busca)
+    );
+
+
+    if (encontrado) return encontrado;
+
+
+
+    // 3 - parcial invertido
+    encontrado = bairrosEntrega.find(b =>
+      busca.includes(normalizarTexto(b.nome))
+    );
+
+
+    return encontrado || null;
+
+  }
+
+
+
+  async function buscarEnderecoPorCoordenadas(lat, lon) {
+
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?` +
+      `format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+
+
+    const resposta = await fetch(url, {
+      headers:{
+        "Accept":"application/json"
+      }
+    });
+
+
+    if (!resposta.ok) {
+      throw new Error("Erro na geocodificação");
+    }
+
+
+    return await resposta.json();
+
+  }
+
+
+
+  async function usarLocalizacaoAtual() {
+
+
+    if (!navigator.geolocation) {
+
+      alert("Seu navegador não suporta localização.");
+      return;
+
+    }
+
+
+    statusLocalizacaoEl.innerText =
+      "Obtendo localização...";
+
+
+    navigator.geolocation.getCurrentPosition(
+    
+      async (posicao)=>{
+
+
+        try {
+
+
+          latitudeCliente =
+            posicao.coords.latitude;
+
+
+          longitudeCliente =
+            posicao.coords.longitude;
+
+
+
+          const dados =
+            await buscarEnderecoPorCoordenadas(
+              latitudeCliente,
+              longitudeCliente
+            );
+
+
+
+          const endereco =
+            dados.address || {};
+
+
+
+          const rua =
+            endereco.road ||
+            endereco.pedestrian ||
+            "";
+
+
+          const numero =
+            endereco.house_number ||
+            "";
+
+
+
+          if (rua) {
+
+            enderecoEl.value =
+              `${rua}${numero ? ", " + numero : " (confirme o número)"}`;
+
+          }
+
+
+
+          const bairroAPI =
+            endereco.suburb ||
+            endereco.neighbourhood ||
+            endereco.city_district ||
+            "";
+
+
+
+          const bairroEncontrado =
+            encontrarBairro(bairroAPI);
+
+
+
+          if (bairroEncontrado) {
+
+
+            bairroEl.value =
+              bairroEncontrado.id;
+
+
+            recalcularTotal();
+
+
+
+            statusLocalizacaoEl.innerText =
+              "Localização encontrada!";
+
+            setTimeout(() => {
+              statusLocalizacaoEl.innerText = "";
+            }, 5000);
+
+
+          } else {
+
+
+            statusLocalizacaoEl.innerText =
+              "Localização encontrada! Bairro precisa ser selecionado manualmente.";
+
+
+          }
+
+
+
+        } catch(erro){
+
+
+          console.error(
+            "Erro ao converter localização:",
+            erro
+          );
+
+
+          statusLocalizacaoEl.innerText =
+            "Não foi possível obter sua localização.";
+
+        }
+
+
+      },
+
+
+      (erro)=>{
+
+
+        console.error(
+          "Erro localização:",
+          erro
+        );
+
+
+        statusLocalizacaoEl.innerText =
+          "Não foi possível obter sua localização.";
+
+
+      },
+
+
+      {
+        enableHighAccuracy:true,
+        timeout:10000,
+        maximumAge:0
+      }
+
+    );
+
+  }
+
   async function finalizarPedido(event) {
     event.preventDefault();
 
     if (!validarFormulario()) return;
 
 
-    const clienteAuth = await garantirClienteAnonimo();
+    const clienteAuth = await garantirClienteAuth();
 
 
     await salvarCliente({
@@ -531,7 +795,7 @@
       const valorUnitario = Number(item.valorUnitario || item.preco || 0);
 
       return {
-        produtoId: item.id || null,
+        produtoId: item.produtoId || item.id || null,
         nome: item.nome || "Item",
         quantidade,
         valorUnitario,
@@ -546,6 +810,13 @@
     const bairroLabel = tipo === "Delivery" && bairroSelecionado
       ? `${bairroSelecionado.nome} (${formatarMoeda(taxaFinal)})`
       : "";
+
+
+    console.log("Coordenadas antes de enviar:", {
+      latitudeCliente,
+      longitudeCliente
+    });
+
 
     const pedido = {
       numeroPedido,
@@ -568,8 +839,21 @@
       bairro: bairroNome,
       bairroLabel,
       taxaEntrega: taxaFinal,
-      endereco: tipo === "Delivery" ? enderecoEl.value.trim() : "",
-      referencia: tipo === "Delivery" ? referenciaEl.value.trim() : "",
+      endereco: tipo === "Delivery"
+        ? enderecoEl.value.trim()
+        : "",
+
+      referencia: tipo === "Delivery"
+        ? referenciaEl.value.trim()
+        : "",
+
+      latitude: tipo === "Delivery"
+        ? latitudeCliente
+        : null,
+
+      longitude: tipo === "Delivery"
+        ? longitudeCliente
+        : null,
       observacoes: observacoesEl.value.trim(),
 
       itens: itensPedido,
@@ -609,48 +893,59 @@
   }
 
   async function init() {
+    try {
+      await garantirClienteAuth();
 
+      // 1) recuperar tipo escolhido no index
+      const tipoSalvo = localStorage.getItem("tipoPedido");
+      if (tipoSalvo === "Delivery" || tipoSalvo === "Retirada") {
+        tipoPedidoEl.value = tipoSalvo;
+      }
 
-    const cliente = await buscarCliente();
+      // 2) carregar cliente sem quebrar se não existir
+      const cliente = await buscarCliente();
 
+      if (cliente) {
+        clienteEl.value = cliente.nome || "";
+        telefoneEl.value = cliente.telefone || "";
+      }
 
-    clienteEl.value = cliente.nome || "";
+      // 3) renderizar carrinho
+      renderCarrinho();
 
-    telefoneEl.value = cliente.telefone || "";
+      // 4) carregar bairros antes de recalcular total
+      await carregarBairros();
 
+      // 5) agora sim ajustar interface do tipo de pedido
+      atualizarCamposTipoPedido();
+      atualizarCampoTroco();
 
-    renderCarrinho();
+      // eventos
+      tipoPedidoEl.addEventListener("change", () => {
+        localStorage.setItem("tipoPedido", tipoPedidoEl.value);
+        atualizarCamposTipoPedido();
+      });
 
-    atualizarCamposTipoPedido();
+      bairroEl.addEventListener("change", recalcularTotal);
 
-    atualizarCampoTroco();
+      pagamentoMetodoEl.addEventListener(
+        "change",
+        atualizarCampoTroco
+      );
 
-    await carregarBairros();
+      btnLocalizacaoEl.addEventListener(
+        "click",
+        usarLocalizacaoAtual
+      );
 
+      form.addEventListener(
+        "submit",
+        finalizarPedido
+      );
 
-    tipoPedidoEl.addEventListener(
-      "change",
-      atualizarCamposTipoPedido
-    );
-
-
-    bairroEl.addEventListener(
-      "change",
-      recalcularTotal
-    );
-
-
-    pagamentoMetodoEl.addEventListener(
-      "change",
-      atualizarCampoTroco
-    );
-
-
-    form.addEventListener(
-      "submit",
-      finalizarPedido
-    );
-
+    } catch (erro) {
+      console.error("Erro ao iniciar checkout:", erro);
+    }
   }
 
   init();

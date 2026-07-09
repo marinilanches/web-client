@@ -88,15 +88,6 @@
                 </span>
               </button>
             </div>
-
-            <!-- resumo desktop no topo -->
-            <div class="col-lg-auto d-none d-xl-block">
-              <div class="hero-cart-mini">
-                <div class="small text-white-50">Seu carrinho</div>
-                <div class="fw-bold fs-5"><span id="qtd">0</span> itens</div>
-                <div class="fw-semibold">R$ <span id="total">0.00</span></div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -136,7 +127,7 @@
             </div>
 
             <div class="row g-3 mb-4">
-              <div class="col-12 col-md-6">
+              <div class="col-12">
                 <div class="highlight-card h-100">
                   <div class="d-flex align-items-start gap-3">
                     <div class="highlight-icon bg-danger-subtle text-danger">
@@ -144,25 +135,10 @@
                     </div>
                     <div>
                       <h4 class="mb-1">Mais pedidos</h4>
-                      <p class="mb-0 text-secondary">
-                        Seus lanches favoritos em um layout de delivery mais moderno.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div class="col-12 col-md-6">
-                <div class="highlight-card h-100">
-                  <div class="d-flex align-items-start gap-3">
-                    <div class="highlight-icon bg-success-subtle text-success">
-                      <i class="bi bi-clock-history"></i>
-                    </div>
-                    <div>
-                      <h4 class="mb-1">Pedido rápido</h4>
-                      <p class="mb-0 text-secondary">
-                        Adicione, edite o carrinho e finalize sem sair da tela.
-                      </p>
+                      <div id="produtosMaisPedidos">
+                        Carregando...
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -252,15 +228,6 @@
               </div>
 
               <div class="desktop-cart-footer">
-                <div class="mb-3">
-                  <label for="tipoPedido" class="form-label fw-semibold">
-                    Tipo do pedido
-                  </label>
-                  <select id="tipoPedido" class="form-select form-select-lg">
-                    <option value="Delivery">Delivery</option>
-                    <option value="Retirada">Retirada</option>
-                  </select>
-                </div>
 
                 <div class="cart-summary-box mb-3">
                   <div class="d-flex justify-content-between align-items-center">
@@ -350,15 +317,6 @@
       </div>
 
       <div class="mobile-cart-footer border-top p-3">
-        <div class="mb-3">
-          <label for="tipoPedidoMobile" class="form-label fw-semibold">
-            Tipo do pedido
-          </label>
-          <select id="tipoPedidoMobile" class="form-select form-select-lg">
-            <option value="Delivery">Delivery</option>
-            <option value="Retirada">Retirada</option>
-          </select>
-        </div>
 
         <div class="cart-summary-box mb-3">
           <div class="d-flex justify-content-between align-items-center">

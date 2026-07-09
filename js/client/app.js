@@ -4,13 +4,20 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { loadProducts } from "../services/products.js";
 import { iniciarCarrinho } from "./cart.js";
 import { iniciarCheckout } from "./checkout.js";
-import { iniciarCliente } from "./customer.js";
-import {
-  iniciarPedidosCliente
-} from "./orders-client.js";
+import { carregarMaisPedidos } from "./best-sellers.js";
+import { iniciarPedidosCliente } from "./orders-client.js";
+import { garantirClienteAuth } from "../services/customers.js";
+
+/* ==========================================================
+   CONFIG
+========================================================== */
 
 const CONFIG_COLLECTION = "configuracoes";
 const CONFIG_DOC_ID = "geral";
+
+/* ==========================================================
+   HELPERS
+========================================================== */
 
 function timeToMinutes(timeString) {
   if (!timeString || typeof timeString !== "string") return null;
@@ -25,14 +32,14 @@ function timeToMinutes(timeString) {
 function isStoreOpen(funcionamento = {}) {
   const statusManual = funcionamento.statusManual || "AUTO";
 
-  // prioridade para o status manual
+  // prioridade para status manual
   if (statusManual === "ABERTA") return true;
   if (statusManual === "FECHADA") return false;
 
   const abertura = timeToMinutes(funcionamento.abertura);
   const fechamento = timeToMinutes(funcionamento.fechamento);
 
-  // se não houver horário configurado, assume aberto
+  // sem horário configurado = aberto
   if (abertura === null || fechamento === null) {
     return true;
   }
@@ -40,64 +47,134 @@ function isStoreOpen(funcionamento = {}) {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  // exemplo: 19:15 -> 23:00
+  // ex.: 19:00 até 23:00
   if (abertura < fechamento) {
     return currentMinutes >= abertura && currentMinutes < fechamento;
   }
 
-  // exemplo: 18:00 -> 02:00 (vira a meia-noite)
+  // ex.: 18:00 até 02:00
   if (abertura > fechamento) {
     return currentMinutes >= abertura || currentMinutes < fechamento;
   }
 
-  // abertura == fechamento -> considera 24h
+  // abertura == fechamento => 24h
   return true;
 }
 
-function atualizarInterfaceLoja(config) {
+function verificarCarrinhoAntesCheckout() {
+  const carrinho =
+    JSON.parse(localStorage.getItem("carrinho")) || [];
+
+  if (!Array.isArray(carrinho) || carrinho.length === 0) {
+    alert("Seu carrinho está vazio.\nAdicione itens do cardápio para continuar.");
+    return false;
+  }
+
+  return true;
+}
+
+/* ==========================================================
+   UI DA LOJA
+========================================================== */
+
+function atualizarInterfaceLoja(config = {}) {
   const statusEl = document.getElementById("status");
   const finalizarBtn = document.getElementById("finalizarBtn");
+  const finalizarBtnMobile = document.getElementById("finalizarBtnMobile");
   const tituloLoja = document.querySelector(".topbar h2");
 
   const nomeLoja = config?.loja?.nome?.trim() || "Restaurante Digital";
   const funcionamento = config?.funcionamento || {};
   const aberta = isStoreOpen(funcionamento);
 
-  // atualiza nome da loja no topo
+  // nome da loja
   if (tituloLoja) {
     tituloLoja.textContent = `🍔 ${nomeLoja}`;
   }
 
-  // atualiza status visual
+  // status visual
   if (statusEl) {
     if (aberta) {
       statusEl.textContent = "🟢 Aberto";
-      statusEl.title = funcionamento.abertura && funcionamento.fechamento
-        ? `Funcionando das ${funcionamento.abertura} às ${funcionamento.fechamento}`
-        : "Loja aberta";
+      statusEl.title =
+        funcionamento.abertura && funcionamento.fechamento
+          ? `Funcionando das ${funcionamento.abertura} às ${funcionamento.fechamento}`
+          : "Loja aberta";
     } else {
       statusEl.textContent = "🔴 Fechado";
-      statusEl.title = funcionamento.abertura && funcionamento.fechamento
-        ? `Funcionamento: ${funcionamento.abertura} às ${funcionamento.fechamento}`
-        : "Loja fechada";
+      statusEl.title =
+        funcionamento.abertura && funcionamento.fechamento
+          ? `Funcionamento: ${funcionamento.abertura} às ${funcionamento.fechamento}`
+          : "Loja fechada";
     }
   }
 
-  // bloqueia finalizar pedido se estiver fechado
+  // botão desktop
   if (finalizarBtn) {
-    finalizarBtn.disabled = !aberta;
+    finalizarBtn.disabled = false;
 
     if (!aberta) {
       finalizarBtn.textContent = "Loja fechada no momento";
-      finalizarBtn.title = funcionamento.abertura && funcionamento.fechamento
-        ? `Abre às ${funcionamento.abertura}`
-        : "A loja está fechada no momento";
+      finalizarBtn.title =
+        funcionamento.abertura && funcionamento.fechamento
+          ? `Abre às ${funcionamento.abertura}`
+          : "A loja está fechada no momento";
     } else {
       finalizarBtn.textContent = "Finalizar Pedido";
       finalizarBtn.title = "";
     }
+
+    finalizarBtn.onclick = () => {
+      if (!aberta) {
+        alert(
+          funcionamento.abertura && funcionamento.fechamento
+            ? `A loja está fechada no momento.\nAbre às ${funcionamento.abertura}.`
+            : "A loja está fechada no momento."
+        );
+        return;
+      }
+
+      if (!verificarCarrinhoAntesCheckout()) return;
+
+      window.location.href = "./pedido.html";
+    };
+  }
+
+  // botão mobile
+  if (finalizarBtnMobile) {
+    finalizarBtnMobile.disabled = false;
+
+    if (!aberta) {
+      finalizarBtnMobile.textContent = "Loja fechada no momento";
+      finalizarBtnMobile.title =
+        funcionamento.abertura && funcionamento.fechamento
+          ? `Abre às ${funcionamento.abertura}`
+          : "A loja está fechada no momento";
+    } else {
+      finalizarBtnMobile.textContent = "Finalizar Pedido";
+      finalizarBtnMobile.title = "";
+    }
+
+    finalizarBtnMobile.onclick = () => {
+      if (!aberta) {
+        alert(
+          funcionamento.abertura && funcionamento.fechamento
+            ? `A loja está fechada no momento.\nAbre às ${funcionamento.abertura}.`
+            : "A loja está fechada no momento."
+        );
+        return;
+      }
+
+      if (!verificarCarrinhoAntesCheckout()) return;
+
+      window.location.href = "./pedido.html";
+    };
   }
 }
+
+/* ==========================================================
+   CONFIGURAÇÕES DA LOJA
+========================================================== */
 
 async function carregarConfiguracoesLoja() {
   try {
@@ -112,30 +189,29 @@ async function carregarConfiguracoesLoja() {
 
     const config = snap.data();
     atualizarInterfaceLoja(config);
-
     console.log("Configurações carregadas:", config);
   } catch (error) {
     console.error("Erro ao carregar configurações da loja:", error);
+    atualizarInterfaceLoja({});
   }
 }
 
-import {
-  garantirClienteAuth
-} from "../services/customers.js";
-
+/* ==========================================================
+   INIT
+========================================================== */
 
 window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await garantirClienteAuth();
 
-  await garantirClienteAuth();
+    await carregarConfiguracoesLoja();
+    await loadProducts();
+    await carregarMaisPedidos();
 
-  await carregarConfiguracoesLoja();
-
-  await loadProducts();
-
-  iniciarCarrinho();
-
-  iniciarCheckout();
-
-  await iniciarPedidosCliente();
-
+    iniciarCarrinho();
+    iniciarCheckout();
+    await iniciarPedidosCliente();
+  } catch (error) {
+    console.error("Erro ao iniciar app do cliente:", error);
+  }
 });

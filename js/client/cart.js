@@ -23,8 +23,10 @@ function iniciarEventosCarrinho() {
     const btnAdd = e.target.closest(".btnAdd");
     if (btnAdd) {
       addItem(
+        btnAdd.dataset.id,
         btnAdd.dataset.nome,
-        Number(btnAdd.dataset.preco)
+        Number(btnAdd.dataset.preco),
+        btnAdd.dataset.imagem || ""
       );
 
       abrirCarrinhoNoMobile();
@@ -49,23 +51,6 @@ function iniciarEventosCarrinho() {
       return;
     }
   });
-
-  const tipoDesktop = document.getElementById("tipoPedido");
-  const tipoMobile = document.getElementById("tipoPedidoMobile");
-
-  if (tipoDesktop) {
-    tipoDesktop.addEventListener("change", () => {
-      if (tipoMobile) tipoMobile.value = tipoDesktop.value;
-      salvarTipoPedido(tipoDesktop.value);
-    });
-  }
-
-  if (tipoMobile) {
-    tipoMobile.addEventListener("change", () => {
-      if (tipoDesktop) tipoDesktop.value = tipoMobile.value;
-      salvarTipoPedido(tipoMobile.value);
-    });
-  }
 
   const finalizarDesktop = document.getElementById("finalizarBtn");
   const finalizarMobile = document.getElementById("finalizarBtnMobile");
@@ -99,16 +84,30 @@ function iniciarEventosCarrinho() {
    ADICIONAR ITEM
 ========================================================== */
 
-export function addItem(nome, preco) {
-  const item = carrinho.find((produto) => produto.nome === nome);
+export function addItem(produtoId, nome, preco, imagem = "") {
+  const id = String(produtoId || "").trim();
+  if (!id) {
+    console.warn("Produto sem ID ao adicionar no carrinho:", {
+      produtoId,
+      nome,
+      preco
+    });
+    return;
+  }
+
+  const item = carrinho.find((produto) => produto.produtoId === id);
 
   if (item) {
     item.quantidade++;
   } else {
     carrinho.push({
+      id,                 // compatibilidade
+      produtoId: id,      // campo oficial do carrinho
       nome,
       quantidade: 1,
-      valorUnitario: preco
+      valorUnitario: Number(preco || 0),
+      preco: Number(preco || 0), // compatibilidade com outras partes
+      imagem: imagem || ""
     });
   }
 
@@ -189,29 +188,17 @@ function escaparHtml(texto = "") {
 }
 
 function getTipoPedidoAtual() {
-  const tipoDesktop = document.getElementById("tipoPedido");
-  const tipoMobile = document.getElementById("tipoPedidoMobile");
-
-  return (
-    tipoDesktop?.value ||
-    tipoMobile?.value ||
-    localStorage.getItem("tipoPedido") ||
-    "Delivery"
-  );
+  return localStorage.getItem("tipoPedido") || "Delivery";
 }
 
 function salvarTipoPedido(valor) {
-  localStorage.setItem("tipoPedido", valor);
+  localStorage.setItem("tipoPedido", valor || "Delivery");
 }
 
 function sincronizarTipoPedido() {
-  const valorSalvo = localStorage.getItem("tipoPedido") || "Delivery";
-
-  const tipoDesktop = document.getElementById("tipoPedido");
-  const tipoMobile = document.getElementById("tipoPedidoMobile");
-
-  if (tipoDesktop) tipoDesktop.value = valorSalvo;
-  if (tipoMobile) tipoMobile.value = valorSalvo;
+  if (!localStorage.getItem("tipoPedido")) {
+    localStorage.setItem("tipoPedido", "Delivery");
+  }
 }
 
 /* ==========================================================

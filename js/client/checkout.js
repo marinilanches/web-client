@@ -1,32 +1,9 @@
 /* ==========================================================
    CHECKOUT DO CLIENTE
-   NO INDEX.HTML NÃO FINALIZA O PEDIDO:
-   APENAS REDIRECIONA PARA pedido.html
+   O INDEX APENAS REDIRECIONA APÓS VALIDAÇÕES
 ========================================================== */
 
-function obterTipoPedidoSelecionado() {
-  const tipoDesktop = document.getElementById("tipoPedido");
-  const tipoMobile = document.getElementById("tipoPedidoMobile");
-
-  return (
-    tipoDesktop?.value ||
-    tipoMobile?.value ||
-    localStorage.getItem("tipoPedido") ||
-    "Delivery"
-  );
-}
-
-
 export function irParaCheckout() {
-
-  const tipoPedido = obterTipoPedidoSelecionado();
-
-  localStorage.setItem(
-    "tipoPedido",
-    tipoPedido
-  );
-
-
   window.location.href = "./pedido.html";
 }
 
@@ -36,34 +13,6 @@ export function irParaCheckout() {
 ========================================================== */
 
 export function iniciarCheckout() {
-
-  const btnDesktop =
-    document.getElementById("finalizarBtn");
-
-
-  const btnMobile =
-    document.getElementById("finalizarBtnMobile");
-
-
-
-  if (btnDesktop) {
-
-    btnDesktop.addEventListener(
-      "click",
-      irParaCheckout
-    );
-
-  }
-
-
-
-  if (btnMobile) {
-
-    btnMobile.addEventListener(
-      "click",
-      irParaCheckout
-    );
-
-  }
-
+  // O controle dos botões Finalizar Pedido
+  // é feito pelo app.js
 }

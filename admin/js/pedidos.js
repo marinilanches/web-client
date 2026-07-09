@@ -44,6 +44,8 @@ buscarPedido?.addEventListener("input", aplicarFiltros);
 function aplicarFiltros() {
     let pedidos = [...pedidosCache];
 
+    pedidos = pedidos.filter((p) => String(p.numeroPedido) !== "2600");
+
     const statusSelecionado = filtroStatus?.value?.trim() || "";
     const termoBusca = buscarPedido?.value?.trim().toLowerCase() || "";
 
@@ -93,8 +95,13 @@ function renderPedidos(pedidos) {
 
         card.innerHTML = `
             <div class="panel-title">
-                ${pedido.cliente || "Cliente sem nome"}
+                Pedido #${pedido.numeroPedido || pedido.id?.slice(0, 6) || "-"}
             </div>
+
+            <p>
+                <strong>Cliente:</strong>
+                ${pedido.cliente || "Cliente sem nome"}
+            </p>
 
             <p>
                 <strong>Status:</strong>

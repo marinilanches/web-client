@@ -68,12 +68,16 @@ Seus pedidos
     </div>
 
 
-    <div id="pedidoInfo">
+    <div id="pedidoAtual"></div>
 
-      <div class="status-card mb-3">
-        Carregando...
+    <div class="mt-4">
+      <h2 class="section-title">Seus pedidos</h2>
+      <p class="section-subtitle">
+        Acompanhe seus pedidos recentes.
+      </p>
+      <div id="listaPedidos">
+        <div class="status-card mb-3">Carregando...</div>
       </div>
-
     </div>
 
   </section>
@@ -91,7 +95,8 @@ Seus pedidos
     buscarCliente
   } from "./js/services/customers.js";
 
-  const pedidoInfo = document.getElementById("pedidoInfo");
+  const pedidoAtual = document.getElementById("pedidoAtual");
+  const listaPedidos = document.getElementById("listaPedidos");
 
   function formatarMoeda(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
@@ -115,27 +120,20 @@ Seus pedidos
   }
 
   function renderMensagem(texto) {
-    pedidoInfo.innerHTML = `
+    pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
         <p>${texto}</p>
       </div>
     `;
   }
-
   function getStatusLabel(status) {
     switch (status) {
-      case "RECEBIDO":
-        return "🟡 Recebido";
-      case "PREPARANDO":
-        return "👨‍🍳 Em preparo";
-      case "PRONTO":
-        return "✅ Pronto";
-      case "ENTREGUE":
-        return "🚚 Entregue";
-      case "CANCELADO":
-        return "❌ Cancelado";
-      default:
-        return status || "—";
+      case "RECEBIDO": return "🟡 Recebido";
+      case "PREPARANDO": return "👨‍🍳 Em preparo";
+      case "PRONTO": return "✅ Pronto";
+      case "ENTREGUE": return "🚚 Entregue";
+      case "CANCELADO": return "❌ Cancelado";
+      default: return status || "—";
     }
   }
 
@@ -212,107 +210,43 @@ Seus pedidos
   }
 
   function gerarProgresso(status) {
-
     const etapas = [
-      {
-        id:"RECEBIDO",
-        nome:"Recebido",
-        emoji:"📥"
-      },
-      {
-        id:"PREPARANDO",
-        nome:"Preparando",
-        emoji:"👨‍🍳"
-      },
-      {
-        id:"PRONTO",
-        nome:"Pronto",
-        emoji:"✅"
-      },
-      {
-        id:"ENTREGUE",
-        nome:"Entregue",
-        emoji:"🚚"
-      }
+      { id: "RECEBIDO", nome: "Recebido", emoji: "📥" },
+      { id: "PREPARANDO", nome: "Preparando", emoji: "👨‍🍳" },
+      { id: "PRONTO", nome: "Pronto", emoji: "✅" },
+      { id: "ENTREGUE", nome: "Entregue", emoji: "🚚" }
     ];
 
-
-    const cancelado = status === "CANCELADO";
-
-
-    const indiceAtual = etapas.findIndex(
-      etapa => etapa.id === status
-    );
-
+    const indiceAtual = etapas.findIndex(etapa => etapa.id === status);
 
     const porcentagem = indiceAtual < 0
       ? 0
       : (indiceAtual / (etapas.length - 1)) * 100;
 
-
-
     return `
-
       <div class="status-progresso">
-
         <div class="progresso-linha"></div>
-
-        <div 
+        <div
           class="progresso-linha-ativa"
           style="width:${porcentagem}%"
         ></div>
 
-
         <div class="progresso-etapas">
-
-          ${etapas.map((etapa,index)=>{
-
-
+          ${etapas.map((etapa, index) => {
             let classe = "";
 
-
-            if(index < indiceAtual){
-
-              classe="concluida";
-
-            }
-
-
-            if(index === indiceAtual){
-
-              classe="ativa";
-
-            }
-
+            if (index < indiceAtual) classe = "concluida";
+            if (index === indiceAtual) classe = "ativa";
 
             return `
-
-            <div class="progresso-etapa ${classe}">
-
-              <div class="progresso-bolinha">
-
-                ${etapa.emoji}
-
+              <div class="progresso-etapa ${classe}">
+                <div class="progresso-bolinha">${etapa.emoji}</div>
+                <span>${etapa.nome}</span>
               </div>
-
-
-              <span>
-
-                ${etapa.nome}
-
-              </span>
-
-            </div>
-
             `;
-
-
           }).join("")}
-
         </div>
-
       </div>
-
     `;
   }
 
@@ -336,7 +270,6 @@ Seus pedidos
       : "<p>Nenhum item.</p>";
 
     const isDelivery = pedido.tipo === "Delivery";
-
     const blocoPix = getPixHtml(pedido);
 
     const blocoEntrega = isDelivery
@@ -350,22 +283,17 @@ Seus pedidos
       `
       : "";
 
-    pedidoInfo.innerHTML = `
+    pedidoAtual.innerHTML = `
+      <div class="item status-card" style="display:block;">
+        <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
-    <div class="item status-card" style="display:block;">
+        ${gerarProgresso(pedido.status)}
 
-    <h3>
-    Pedido #${pedido.numeroPedido || pedidoId}
-    </h3>
+        <p>
+          <strong>Status:</strong>
+          ${getStatusLabel(pedido.status)}
+        </p>
 
-
-    ${gerarProgresso(pedido.status)}
-
-
-    <p>
-    <strong>Status:</strong>
-    ${getStatusLabel(pedido.status)}
-    </p>
         <p><strong>Data:</strong> ${formatarData(pedido.criadoEm || pedido.createdAt)}</p>
 
         <div class="status-section">
@@ -382,7 +310,6 @@ Seus pedidos
         </div>
 
         ${blocoPix}
-
         ${blocoEntrega}
 
         <div class="status-section">
@@ -407,76 +334,89 @@ Seus pedidos
     ativarBotaoCopiarPix();
   }
 
-  async function carregarMeusPedidos(){
+  function renderListaPedidos(pedidos, cliente) {
+    if (!pedidos.length) {
+      listaPedidos.innerHTML = `
+        <div class="status-card mb-3">
+          <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
+          <p>Nenhum outro pedido encontrado.</p>
+        </div>
 
-    const user = await garantirClienteAuth();
-
-    const cliente = await buscarCliente(user.uid);
-
-    console.log("UID cliente:", user.uid);
-    console.log("Cliente:", cliente);
-    ouvirPedidosCliente(
-      user.uid,
-      pedidos=>{
-        console.log("Pedidos encontrados:", pedidos);
-
-    pedidoInfo.innerHTML=`
-
-    <h3>
-    Olá ${cliente.nome || "cliente"} 👋
-    </h3>
-
-
-    <h3>
-    Seus pedidos:
-    </h3>
-
-
-    ${
-    pedidos.map(p=>`
-
-    <div class="status-card mb-3">
-
-
-    <h4>
-    #${p.numeroPedido || p.id.slice(0,6).toUpperCase()}
-    </h4>
-
-
-    <p>
-    ${p.itens?.map(i=>i.nome).join(", ")}
-    </p>
-
-
-    <strong>
-    ${formatarMoeda(p.valorTotal)}
-    </strong>
-
-
-    ${gerarProgresso(p.status)}
-
-
-    </div>
-
-
-    `).join("")
+        <button
+          class="btn btn-danger w-100 mt-3"
+          onclick="location.href='./index.html'"
+        >
+          Novo pedido
+        </button>
+      `;
+      return;
     }
 
+    listaPedidos.innerHTML = `
+      <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
 
-    <button
-    class="btn btn-danger w-100 mt-3"
-    onclick="location.href='./index.html'"
-    >
-      Novo pedido
-    </button>
+      ${pedidos.map(p => `
+        <div class="status-card mb-3">
+          <h4>#${p.numeroPedido || p.id.slice(0, 6).toUpperCase()}</h4>
 
+          <p>${p.itens?.map(i => `${i.quantidade || 1}x ${i.nome}`).join("<br>") || "Sem itens"}</p>
 
+          <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
+          <p><strong>Status:</strong> ${getStatusLabel(p.status)}</p>
+
+          ${gerarProgresso(p.status)}
+
+          <button
+            class="btn btn-outline-danger mt-3"
+            onclick="location.href='./status.html?id=${p.id}'"
+          >
+            Ver detalhes
+          </button>
+        </div>
+      `).join("")}
+
+      <button
+        class="btn btn-danger w-100 mt-3"
+        onclick="location.href='./index.html'"
+      >
+        Novo pedido
+      </button>
     `;
-
-    });
-
   }
-  carregarMeusPedidos();
+
+  async function carregarStatus() {
+    const params = new URLSearchParams(window.location.search);
+    const pedidoId = params.get("id");
+
+    const user = await garantirClienteAuth();
+    const cliente = await buscarCliente(user.uid);
+
+    // Mostra o pedido atual no topo, se vier ?id=
+    if (pedidoId) {
+      ouvirPedidoPorId(
+        pedidoId,
+        (pedido) => {
+          renderPedido(pedido, pedidoId);
+        },
+        () => {
+          renderMensagem("Pedido não encontrado.");
+        }
+      );
+    } else {
+      pedidoAtual.innerHTML = "";
+    }
+
+    // Lista os demais pedidos, sem duplicar o que já está no topo
+    ouvirPedidosCliente(user.uid, (pedidos) => {
+      const pedidosFiltrados = pedidoId
+        ? pedidos.filter(p => p.id !== pedidoId)
+        : pedidos;
+
+      renderListaPedidos(pedidosFiltrados, cliente);
+    });
+  }
+
+  carregarStatus();
 </script>
 
 <script 

@@ -2,10 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-/* ==========================================================
-   FIREBASE CONFIG
-========================================================== */
-
 const firebaseConfig = {
   apiKey: "AIzaSyCv9EjCPGl3SlvHUaRCBShLZhT04aVl8wM",
   authDomain: "mesa-facil-62310.firebaseapp.com",
