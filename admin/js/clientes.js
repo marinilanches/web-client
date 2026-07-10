@@ -26,9 +26,60 @@ let clientesCache = [];
 
 console.log("clientes.js carregado");
 
-ouvirClientes((clientes) => {
-    clientesCache = clientes;
-    aplicarFiltros();
+ouvirClientes((clientes)=>{
+
+clientesCache = clientes;
+
+
+document.querySelector("#totalClientes")
+.textContent =
+clientes.length;
+
+
+
+document.querySelector("#clientesVip")
+.textContent =
+clientes.filter(
+c=>Number(c.totalPedidos||0)>5
+).length;
+
+
+
+let pedidos =
+clientes.reduce(
+(a,b)=>
+a+Number(b.totalPedidos||0),
+0
+);
+
+
+document.querySelector("#totalPedidosClientes")
+.textContent =
+pedidos;
+
+
+
+let gasto =
+clientes.reduce(
+(a,b)=>
+a+Number(b.totalGasto||0),
+0
+);
+
+
+document.querySelector("#ticketMedio")
+.textContent =
+"R$ "+
+(
+gasto /
+(clientes.length||1)
+)
+.toFixed(2);
+
+
+
+aplicarFiltros();
+
 });
 
 buscarCliente?.addEventListener("input", aplicarFiltros);
@@ -66,52 +117,126 @@ function renderClientes(clientes) {
 
     if (!listaClientes) return;
 
+
     if (!clientes.length) {
+
         listaClientes.innerHTML = `
-            <div class="empty-state">
-                <h3>Nenhum cliente encontrado</h3>
-                <p>Os clientes cadastrados aparecerão aqui.</p>
-            </div>
+            <tr>
+                <td colspan="7">
+                    Nenhum cliente encontrado
+                </td>
+            </tr>
         `;
+
+        atualizarEstatisticas(clientes);
+
         return;
     }
 
-    listaClientes.innerHTML = "";
 
-    clientes.forEach((cliente) => {
+    listaClientes.innerHTML = clientes.map(cliente => {
 
-        const card = document.createElement("div");
-        card.className = "panel";
+        return `
 
-        card.innerHTML = `
-            <div class="panel-title">
-                ${cliente.nome || "Cliente sem nome"}
-            </div>
+        <tr>
 
-            <p>
-                <strong>Telefone:</strong>
+            <td>
+                ${cliente.nome || "-"}
+            </td>
+
+
+            <td>
                 ${cliente.telefone || "-"}
-            </p>
+            </td>
 
-            <p>
-                <strong>Total de pedidos:</strong>
-                ${cliente.totalPedidos ?? 0}
-            </p>
 
-            <p>
-                <strong>Total gasto:</strong>
+            <td>
+                -
+            </td>
+
+
+            <td>
+                ${cliente.totalPedidos || 0}
+            </td>
+
+
+            <td>
                 R$ ${Number(cliente.totalGasto || 0).toFixed(2)}
-            </p>
+            </td>
 
-            <p>
-                <strong>Observações:</strong>
-                ${cliente.observacoes || "-"}
-            </p>
+
+            <td>
+                🟢 Ativo
+            </td>
+
+
+            <td>
+                <button class="btn btn-primary">
+                    Editar
+                </button>
+            </td>
+
+        </tr>
+
         `;
 
-        listaClientes.appendChild(card);
+    }).join("");
 
-    });
+
+    atualizarEstatisticas(clientes);
+
+}
+
+function atualizarEstatisticas(clientes) {
+
+    const totalClientes =
+        clientes.length;
+
+
+    const clientesVip =
+        clientes.filter(cliente =>
+            Number(cliente.totalPedidos || 0) >= 5
+        ).length;
+
+
+    const totalPedidos =
+        clientes.reduce(
+            (total, cliente) =>
+                total + Number(cliente.totalPedidos || 0),
+            0
+        );
+
+
+    const totalGasto =
+        clientes.reduce(
+            (total, cliente) =>
+                total + Number(cliente.totalGasto || 0),
+            0
+        );
+
+
+    const ticketMedio =
+        totalClientes
+        ? totalGasto / totalClientes
+        : 0;
+
+
+
+    document.getElementById("totalClientes")
+        .textContent = totalClientes;
+
+
+    document.getElementById("clientesVip")
+        .textContent = clientesVip;
+
+
+    document.getElementById("totalPedidosClientes")
+        .textContent = totalPedidos;
+
+
+    document.getElementById("ticketMedio")
+        .textContent =
+        `R$ ${ticketMedio.toFixed(2)}`;
 
 }
 
