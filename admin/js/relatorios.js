@@ -145,11 +145,13 @@ clientes.length;
 
 montarRankingProdutos();
 
-
 montarRankingClientes();
 
+graficoFaturamento();
 
 graficoProdutos();
+
+graficoPagamentos();
 
 graficoPedidos();
 
@@ -264,38 +266,88 @@ RANKING CLIENTES
 
 function montarRankingClientes(){
 
-
 if(!rankingClientes)
 return;
 
 
-const lista =
-[...clientes]
-.sort(
-(a,b)=>
-Number(b.totalGasto||0)
--
-Number(a.totalGasto||0)
+const lista=[];
+
+
+pedidos
+.filter(p=>p.status!=="CANCELADO")
+.forEach(pedido=>{
+
+
+let cliente =
+lista.find(
+c=>c.nome===pedido.cliente
+);
+
+
+if(!cliente){
+
+cliente={
+nome:pedido.cliente || "Não informado",
+pedidos:0,
+total:0,
+ultima:null
+};
+
+lista.push(cliente);
+
+}
+
+
+cliente.pedidos++;
+
+cliente.total += Number(pedido.valorTotal||0);
+
+
+if(
+!cliente.ultima ||
+pedido.criadoEm?.seconds >
+cliente.ultima.seconds
+){
+
+cliente.ultima = pedido.criadoEm;
+
+}
+
+
+});
+
+
+lista.sort(
+(a,b)=>b.total-a.total
 );
 
 
 
 rankingClientes.innerHTML =
+
 lista.map(cliente=>`
 
 <tr>
 
 <td>${cliente.nome}</td>
 
-<td>${cliente.totalPedidos||0}</td>
+<td>${cliente.pedidos}</td>
 
-<td>${moeda(cliente.totalGasto)}</td>
+<td>${moeda(cliente.total)}</td>
 
-<td>-</td>
+<td>
+${
+cliente.ultima
+?
+new Date(cliente.ultima.seconds*1000)
+.toLocaleDateString("pt-BR")
+:
+"-"
+}
 
+</td>
 
 </tr>
-
 
 `).join("");
 
@@ -416,5 +468,116 @@ style:"currency",
 currency:"BRL"
 }
 );
+
+}
+
+function graficoFaturamento(){
+
+const canvas =
+document.getElementById("graficoFaturamento");
+
+
+if(!canvas || !window.Chart)
+return;
+
+
+if(canvas.chart)
+canvas.chart.destroy();
+
+
+
+const dados =
+pedidos
+.filter(p=>p.status!=="CANCELADO")
+.map(p=>Number(p.valorTotal||0));
+
+
+canvas.chart =
+new Chart(canvas,{
+
+type:"line",
+
+data:{
+
+labels:
+pedidos
+.filter(p=>p.status!=="CANCELADO")
+.map(p=>p.numeroPedido),
+
+
+datasets:[{
+
+label:"Faturamento",
+
+data:dados
+
+}]
+
+}
+
+});
+
+
+}
+
+function graficoPagamentos(){
+
+const canvas =
+document.getElementById("graficoPagamentos");
+
+
+if(!canvas || !window.Chart)
+return;
+
+
+if(canvas.chart)
+canvas.chart.destroy();
+
+
+
+const formas={};
+
+
+pedidos
+.filter(p=>p.status!=="CANCELADO")
+.forEach(p=>{
+
+
+let forma =
+p.pagamentoMetodo || "OUTRO";
+
+
+formas[forma] =
+(formas[forma]||0)+1;
+
+
+});
+
+
+
+canvas.chart =
+new Chart(canvas,{
+
+type:"doughnut",
+
+data:{
+
+labels:
+Object.keys(formas),
+
+
+datasets:[{
+
+label:"Pagamentos",
+
+data:
+Object.values(formas)
+
+}]
+
+}
+
+});
+
 
 }
