@@ -255,6 +255,31 @@ function abrirDetalhesPedido(id){
                 ${pedido.tipo}
             </p>
 
+            ${
+                pedido.tipo === "Delivery"
+                ?
+                `
+                <h3>🚚 Entrega</h3>
+
+                <p>
+                    <strong>Bairro:</strong><br>
+                    ${pedido.bairro || "-"}
+                </p>
+
+                <p>
+                    <strong>Endereço:</strong><br>
+                    ${pedido.endereco || "-"}
+                </p>
+
+                <p>
+                    <strong>Referência:</strong><br>
+                    ${pedido.referencia || "—"}
+                </p>
+                `
+                :
+                ""
+            }
+
 
             <h3>🍔 Itens</h3>
 
@@ -282,6 +307,18 @@ function abrirDetalhesPedido(id){
                 R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
             </h2>
 
+            <div class="modal-actions mt-3">
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="btnImprimirComanda">
+
+                    🖨️ Imprimir comanda
+
+                </button>
+
+            </div>
 
             ${
                 pedido.observacoes
@@ -300,7 +337,15 @@ function abrirDetalhesPedido(id){
         `
     );
 
-}
+    document
+        .getElementById("btnImprimirComanda")
+        ?.addEventListener("click", () => {
+
+            imprimirComanda(pedido);
+
+        });
+
+    }
 
 function bindAcoesPedidos() {
     document.querySelectorAll(".btn-detalhes").forEach((btn)=>{
@@ -443,3 +488,221 @@ btnNovoPedido?.addEventListener("click", () => {
             }
         });
 });
+
+function imprimirComanda(pedido) {
+
+    const itens = (pedido.itens || []).map(item => {
+
+        const adicionais = (item.adicionais || [])
+            .map(a =>
+                `+ ${a.nome}   R$ ${Number(a.preco || 0).toFixed(2)}`
+            )
+            .join("<br>");
+
+        return `
+            <div style="margin-bottom:12px;">
+
+                <strong>
+                    ${item.quantidade}x ${item.nome}
+                </strong>
+
+                <br>
+
+                R$ ${Number(item.valorUnitario || 0).toFixed(2)}
+
+                ${
+                    adicionais
+                    ? `<div style="margin-left:10px;">${adicionais}</div>`
+                    : ""
+                }
+
+                ${
+                    item.observacaoItem
+                    ? `
+                        <div>
+                            <strong>Obs:</strong><br>
+                            ${item.observacaoItem}
+                        </div>
+                    `
+                    : ""
+                }
+
+            </div>
+        `;
+
+    }).join("");
+
+    const entrega = pedido.tipo === "Delivery"
+        ? `
+            <hr>
+
+            <strong>ENTREGA</strong>
+
+            <p>
+                Bairro:<br>
+                ${pedido.bairro || "-"}
+            </p>
+
+            <p>
+                Endereço:<br>
+                ${pedido.endereco || "-"}
+            </p>
+
+            <p>
+                Referência:<br>
+                ${pedido.referencia || "-"}
+            </p>
+        `
+        : "";
+
+    const janela = window.open("", "_blank", "width=420,height=700");
+
+    janela.document.write(`
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>Comanda</title>
+
+<style>
+
+body{
+
+    width:80mm;
+
+    margin:0 auto;
+
+    padding:8px;
+
+    font-family:monospace;
+
+    font-size:12px;
+
+}
+
+h2,h3{
+
+    text-align:center;
+
+    margin:5px 0;
+
+}
+
+hr{
+
+    border:none;
+
+    border-top:1px dashed #000;
+
+    margin:8px 0;
+
+}
+
+.total{
+
+    font-size:16px;
+
+    font-weight:bold;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>MESA FÁCIL</h2>
+
+<hr>
+
+Pedido #${pedido.numeroPedido}
+
+<br>
+
+${new Date().toLocaleString("pt-BR")}
+
+<hr>
+
+<strong>Cliente</strong><br>
+
+${pedido.cliente}
+
+<br><br>
+
+<strong>Telefone</strong><br>
+
+${pedido.telefone}
+
+<br><br>
+
+<strong>Tipo</strong><br>
+
+${pedido.tipo}
+
+<hr>
+
+${itens}
+
+${entrega}
+
+<hr>
+
+Pagamento:<br>
+
+${pedido.pagamentoMetodo}
+
+<hr>
+
+Subtotal:
+R$ ${Number(pedido.valorSubtotal || 0).toFixed(2)}
+
+<br>
+
+Entrega:
+R$ ${Number(pedido.taxaEntrega || 0).toFixed(2)}
+
+<hr>
+
+<div class="total">
+
+TOTAL
+
+<br>
+
+R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
+
+</div>
+
+<hr>
+
+<center>
+
+Obrigado pela preferência!
+
+</center>
+
+<script>
+
+window.onload = () => {
+
+    window.print();
+
+    window.onafterprint = () => window.close();
+
+};
+
+</script>
+
+</body>
+
+</html>
+`);
+
+    janela.document.close();
+
+}
