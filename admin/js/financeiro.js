@@ -124,6 +124,9 @@ function atualizarFinanceiro(){
 
     renderGraficoPagamentos(pagos);
 
+
+    renderGraficoFaturamento(pagos);
+
 }
 
 
@@ -271,7 +274,118 @@ function renderGraficoPagamentos(pedidos){
 
 }
 
+/*
+==========================================
+GRÁFICO EVOLUÇÃO FATURAMENTO
+==========================================
+*/
 
+function renderGraficoFaturamento(pedidos){
+
+
+    const canvas =
+    document.getElementById("graficoFaturamento");
+
+
+    if(!canvas || !window.Chart)
+        return;
+
+
+
+    const dias = {};
+    
+
+    pedidos.forEach(pedido=>{
+
+
+        let data = pedido.criadoEm;
+
+
+        if(data?.toDate){
+            data = data.toDate();
+        }
+
+
+        if(!data)
+            return;
+
+
+        const dia =
+        new Date(data)
+        .toLocaleDateString("pt-BR");
+
+
+        dias[dia] =
+        (dias[dia] || 0)
+        +
+        Number(pedido.valorTotal || 0);
+
+
+
+    });
+
+
+
+    if(canvas.chart)
+        canvas.chart.destroy();
+
+
+
+    canvas.chart =
+    new Chart(canvas,{
+
+        type:"line",
+
+        data:{
+
+            labels:Object.keys(dias),
+
+            datasets:[{
+
+                label:"Faturamento",
+
+                data:Object.values(dias),
+
+                tension:0.3
+
+            }]
+
+        },
+
+
+        options:{
+
+            responsive:true,
+
+            plugins:{
+
+                legend:{
+                    display:true
+                }
+
+            },
+
+            scales:{
+
+                y:{
+
+                    ticks:{
+
+                        callback:(valor)=>
+                        "R$ "+valor.toFixed(2)
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+
+}
 
 
 function formatarMoeda(valor){
