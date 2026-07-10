@@ -380,12 +380,55 @@
 
       valorSubtotal += subtotalItem;
 
+      const adicionaisHtml = Array.isArray(item.adicionais) && item.adicionais.length
+        ? `
+          <div style="margin-top:6px;">
+            <strong>Adicionais:</strong>
+            <ul style="margin:4px 0 0 18px;padding:0;">
+              ${item.adicionais.map((adicional) => `
+                <li>${adicional.nome} ${Number(adicional.preco || 0) > 0 ? `(+ ${formatarMoeda(adicional.preco)})` : ""}</li>
+              `).join("")}
+            </ul>
+          </div>
+        `
+        : "";
+
+      const personalizacoesHtml = Array.isArray(item.personalizacao) && item.personalizacao.length
+        ? `
+          <div style="margin-top:6px;">
+            <strong>Personalização:</strong>
+            <ul style="margin:4px 0 0 18px;padding:0;">
+              ${item.personalizacao.map((grupo) => `
+                <li>
+                  <strong>${grupo.grupoNome || "Opções"}:</strong>
+                  ${(grupo.opcoes || []).map((opcao) => {
+                    const preco = Number(opcao.preco || 0);
+                    return `${opcao.nome}${preco > 0 ? ` (+ ${formatarMoeda(preco)})` : ""}`;
+                  }).join(", ")}
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        `
+        : "";
+
+      const observacaoItemHtml = item.observacao
+        ? `
+          <div style="margin-top:6px;">
+            <strong>Obs. do item:</strong> ${item.observacaoItem}
+          </div>
+        `
+        : "";
+
       resumo.innerHTML += `
         <div class="item-resumo">
           <h4>${item.nome}</h4>
           <p>Quantidade: ${quantidade}</p>
           <p>Unitário: ${formatarMoeda(valorUnitario)}</p>
           <p>Subtotal: ${formatarMoeda(subtotalItem)}</p>
+          ${adicionaisHtml}
+          ${personalizacoesHtml}
+          ${observacaoItemHtml}
         </div>
       `;
     });
@@ -790,17 +833,57 @@
     const numeroPedido = Date.now().toString().slice(-6);
     const bairroSelecionado = obterBairroSelecionado();
 
-    const itensPedido = carrinho.map(item => {
+    const itensPedido = carrinho.map((item) => {
       const quantidade = Number(item.quantidade || 1);
+      const precoBase = Number(item.precoBase || item.preco || 0);
       const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+
+      const personalizacoes = Array.isArray(item.personalizacao)
+        ? item.personalizacao.map((grupo) => ({
+            grupoId: grupo.grupoId || null,
+            grupoNome: grupo.grupoNome || "",
+            opcoes: (grupo.opcoes || []).map((opcao) => ({
+              id: opcao.id || null,
+              nome: opcao.nome || "",
+              preco: Number(opcao.preco || 0)
+            }))
+          }))
+        : [];
+
+      const adicionais = personalizacoes.flatMap((grupo) =>
+        grupo.opcoes.map((opcao) => ({
+          id: opcao.id,
+          nome: opcao.nome,
+          preco: opcao.preco
+        }))
+      );
+
+      const acrescimoAdicionais = adicionais.reduce(
+        (acc, item) => acc + Number(item.preco || 0),
+        0
+      );
+
+      const acrescimoPersonalizacao = personalizacoes.reduce((acc, grupo) => {
+        return acc + grupo.opcoes.reduce(
+          (soma, opcao) => soma + Number(opcao.preco || 0),
+          0
+        );
+      }, 0);
 
       return {
         produtoId: item.produtoId || item.id || null,
         nome: item.nome || "Item",
         quantidade,
+        precoBase,
         valorUnitario,
         subtotal: quantidade * valorUnitario,
-        adicionais: item.adicionais || []
+
+        adicionais,
+        personalizacoes,
+
+        observacaoItem: item.observacao || "",
+        acrescimoAdicionais,
+        acrescimoPersonalizacao
       };
     });
 

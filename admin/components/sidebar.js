@@ -16,7 +16,8 @@ export function carregarSidebar() {
     { href: "relatorios.html", emoji: "📈", texto: "Relatórios" },
     { href: "whatsapp.html", emoji: "📱", texto: "WhatsApp" },
     { href: "impressora.html", emoji: "🖨", texto: "Impressora" },
-    { href: "configuracoes.html", emoji: "⚙", texto: "Configurações" }
+    { href: "configuracoes.html", emoji: "⚙", texto: "Configurações" },
+    { href: "adicionais.html", emoji: "➕", texto: "Adicionais" }
   ];
 
   const menuHtml = links

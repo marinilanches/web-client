@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adicionais • Mesa Fácil</title>
+
+  <link rel="stylesheet" href="css/admin.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+  <div class="layout">
+    <aside id="sidebar"></aside>
+
+    <main class="content">
+      <header id="header"></header>
+
+      <section class="dashboard">
+        <h1>Adicionais</h1>
+
+        <p class="subtitle">
+          Cadastre os adicionais globais do sistema. Eles aparecerão para todos os lanches/produtos do cardápio.
+        </p>
+
+        <div class="toolbar">
+          <input
+            type="text"
+            id="buscarAdicional"
+            placeholder="Pesquisar adicional..."
+          />
+
+          <button id="novoAdicional">
+            ➕ Novo adicional
+          </button>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-title" style="margin-bottom: 10px;">
+            Como funciona
+          </div>
+
+          <p style="margin: 0;">
+            Os adicionais cadastrados aqui são <strong>globais</strong> e poderão ser usados em todos os produtos.
+            Ex.: Queijo extra, Bacon, Ovo, Catupiry, Cheddar, Molhos, etc.
+          </p>
+        </div>
+
+        <div id="listaAdicionais"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

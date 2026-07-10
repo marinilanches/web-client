@@ -132,6 +132,9 @@ export async function criarProduto(dados) {
       imagemPublicId,
       ativo: dados.ativo ?? true,
       vendas: Number(dados.vendas || 0),
+      gruposPersonalizacao: Array.isArray(dados.gruposPersonalizacao)
+        ? dados.gruposPersonalizacao
+        : [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -160,6 +163,9 @@ export async function editarProduto(id, dados) {
       descricao: dados.descricao ?? produtoAtual.descricao ?? "",
       preco: Number(dados.preco ?? produtoAtual.preco ?? 0),
       categoria: dados.categoria ?? produtoAtual.categoria ?? "",
+      gruposPersonalizacao: Array.isArray(dados.gruposPersonalizacao)
+        ? dados.gruposPersonalizacao
+        : (produtoAtual.gruposPersonalizacao || []),
       updatedAt: serverTimestamp()
     };
 
@@ -410,6 +416,20 @@ export async function loadProducts() {
             const descricao = escaparHtml(p.descricao || "Sem descrição no momento.");
             const preco = Number(p.preco || 0);
             const imagem = escaparHtml(p.imagem || "");
+            const produtoPayload = encodeURIComponent(JSON.stringify({
+              id: p.id,
+              nome: p.nome || "",
+              descricao: p.descricao || "",
+              preco: Number(p.preco || 0),
+              categoria: p.categoria || "",
+              imagem: p.imagem || "",
+              gruposPersonalizacao: Array.isArray(p.gruposPersonalizacao)
+                ? p.gruposPersonalizacao
+                : [],
+              adicionais: Array.isArray(p.adicionais)
+                ? p.adicionais
+                : []
+            }));
 
             return `
               <div class="col-12 col-md-6 product-col">
@@ -446,10 +466,7 @@ export async function loadProducts() {
 
                       <button
                         class="btn btn-danger btn-add-product btnAdd"
-                        data-id="${p.id}"
-                        data-nome="${nome}"
-                        data-preco="${preco}"
-                        data-imagem="${imagem}"
+                        data-produto="${produtoPayload}"
                         type="button"
                       >
                         <i class="bi bi-plus-lg me-1"></i>

@@ -124,8 +124,43 @@ pedido=>{
 const itens =
 pedido.itens
 .map(
-item =>
-`${item.quantidade}x ${item.nome}`
+item => {
+
+let adicionais = "";
+
+if(item.adicionais && item.adicionais.length){
+
+adicionais = `
+<br>
+&nbsp;&nbsp;➕ ${
+item.adicionais
+.map(a => a.nome)
+.join(", ")
+}
+`;
+
+}
+
+
+let observacao = "";
+
+if(item.observacaoItem && item.observacaoItem.trim()){
+
+observacao = `
+<br>
+&nbsp;&nbsp;📝 Obs: ${item.observacaoItem}
+`;
+
+}
+
+
+return `
+${item.quantidade}x ${item.nome}
+${adicionais}
+${observacao}
+`;
+
+}
 )
 .join("<br>");
 

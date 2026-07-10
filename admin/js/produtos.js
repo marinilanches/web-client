@@ -296,7 +296,7 @@ function abrirModalNovoProduto() {
 
       await criarProduto({
         nome: document.getElementById("nomeProduto").value.trim(),
-        preco: document.getElementById("precoProduto").value,
+        preco: Number(document.getElementById("precoProduto").value || 0),
         categoria: document.getElementById("categoriaProduto").value.trim(),
         descricao: document.getElementById("descricaoProduto").value.trim(),
         imagemFile,
@@ -396,10 +396,7 @@ function abrirModalEditarProduto(produto) {
 
   editImagemInput?.addEventListener("change", () => {
     const file = editImagemInput.files?.[0] || null;
-
-    if (file) {
-      renderPreviewFile(file, preview);
-    }
+    if (file) renderPreviewFile(file, preview);
   });
 
   document.getElementById("formEditarProduto")?.addEventListener("submit", async (e) => {

@@ -78,6 +78,10 @@ async function iniciarAdmin() {
             await import("./pages/taxas.js");
             break;
 
+        case "adicionais.html":
+            await import("./adicionais.js");
+            break;
+
         default:
             console.warn("Nenhum módulo encontrado para a página:", pagina);
             break;

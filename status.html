@@ -259,11 +259,41 @@ Seus pedidos
           const valorUnitario = Number(item.valorUnitario || item.preco || 0);
           const subtotal = Number(item.subtotal || quantidade * valorUnitario);
 
+          const adicionais = (item.adicionais || [])
+            .map(a => `${a.nome} (+${formatarMoeda(a.preco)})`)
+            .join("<br>");
+
           return `
             <div class="status-item-linha">
+
               <strong>${quantidade}x ${item.nome || "Item"}</strong>
+
               <div>Unitário: ${formatarMoeda(valorUnitario)}</div>
+
               <div>Subtotal: ${formatarMoeda(subtotal)}</div>
+
+              ${
+                adicionais
+                  ? `
+                  <div class="mt-2">
+                    <strong>Adicionais:</strong><br>
+                    ${adicionais}
+                  </div>
+                  `
+                  : ""
+              }
+
+              ${
+                item.observacaoItem
+                  ? `
+                  <div class="mt-2">
+                    <strong>Obs:</strong><br>
+                    ${item.observacaoItem}
+                  </div>
+                  `
+                  : ""
+              }
+
             </div>
           `;
         }).join("")
@@ -359,7 +389,33 @@ Seus pedidos
         <div class="status-card mb-3">
           <h4>#${p.numeroPedido || p.id.slice(0, 6).toUpperCase()}</h4>
 
-          <p>${p.itens?.map(i => `${i.quantidade || 1}x ${i.nome}`).join("<br>") || "Sem itens"}</p>
+          <p>
+          ${
+          (p.itens || []).map(i => {
+
+              const adicionais = (i.adicionais || [])
+                  .map(a => a.nome)
+                  .join(", ");
+
+              return `
+                  <strong>${i.quantidade || 1}x ${i.nome}</strong>
+
+                  ${
+                      adicionais
+                      ? `<br><small><strong>Adicionais:</strong> ${adicionais}</small>`
+                      : ""
+                  }
+
+                  ${
+                      i.observacaoItem
+                      ? `<br><small><strong>Obs:</strong> ${i.observacaoItem}</small>`
+                      : ""
+                  }
+              `;
+
+          }).join("<hr>")
+          }
+          </p>
 
           <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
           <p><strong>Status:</strong> ${getStatusLabel(p.status)}</p>

@@ -129,6 +129,13 @@ function renderPedidos(pedidos) {
             </p>
 
             <div class="modal-actions pedido-actions">
+
+                <button 
+                    class="btn btn-secondary btn-detalhes"
+                    data-id="${pedido.id}">
+                    🔎 Detalhes
+                </button>
+
                 <button class="btn btn-secondary btn-preparando" data-id="${pedido.id}">
                     👨‍🍳 Preparando
                 </button>
@@ -144,6 +151,7 @@ function renderPedidos(pedidos) {
                 <button class="btn btn-danger btn-cancelar" data-id="${pedido.id}">
                     ❌ Cancelar
                 </button>
+
             </div>
         `;
 
@@ -157,7 +165,153 @@ function renderPedidos(pedidos) {
    AÇÕES DOS PEDIDOS
 ========================================== */
 
+function abrirDetalhesPedido(id){
+
+    const pedido = pedidosCache.find(p => p.id === id);
+
+    if(!pedido){
+        toast("Pedido não encontrado");
+        return;
+    }
+
+
+    const itensHTML = (pedido.itens || []).map(item => {
+
+        const adicionais = (item.adicionais || [])
+            .map(a => `${a.nome} (+R$ ${Number(a.preco || 0).toFixed(2)})`)
+            .join("<br>");
+
+        return `
+            <div class="item-pedido">
+
+                <strong>
+                    ${item.nome}
+                </strong>
+
+                <p>
+                    Quantidade: ${item.quantidade}
+                </p>
+
+                <p>
+                    Valor unitário:
+                    R$ ${Number(item.valorUnitario || 0).toFixed(2)}
+                </p>
+
+                ${
+                    adicionais
+                    ?
+                    `<p>
+                        <strong>Adicionais:</strong><br>
+                        ${adicionais}
+                    </p>`
+                    :
+                    ""
+                }
+
+
+                ${
+                    item.observacaoItem && item.observacaoItem.trim()
+                    ?
+                    `
+                    <p>
+                        <strong>📝 Observação:</strong><br>
+                        ${item.observacaoItem}
+                    </p>
+                    `
+                    :
+                    ""
+                }
+
+
+                <hr>
+
+            </div>
+        `;
+
+    }).join("");
+
+
+
+    abrirModal(
+        `Pedido #${pedido.numeroPedido}`,
+        `
+
+        <div>
+
+            <h3>👤 Cliente</h3>
+
+            <p>
+                ${pedido.cliente}
+            </p>
+
+            <p>
+                📞 ${pedido.telefone}
+            </p>
+
+
+            <h3>📦 Tipo</h3>
+
+            <p>
+                ${pedido.tipo}
+            </p>
+
+
+            <h3>🍔 Itens</h3>
+
+            ${itensHTML || "Nenhum item"}
+
+
+            <h3>💰 Pagamento</h3>
+
+            <p>
+                Método:
+                ${pedido.pagamentoMetodo || "-"}
+            </p>
+
+
+            <p>
+                Status:
+                ${pedido.pagamentoStatus || "-"}
+            </p>
+
+
+
+            <h3>Total</h3>
+
+            <h2>
+                R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
+            </h2>
+
+
+            ${
+                pedido.observacoes
+                ?
+                `
+                <h3>Observações</h3>
+                <p>${pedido.observacoes}</p>
+                `
+                :
+                ""
+            }
+
+
+        </div>
+
+        `
+    );
+
+}
+
 function bindAcoesPedidos() {
+    document.querySelectorAll(".btn-detalhes").forEach((btn)=>{
+
+        btn.addEventListener("click", ()=>{
+
+            abrirDetalhesPedido(btn.dataset.id);
+
+        });
+
+    });
     document.querySelectorAll(".btn-preparando").forEach((btn) => {
         btn.addEventListener("click", async () => {
             try {

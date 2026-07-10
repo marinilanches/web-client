@@ -585,3 +585,36 @@ body.cliente-body {
   object-fit:cover;
   display:block;
 }
+
+/* ==========================================================
+   CUSTOMIZAÇÃO / ADICIONAIS
+========================================================== */
+
+.custom-group {
+  border: 1px solid var(--mf-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+}
+
+.custom-group .list-group-item {
+  border-radius: .9rem !important;
+  border: 1px solid #eceff4;
+  margin-bottom: .65rem;
+}
+
+.custom-group .list-group-item:last-child {
+  margin-bottom: 0;
+}
+
+.cart-item-extras {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.cart-item-extra-line {
+  font-size: .9rem;
+  color: var(--mf-text-soft);
+  line-height: 1.4;
+}

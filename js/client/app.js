@@ -1,5 +1,8 @@
 import { db } from "../services/firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { loadProducts } from "../services/products.js";
 import { iniciarCarrinho } from "./cart.js";
@@ -32,7 +35,6 @@ function timeToMinutes(timeString) {
 function isStoreOpen(funcionamento = {}) {
   const statusManual = funcionamento.statusManual || "AUTO";
 
-  // prioridade para status manual
   if (statusManual === "ABERTA") return true;
   if (statusManual === "FECHADA") return false;
 
@@ -62,8 +64,13 @@ function isStoreOpen(funcionamento = {}) {
 }
 
 function verificarCarrinhoAntesCheckout() {
-  const carrinho =
-    JSON.parse(localStorage.getItem("carrinho")) || [];
+  let carrinho = [];
+
+  try {
+    carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+  } catch {
+    carrinho = [];
+  }
 
   if (!Array.isArray(carrinho) || carrinho.length === 0) {
     alert("Seu carrinho está vazio.\nAdicione itens do cardápio para continuar.");
@@ -87,12 +94,10 @@ function atualizarInterfaceLoja(config = {}) {
   const funcionamento = config?.funcionamento || {};
   const aberta = isStoreOpen(funcionamento);
 
-  // nome da loja
   if (tituloLoja) {
     tituloLoja.textContent = `🍔 ${nomeLoja}`;
   }
 
-  // status visual
   if (statusEl) {
     if (aberta) {
       statusEl.textContent = "🟢 Aberto";
@@ -109,7 +114,6 @@ function atualizarInterfaceLoja(config = {}) {
     }
   }
 
-  // botão desktop
   if (finalizarBtn) {
     finalizarBtn.disabled = false;
 
@@ -140,7 +144,6 @@ function atualizarInterfaceLoja(config = {}) {
     };
   }
 
-  // botão mobile
   if (finalizarBtnMobile) {
     finalizarBtnMobile.disabled = false;
 
@@ -205,12 +208,22 @@ window.addEventListener("DOMContentLoaded", async () => {
     await garantirClienteAuth();
 
     await carregarConfiguracoesLoja();
+
+    // carrega cardápio
     await loadProducts();
+
+    // carrinho
+    iniciarCarrinho();
+
+    // checkout
+    iniciarCheckout();
+
+    // produtos mais pedidos
     await carregarMaisPedidos();
 
-    iniciarCarrinho();
-    iniciarCheckout();
+    // histórico / pedidos do cliente
     await iniciarPedidosCliente();
+
   } catch (error) {
     console.error("Erro ao iniciar app do cliente:", error);
   }
