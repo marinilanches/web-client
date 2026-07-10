@@ -5091,3 +5091,66 @@ button{
     height:180px;
   }
 }
+
+/* ================================
+   PEDIDOS NOVOS
+================================ */
+
+.panel.pedido-novo{
+
+    position: relative;
+
+    border: 3px solid #ff9800;
+
+    background: #fffaf0;
+
+    animation: pulsePedido 1.4s infinite;
+
+}
+
+.panel.pedido-novo::before{
+
+    content: "🆕 NOVO PEDIDO";
+
+    position: absolute;
+
+    top: -12px;
+
+    right: 18px;
+
+    background: #ff3b30;
+
+    color: #fff;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    letter-spacing: .5px;
+
+    box-shadow: 0 3px 8px rgba(0,0,0,.25);
+
+}
+
+@keyframes pulsePedido{
+
+    0%{
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255,152,0,.55);
+    }
+
+    70%{
+        transform: scale(1.01);
+        box-shadow: 0 0 0 12px rgba(255,152,0,0);
+    }
+
+    100%{
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255,152,0,0);
+    }
+
+}

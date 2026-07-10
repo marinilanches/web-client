@@ -99,10 +99,7 @@ export async function carregarMaisPedidos() {
 
                   <button
                     class="btn btn-danger btnAdd"
-                    data-id="${produto.id}"
-                    data-nome="${escaparHtml(produto.nome || "")}"
-                    data-preco="${Number(produto.preco || 0)}"
-                    data-imagem="${escaparHtml(produto.imagem || "")}"
+                    data-produto="${encodeURIComponent(JSON.stringify(produto))}"
                     type="button"
                   >
                     + Adicionar

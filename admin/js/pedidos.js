@@ -23,6 +23,15 @@ const buscarPedido = document.getElementById("buscarPedido");
 
 let pedidosCache = [];
 
+let primeiraLeitura = true;
+
+const pedidosRecebidos = new Set();
+
+const audioNovoPedido = new Audio("../../assets/sounds/novo-pedido.mp3");
+
+audioNovoPedido.loop = true;
+audioNovoPedido.volume = 1;
+
 /* ==========================================
    INIT
 ========================================== */
@@ -30,8 +39,39 @@ let pedidosCache = [];
 console.log("pedidos.js carregado");
 
 ouvirPedidos((pedidos) => {
+
     pedidosCache = pedidos;
+
+    if (primeiraLeitura) {
+
+        pedidos
+            .filter(p => p.status === "RECEBIDO")
+            .forEach(p => pedidosRecebidos.add(p.id));
+
+        primeiraLeitura = false;
+
+    } else {
+
+        pedidos.forEach((pedido) => {
+
+            if (
+                pedido.status === "RECEBIDO" &&
+                !pedidosRecebidos.has(pedido.id)
+            ) {
+
+                pedidosRecebidos.add(pedido.id);
+
+                audioNovoPedido.currentTime = 0;
+                audioNovoPedido.play().catch(() => {});
+
+            }
+
+        });
+
+    }
+
     aplicarFiltros();
+
 });
 
 /* ==========================================
@@ -89,9 +129,28 @@ function renderPedidos(pedidos) {
 
     listaPedidos.innerHTML = "";
 
+    pedidos.sort((a, b) => {
+
+        if (a.status === "RECEBIDO" && b.status !== "RECEBIDO")
+            return -1;
+
+        if (a.status !== "RECEBIDO" && b.status === "RECEBIDO")
+            return 1;
+
+        const dataA = a.criadoEm?.seconds || 0;
+        const dataB = b.criadoEm?.seconds || 0;
+
+        return dataB - dataA;
+
+    });
+
     pedidos.forEach((pedido) => {
         const card = document.createElement("div");
-        card.className = "panel";
+
+        card.className =
+            pedido.status === "RECEBIDO"
+                ? "panel pedido-novo"
+                : "panel";
 
         card.innerHTML = `
             <div class="panel-title">
@@ -361,6 +420,7 @@ function bindAcoesPedidos() {
         btn.addEventListener("click", async () => {
             try {
                 await alterarStatus(btn.dataset.id, "PREPARANDO");
+                pararSomNovoPedido();
                 toast("Pedido marcado como PREPARANDO");
             } catch (erro) {
                 console.error(erro);
@@ -373,6 +433,7 @@ function bindAcoesPedidos() {
         btn.addEventListener("click", async () => {
             try {
                 await alterarStatus(btn.dataset.id, "PRONTO");
+                pararSomNovoPedido();
                 toast("Pedido marcado como PRONTO");
             } catch (erro) {
                 console.error(erro);
@@ -385,6 +446,7 @@ function bindAcoesPedidos() {
         btn.addEventListener("click", async () => {
             try {
                 await alterarStatus(btn.dataset.id, "ENTREGUE");
+                pararSomNovoPedido();
                 toast("Pedido marcado como ENTREGUE");
             } catch (erro) {
                 console.error(erro);
@@ -397,6 +459,7 @@ function bindAcoesPedidos() {
         btn.addEventListener("click", async () => {
             try {
                 await cancelarPedido(btn.dataset.id);
+                pararSomNovoPedido();
                 toast("Pedido cancelado.");
             } catch (erro) {
                 console.error(erro);
@@ -704,5 +767,13 @@ window.onload = () => {
 `);
 
     janela.document.close();
+
+}
+
+function pararSomNovoPedido() {
+
+    audioNovoPedido.pause();
+
+    audioNovoPedido.currentTime = 0;
 
 }

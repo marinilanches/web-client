@@ -886,52 +886,38 @@ function atualizarResumoModalPersonalizacao() {
 }
 
 function montarGruposDoProduto(produto = {}) {
-  const grupos = [];
+    const grupos = [];
 
-  const gruposOriginais = Array.isArray(produto.gruposPersonalizacao)
-    ? produto.gruposPersonalizacao
-    : [];
+    const adicionaisAtivos = [
+        ...(Array.isArray(produto.adicionais)
+            ? produto.adicionais
+            : []),
+        ...adicionaisGlobaisCache
+    ]
+    .filter((item, index, array) =>
+        item?.ativo !== false &&
+        array.findIndex(x => x.id === item.id) === index
+    )
+    .map(item => ({
+        id: item.id,
+        nome: item.nome,
+        preco: Number(item.preco || 0),
+        ativo: true
+    }));
 
-  gruposOriginais.forEach((grupo) => {
-    const normalizado = normalizarGrupoPersonalizacao(grupo);
-    if (normalizado) grupos.push(normalizado);
-  });
+    if (adicionaisAtivos.length) {
+        grupos.push({
+            id: "adicionais",
+            nome: "Adicionais",
+            obrigatorio: false,
+            minSelecao: 0,
+            maxSelecao: adicionaisAtivos.length,
+            tipo: "CHECKBOX",
+            opcoes: adicionaisAtivos
+        });
+    }
 
-  const adicionaisAtivos =
-  [
-    ...(Array.isArray(produto.adicionais)
-      ? produto.adicionais
-      : []
-    ),
-
-    ...adicionaisGlobaisCache
-  ]
-  .filter((item, index, array) =>
-    item?.ativo !== false &&
-    array.findIndex(
-      x => x.id === item.id
-    ) === index
-  )
-  .map(item => ({
-    id:item.id,
-    nome:item.nome,
-    preco:Number(item.preco || 0),
-    ativo:true
-  }));
-
-  if (adicionaisAtivos.length) {
-    grupos.push({
-      id: "adicionais",
-      nome: "Adicionais",
-      obrigatorio: false,
-      minSelecao: 0,
-      maxSelecao: adicionaisAtivos.length,
-      tipo: "CHECKBOX",
-      opcoes: adicionaisAtivos
-    });
-  }
-
-  return grupos;
+    return grupos;
 }
 
 function garantirModalPersonalizacao() {
