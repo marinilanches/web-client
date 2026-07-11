@@ -576,56 +576,7 @@ async function enviarParaImpressora(pedido){
                 headers:{
                     "Content-Type":"application/json"
                 },
-                body: JSON.stringify({
-
-                    id: pedido.id,
-
-                    numeroPedido:
-                        pedido.numeroPedido,
-
-                    dataHora:
-                        new Date().toLocaleString("pt-BR"),
-
-                    cliente:
-                        pedido.cliente,
-
-                    telefone:
-                        pedido.telefone,
-
-                    tipo:
-                        pedido.tipo,
-
-                    bairro:
-                        pedido.bairro,
-
-                    endereco:
-                        pedido.endereco,
-
-                    referencia:
-                        pedido.referencia,
-
-                    pagamentoMetodo:
-                        pedido.pagamentoMetodo,
-
-                    pagamentoStatus:
-                        pedido.pagamentoStatus,
-
-                    valorSubtotal:
-                        pedido.valorSubtotal,
-
-                    taxaEntrega:
-                        pedido.taxaEntrega,
-
-                    valorTotal:
-                        pedido.valorTotal,
-
-                    observacoes:
-                        pedido.observacoes,
-
-                    itens:
-                        pedido.itens
-
-                })
+                body: JSON.stringify(pedido)
             }
         );
 

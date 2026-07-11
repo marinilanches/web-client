@@ -473,13 +473,10 @@ cupom += CMD.BOLD_OFF;
 
 
 
-cupom +=
-coluna(
-"",
-"R$ "+
-moeda(item.valorUnitario)
-)
-+"\n";
+cupom += duasColunas(
+`${item.quantidade}x ${item.nome}`,
+"R$ " + moeda(item.valorUnitario)
+) + "\n";
 
 
 
