@@ -43,7 +43,6 @@ const etapas=[
 "ENTREGUE"
 ];
 
-
 const nomes=[
 "Recebido",
 "Preparando",
@@ -51,33 +50,22 @@ const nomes=[
 "Entregue"
 ];
 
-
-const atual =
-etapas.indexOf(status);
-
+const atual = etapas.indexOf(status);
 
 
 if(status === "CANCELADO"){
 
 return `
-
-<div class="status-card">
-
-<h3>
-❌ Pedido Cancelado
-</h3>
-
+<div class="status-cancelado">
+🔴 Pedido cancelado
 </div>
-
 `;
 
 }
 
 
 
-const entregue =
-status === "ENTREGUE";
-
+const entregue = status === "ENTREGUE";
 
 
 const progresso =
@@ -91,12 +79,9 @@ entregue
 
 return `
 
-
 <div class="status-progresso">
 
-
 <div class="progresso-linha"></div>
-
 
 <div 
 class="progresso-linha-ativa"
@@ -104,9 +89,7 @@ style="width:${progresso}%">
 </div>
 
 
-
 <div class="progresso-etapas">
-
 
 ${etapas.map(
 (etapa,index)=>{
@@ -118,7 +101,8 @@ let icone="⚪";
 
 
 
-// ENTREGUE
+// Pedido entregue:
+// todas as etapas concluídas
 if(entregue){
 
 classe="concluida";
@@ -152,20 +136,13 @@ return `
 
 <div class="progresso-etapa ${classe}">
 
-
 <div class="progresso-bolinha">
-
 ${icone}
-
 </div>
 
-
 <span>
-
 ${nomes[index]}
-
 </span>
-
 
 </div>
 
@@ -175,12 +152,9 @@ ${nomes[index]}
 
 ).join("")}
 
-
 </div>
 
-
 </div>
-
 
 `;
 

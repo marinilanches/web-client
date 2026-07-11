@@ -285,6 +285,14 @@
 
 }
 
+.progresso-etapa.ativa.concluida .progresso-bolinha {
+
+background:var(--mf-success);
+
+color:white;
+
+}
+
 
 
 /* ===============================
@@ -455,22 +463,6 @@
 ========================================================== */
 
 
-.progresso-etapa.concluida .progresso-bolinha {
-
-    background:var(--mf-success);
-
-    color:white;
-
-}
-
-
-.progresso-etapa.concluida {
-
-    color:var(--mf-success);
-
-}
-
-
 /* Quando entregue, a linha inteira fica verde */
 
 .progresso-linha-ativa {
@@ -482,14 +474,6 @@
 /* ==========================================================
    ENTREGA FINALIZADA
 ========================================================== */
-
-.progresso-etapa.ativa.concluida .progresso-bolinha,
-.progresso-etapa.concluida .progresso-bolinha {
-
-    background: var(--mf-success);
-    color:white;
-
-}
 
 
 .progresso-etapa.ativa.concluida {
