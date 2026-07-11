@@ -7,6 +7,9 @@ const path = require("path");
 const app = express();
 const PORT = 3002;
 
+
+const PRINTER_NAME = "ELGIN i9(COM3)";
+
 /*
 |--------------------------------------------------------------------------
 | CONFIGURAÇÃO DA IMPRESSORA
@@ -16,8 +19,6 @@ const PORT = 3002;
 | Painel de Controle > Dispositivos e Impressoras
 |
 */
-
-const PRINTER_NAME = "ELGIN i9(COM3)";
 
 function imprimirRAW(){
 
@@ -276,550 +277,199 @@ async function iniciarImpressao() {
 
     }
 
-    printer.clear();
-
-    printer.alignLeft();
-
-    printer.setTextNormal();
-
-    printer.bold(false);
-
 }
 
 async function imprimirPedido(pedido) {
 
-    const conectada = await verificarImpressora();
+    const numero =
+        pedido.numeroPedido ||
+        pedido.id ||
+        "-";
 
-    if (!conectada) {
-        throw new Error(`Impressora "${PRINTER_NAME}" não encontrada.`);
-    }
+    const cliente =
+        pedido.cliente ||
+        "CLIENTE NAO INFORMADO";
 
-    await iniciarImpressao();
+    const telefone =
+        pedido.telefone ||
+        "-";
 
-    const numero = pedido.numeroPedido || pedido.id || "-";
+    const tipo =
+        pedido.tipo ||
+        "Delivery";
 
-    const cliente = pedido.cliente || "CLIENTE NAO INFORMADO";
+    const endereco =
+        pedido.endereco ||
+        "";
 
-    const telefone = pedido.telefone || "-";
+    const bairro =
+        pedido.bairro ||
+        "";
 
-    const whatsapp = pedido.telefoneWhatsapp || "-";
+    const pagamento =
+        pedido.pagamentoMetodo ||
+        "-";
 
-    const tipo = pedido.tipo || "Delivery";
+    const observacoes =
+        pedido.observacoes ||
+        "";
 
-    const status = pedido.status || "RECEBIDO";
+    const itens =
+        Array.isArray(pedido.itens)
+        ? pedido.itens
+        : [];
 
-    const endereco = pedido.endereco || "";
 
-    const bairro = pedido.bairro || "";
+    let cupom = "";
 
-    const referencia = pedido.referencia || "";
 
-    const observacoes = pedido.observacoes || "";
+    cupom += "\x1B\x40"; // inicializa ESC/POS
 
-    const pagamentoMetodo = pedido.pagamentoMetodo || "-";
 
-    const pagamentoStatus = pedido.pagamentoStatus || "-";
+    cupom += centralizar("MESA FACIL") + "\n";
+    cupom += linha("=") + "\n";
 
-    const trocoPara =
-        Number(pedido.trocoPara || 0);
 
-    /*
-    ====================================================
-    CABEÇALHO
-    ====================================================
-    */
+    cupom += centralizar(
+        "PEDIDO " + numero
+    ) + "\n";
 
-    printer.alignCenter();
 
-    printer.println(linha("="));
+    cupom += linha("-") + "\n";
 
-    printer.bold(true);
 
-    printer.setTextDoubleHeight();
-    printer.setTextDoubleWidth();
+    cupom += "CLIENTE\n";
 
-    printer.println("MESA FACIL");
-
-    printer.setTextNormal();
-
-    printer.bold(false);
-
-    printer.println(dataAtual());
-
-    printer.println(linha("="));
-
-    printer.drawLine();
-
-    /*
-    ====================================================
-    PEDIDO
-    ====================================================
-    */
-
-    printer.alignCenter();
-
-    printer.bold(true);
-
-    printer.setTextQuadArea();
-
-    printer.println(numero);
-
-    printer.setTextNormal();
-
-    printer.bold(false);
-
-    printer.println("PEDIDO");
-
-    printer.drawLine();
-
-    /*
-    ====================================================
-    CLIENTE
-    ====================================================
-    */
-
-    printer.alignLeft();
-
-    printer.bold(true);
-
-    printer.println("CLIENTE");
-
-    printer.setTextDoubleWidth();
-
-    printer.println(
+    cupom +=
         limparTexto(cliente.toUpperCase())
-    );
+        + "\n";
 
-    printer.setTextNormal();
 
-    printer.bold(false);
+    cupom +=
+        "Telefone: "
+        + telefone
+        + "\n";
 
-    printer.drawLine();
 
-    printer.println(`Telefone : ${telefone}`);
+    cupom += linha("-") + "\n";
 
-    if (whatsapp && whatsapp !== "-") {
-      printer.println(`WhatsApp : ${whatsapp}`);
-    }
 
-    printer.drawLine();
-
-    /*
-    ====================================================
-    ENTREGA
-    ====================================================
-    */
-
-    printer.bold(true);
-
-    printer.println(
+    cupom +=
         tipo === "Delivery"
-            ? "ENTREGA"
-            : "RETIRADA"
-    );
+        ? "ENTREGA\n"
+        : "RETIRADA\n";
 
-    printer.println(`Status : ${status}`);
 
-    printer.bold(false);
+    if(tipo === "Delivery"){
 
-    if (tipo === "Delivery") {
+        if(endereco)
+            cupom += endereco + "\n";
 
-        if (endereco)
-            quebrarLinha(endereco)
-                .forEach(l => printer.println(l));
 
-        if (bairro)
-            printer.println(`Bairro : ${bairro}`);
-
-        if (referencia)
-            printer.println(`Ref.    : ${referencia}`);
-
-    } else {
-
-        printer.println("RETIRAR NO BALCAO");
+        if(bairro)
+            cupom +=
+            "Bairro: "
+            + bairro
+            + "\n";
 
     }
 
-    printer.drawLine();
 
-    /*
-    ====================================================
-    PAGAMENTO
-    ====================================================
-    */
+    cupom += linha("-") + "\n";
 
-    printer.bold(true);
 
-    printer.println("PAGAMENTO");
+    cupom += "ITENS\n";
 
-    printer.bold(false);
 
-    printer.println(`Metodo : ${pagamentoMetodo}`);
+    for(const item of itens){
 
-    printer.println(`Status : ${pagamentoStatus}`);
+        const qtd =
+            item.quantidade || 1;
 
-    if (trocoPara > 0) {
 
-        printer.println(
+        const nome =
+            limparTexto(
+                item.nome || "ITEM"
+            );
 
-            `Troco : ${dinheiro(trocoPara)}`
 
-        );
+        const valor =
+            Number(
+                item.valorUnitario ||
+                item.preco ||
+                0
+            );
 
-    }
 
-    printer.drawLine();
+        cupom +=
+        `${qtd}x ${nome}\n`;
 
-    /*
-    ====================================================
-    OBSERVAÇÕES GERAIS
-    ====================================================
-    */
 
-    if (observacoes.trim() !== "") {
+        cupom +=
+        dinheiro(valor)
+        + "\n";
 
-        printer.bold(true);
 
-        printer.println("OBSERVACOES");
+        if(item.observacaoItem){
 
-        printer.bold(false);
-
-        quebrarLinha(observacoes)
-            .forEach(l => printer.println(l));
-
-        printer.drawLine();
-
-    }
-
-    /*
-====================================================
-ITENS DO PEDIDO
-====================================================
-*/
-
-printer.alignLeft();
-
-printer.bold(true);
-printer.setTextSize(1, 1);
-printer.println("ITENS DO PEDIDO");
-printer.bold(false);
-
-printer.drawLine();
-
-if (!Array.isArray(pedido.itens) || pedido.itens.length === 0) {
-
-    printer.println("Nenhum item informado.");
-
-    printer.drawLine();
-
-} else {
-
-    for (const item of pedido.itens) {
-
-        const quantidade = Number(item.quantidade || 1);
-
-        const nome = texto(item.nome || "ITEM");
-
-        const valorUnitario = Number(
-            item.valorUnitario ??
-            item.preco ??
-            0
-        );
-
-        const subtotal = Number(
-            item.subtotal ??
-            quantidade * valorUnitario
-        );
-
-        /*
-        -----------------------------------------
-        PRODUTO
-        -----------------------------------------
-        */
-
-        printer.bold(true);
-
-        printer.println(
-
-            `${quantidade}x ${limparTexto(nome)}`
-
-        );
-
-        printer.bold(false);
-
-        printer.println(
-
-            duasColunas(
-                dinheiro(valorUnitario),
-                dinheiro(subtotal)
-            )
-
-        );
-
-        /*
-        -----------------------------------------
-        ADICIONAIS
-        -----------------------------------------
-        */
-
-        if (
-            Array.isArray(item.adicionais) &&
-            item.adicionais.length
-        ) {
-
-            printer.bold(true);
-
-            printer.println("Adicionais");
-
-            printer.bold(false);
-
-            for (const adicional of item.adicionais) {
-
-                if (typeof adicional === "string") {
-
-                    quebrarLinha(`+ ${adicional}`)
-                        .forEach(l => printer.println(l));
-
-                } else {
-
-                    const nomeAdicional =
-                        adicional.nome || "Adicional";
-
-                    const valorAdicional =
-                        Number(adicional.valor || 0);
-
-                    if (valorAdicional > 0) {
-
-                        printer.println(
-
-                            duasColunas(
-                                `+ ${nomeAdicional}`,
-                                dinheiro(valorAdicional)
-                            )
-
-                        );
-
-                    } else {
-
-                        printer.println(
-                            `+ ${nomeAdicional}`
-                        );
-
-                    }
-
-                }
-
-            }
+            cupom +=
+            "OBS: "
+            + item.observacaoItem
+            + "\n";
 
         }
 
-        /*
-        -----------------------------------------
-        OBSERVAÇÃO DO ITEM
-        -----------------------------------------
-        */
-
-        if (
-            item.observacaoItem &&
-            item.observacaoItem.trim() !== ""
-        ) {
-
-            printer.bold(true);
-
-            printer.println("OBS:");
-
-            printer.bold(false);
-
-            quebrarLinha(item.observacaoItem)
-                .forEach(l => printer.println(l));
-
-        }
-
-        printer.drawLine();
 
     }
 
-}
 
-/*
-====================================================
-RESUMO DO PEDIDO
-====================================================
-*/
+    cupom += linha("-") + "\n";
 
-const totalItens = Array.isArray(pedido.itens)
-    ? pedido.itens.reduce(
-        (total, item) => total + Number(item.quantidade || 0),
-        0
-    )
-    : 0;
 
-const subtotal = Number(pedido.valorSubtotal || 0);
+    cupom +=
+        "PAGAMENTO\n";
 
-const taxaEntrega = Number(pedido.taxaEntrega || 0);
 
-const total = Number(
-    pedido.valorTotal ??
-    (subtotal + taxaEntrega)
-);
+    cupom +=
+        pagamento
+        + "\n";
 
-printer.bold(true);
 
-printer.println("RESUMO DO PEDIDO");
+    if(observacoes){
 
-printer.bold(false);
+        cupom +=
+        "\nOBSERVACOES\n";
 
-printer.drawLine();
+        cupom +=
+        observacoes
+        + "\n";
 
-printer.println(
-    duasColunas(
-        "Itens",
-        String(totalItens)
-    )
-);
+    }
 
-printer.println(
-    duasColunas(
-        "Subtotal",
-        dinheiro(subtotal)
-    )
-);
 
-printer.println(
-    duasColunas(
-        "Entrega",
-        dinheiro(taxaEntrega)
-    )
-);
+    cupom += linha("=") + "\n";
 
-printer.drawLine();
 
-/*
-====================================================
-TOTAL
-====================================================
-*/
+    cupom +=
+        centralizar(
+            "OBRIGADO!"
+        )
+        + "\n\n\n";
 
-printer.println(linha("="));
 
-printer.alignCenter();
+    // corte ESC/POS
+    cupom += "\x1D\x56\x01";
 
-printer.bold(true);
 
-printer.println("TOTAL");
+    await enviarRAW(cupom);
 
-printer.setTextQuadArea();
 
-printer.println(dinheiro(total));
+	estado.impressosHoje++;
 
-printer.setTextNormal();
+	estado.ultimaImpressao =
+    		new Date().toISOString();
 
-printer.bold(false);
-
-printer.println(linha("="));
-
-printer.drawLine();
-
-/*
-====================================================
-FORMA DE PAGAMENTO
-====================================================
-*/
-
-printer.bold(true);
-
-printer.println("FORMA DE PAGAMENTO");
-
-printer.bold(false);
-
-printer.println(
-    limparTexto(
-        pagamentoMetodo.toUpperCase()
-    )
-);
-
-printer.setTextSize(1, 1);
-
-if (
-    pagamentoStatus &&
-    pagamentoStatus !== "-"
-) {
-
-    printer.println(
-        `Status: ${pagamentoStatus}`
-    );
-
-}
-
-printer.drawLine();
-
-/*
-====================================================
-RODAPÉ
-====================================================
-*/
-
-printer.drawLine();
-
-printer.alignCenter();
-
-printer.println("MESA FACIL");
-
-printer.println(dataAtual());
-
-printer.println("");
-
-printer.println("COZINHA");
-
-printer.println("");
-
-printer.println("OBRIGADO!");
-
-printer.newLine();
-
-/*
-====================================================
-ALIMENTAÇÃO DO PAPEL
-====================================================
-*/
-
-printer.newLine();
-printer.newLine();
-printer.newLine();
-printer.newLine();
-
-/*
-====================================================
-CORTE AUTOMÁTICO
-====================================================
-*/
-
-printer.newLine();
-printer.newLine();
-printer.newLine();
-
-printer.cut();
-
-await enviarRAW(cupom);
-
-/*
-====================================================
-ATUALIZA STATUS
-====================================================
-*/
-
-estado.impressosHoje++;
-
-estado.ultimaImpressao =
-    new Date().toISOString();
-
-/*
-====================================================
-FIM
-====================================================
-*/
-
-}
+	}
 
 /*
 |--------------------------------------------------------------------------
