@@ -1,3 +1,5 @@
+console.log("customer.js carregado");
+
 import {
   buscarCliente,
   salvarCliente
@@ -5,6 +7,8 @@ import {
 
 
 export async function iniciarCliente(){
+
+    console.log("iniciarCliente executou");
 
     const cliente = await buscarCliente();
 
