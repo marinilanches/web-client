@@ -520,35 +520,57 @@ cupom += linha()+"\n";
 
 
 
-// ENTREGA
+// ENTREGA / RETIRADA
+
+if (
+    pedido.tipo &&
+    pedido.tipo.toUpperCase() === "DELIVERY"
+) {
+
+    cupom += CMD.BOLD_ON;
+
+    cupom += "ENTREGA\n";
+
+    cupom += CMD.BOLD_OFF;
 
 
-cupom += CMD.BOLD_ON;
-
-cupom+="ENTREGA\n";
-
-cupom+=CMD.BOLD_OFF;
+    if (pedido.bairro) {
+        cupom += `BAIRRO: ${pedido.bairro}\n`;
+    }
 
 
-cupom += `BAIRRO: ${pedido.bairro}\n`;
+    if (pedido.endereco) {
 
-cupom += CMD.DOUBLE;
+        cupom += CMD.DOUBLE;
 
-cupom += "ENDEREÇO:\n";
+        cupom += "ENDEREÇO:\n";
 
-cupom += pedido.endereco + "\n";
+        cupom += pedido.endereco + "\n";
 
-cupom += CMD.NORMAL;
+        cupom += CMD.NORMAL;
 
-if(pedido.referencia){
+    }
 
-    cupom += `REFERENCIA: ${pedido.referencia}\n`;
+
+    if (pedido.referencia) {
+
+        cupom += `REFERENCIA: ${pedido.referencia}\n`;
+
+    }
+
+}
+else {
+
+    cupom += CMD.BOLD_ON;
+
+    cupom += `TIPO: ${pedido.tipo || "-"}\n`;
+
+    cupom += CMD.BOLD_OFF;
 
 }
 
 
-
-cupom+=linha()+"\n";
+cupom += linha()+"\n";
 
 
 
