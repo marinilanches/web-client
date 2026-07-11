@@ -135,35 +135,37 @@
 
 
 /* ===============================
-   PROGRESSO
+PROGRESSO
 =============================== */
-
 
 .status-progresso {
 
-  margin:2rem 0;
+    margin:2rem 0;
 
-  position:relative;
+    position:relative;
+
+    width:100%;
 
 }
 
 
-
 .progresso-linha {
 
-  position:absolute;
+    position:absolute;
 
-  top:24px;
+    top:24px;
 
-  left:12%;
+    left:12.5%;
 
-  right:12%;
+    width:75%;
 
-  height:4px;
+    height:4px;
 
-  background:#e5e7eb;
+    background:#e5e7eb;
 
-  border-radius:999px;
+    border-radius:999px;
+
+    z-index:0;
 
 }
 
@@ -171,21 +173,23 @@
 
 .progresso-linha-ativa {
 
-position:absolute;
+    position:absolute;
 
-top:24px;
+    top:24px;
 
-left:12%;
+    left:12.5%;
 
-height:4px;
+    height:4px;
 
-width:calc(76% * var(--progresso) / 100);
+    width:calc(75% * var(--progresso) / 100);
 
-background:var(--mf-primary);
+    background:var(--mf-primary);
 
-border-radius:999px;
+    border-radius:999px;
 
-transition:.3s;
+    transition:width .3s ease;
+
+    z-index:1;
 
 }
 
@@ -193,11 +197,13 @@ transition:.3s;
 
 .progresso-etapas {
 
-  display:flex;
+    display:flex;
 
-  justify-content:space-between;
+    justify-content:space-between;
 
-  position:relative;
+    position:relative;
+
+    z-index:2;
 
 }
 
@@ -205,23 +211,23 @@ transition:.3s;
 
 .progresso-etapa {
 
-  width:25%;
+    flex:1;
 
-  display:flex;
+    display:flex;
 
-  flex-direction:column;
+    flex-direction:column;
 
-  align-items:center;
+    align-items:center;
 
-  gap:.5rem;
+    gap:.5rem;
 
-  font-size:.75rem;
+    font-size:.75rem;
 
-  font-weight:700;
+    font-weight:700;
 
-  color:var(--mf-text-soft);
+    color:var(--mf-text-soft);
 
-  text-align:center;
+    text-align:center;
 
 }
 
@@ -229,33 +235,25 @@ transition:.3s;
 
 .progresso-bolinha {
 
-  width:48px;
+    width:48px;
 
-  height:48px;
+    height:48px;
 
-  border-radius:50%;
+    border-radius:50%;
 
-  background:#e5e7eb;
+    background:#e5e7eb;
 
-  display:flex;
+    display:flex;
 
-  align-items:center;
+    align-items:center;
 
-  justify-content:center;
+    justify-content:center;
 
-  font-size:1.3rem;
+    font-size:1.3rem;
 
-  z-index:2;
+    position:relative;
 
-}
-
-
-
-.progresso-etapa.ativa .progresso-bolinha {
-
-  background:var(--mf-primary);
-
-  color:white;
+    z-index:3;
 
 }
 
@@ -263,17 +261,17 @@ transition:.3s;
 
 .progresso-etapa.ativa {
 
-  color:var(--mf-primary);
+    color:var(--mf-primary);
 
 }
 
 
 
-.progresso-etapa.concluida .progresso-bolinha {
+.progresso-etapa.ativa .progresso-bolinha {
 
-  background:var(--mf-success);
+    background:var(--mf-primary);
 
-  color:white;
+    color:white;
 
 }
 
@@ -281,15 +279,63 @@ transition:.3s;
 
 .progresso-etapa.concluida {
 
-  color:var(--mf-success);
+    color:var(--mf-success);
 
 }
 
+
+
+.progresso-etapa.concluida .progresso-bolinha {
+
+    background:var(--mf-success);
+
+    color:white;
+
+}
+
+
+
 .progresso-etapa.ativa.concluida .progresso-bolinha {
 
-background:var(--mf-success);
+    background:var(--mf-success);
 
-color:white;
+    color:white;
+
+}
+
+
+
+/* ===============================
+MOBILE
+=============================== */
+
+@media(max-width:480px){
+
+
+    .progresso-bolinha {
+
+        width:40px;
+
+        height:40px;
+
+        font-size:1rem;
+
+    }
+
+
+    .progresso-etapa {
+
+        font-size:.68rem;
+
+    }
+
+
+    .progresso-linha,
+    .progresso-linha-ativa {
+
+        top:20px;
+
+    }
 
 }
 
