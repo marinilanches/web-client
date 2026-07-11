@@ -449,3 +449,32 @@
 
 
 }
+
+/* ==========================================================
+   PEDIDO ENTREGUE - TODAS ETAPAS CONCLUIDAS
+========================================================== */
+
+
+.progresso-etapa.concluida .progresso-bolinha {
+
+    background:var(--mf-success);
+
+    color:white;
+
+}
+
+
+.progresso-etapa.concluida {
+
+    color:var(--mf-success);
+
+}
+
+
+/* Quando entregue, a linha inteira fica verde */
+
+.progresso-linha-ativa {
+
+    background:var(--mf-success);
+
+}
