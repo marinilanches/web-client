@@ -7,6 +7,9 @@ const {
     CharacterSet
 } = require("node-thermal-printer");
 
+const { execFile } = require("child_process");
+const path = require("path");
+
 const app = express();
 const PORT = 3002;
 
@@ -50,31 +53,6 @@ let estado = {
     ultimaImpressao: null
 
 };
-
-/*
-|--------------------------------------------------------------------------
-| IMPRESSORA
-|--------------------------------------------------------------------------
-*/
-
-const printerDriver = require("printer");
-
-const printer = new ThermalPrinter({
-    type: PrinterTypes.EPSON,
-    interface: `printer:${PRINTER_NAME}`,
-
-    driver: printerDriver,
-
-    characterSet: CharacterSet.PC850_MULTILINGUAL,
-
-    removeSpecialCharacters: false,
-
-    lineCharacter: "-",
-
-    options: {
-        timeout: 5000
-    }
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -205,6 +183,47 @@ function quebrarLinha(valor, largura = LARGURA) {
     }
 
     return linhas;
+
+}
+
+function enviarRAW(texto){
+
+    return new Promise((resolve,reject)=>{
+
+
+        const script = path.join(
+            __dirname,
+            "raw-print.ps1"
+        );
+
+
+        execFile(
+            "powershell",
+            [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                script,
+                texto
+            ],
+            (erro, stdout, stderr)=>{
+
+
+                if(erro){
+                    reject(erro);
+                    return;
+                }
+
+
+                console.log(stdout);
+
+                resolve();
+
+            }
+        );
+
+
+    });
 
 }
 
@@ -767,7 +786,7 @@ printer.newLine();
 
 printer.cut();
 
-await printer.execute();
+await enviarRAW(cupom);
 
 /*
 ====================================================
