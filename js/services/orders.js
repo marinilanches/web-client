@@ -13,7 +13,9 @@ import {
   orderBy,
   where,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  increment,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -22,6 +24,8 @@ import {
 ========================================================== */
 
 const pedidosRef = collection(db, "pedidos");
+
+const clientesRef = collection(db, "clientes");
 
 function getInicioEFimDeHoje() {
   const agora = new Date();
@@ -97,6 +101,26 @@ function extrairBairro(endereco = "") {
    CRIAR PEDIDO
 ========================================================== */
 
+async function atualizarEstatisticasCliente(dados) {
+
+  if (!dados.clienteId) return;
+
+  const clienteRef = doc(db, "clientes", dados.clienteId);
+
+  await updateDoc(clienteRef, {
+
+    totalPedidos: increment(1),
+
+    totalGasto: increment(Number(dados.valorTotal || 0)),
+
+    ultimaCompra: serverTimestamp(),
+
+    atualizadoEm: serverTimestamp()
+
+  });
+
+}
+
 export async function criarPedido(dados) {
   const agora = serverTimestamp();
 
@@ -158,6 +182,8 @@ export async function criarPedido(dados) {
   const pedidoRef = await addDoc(pedidosRef, payload);
 
   await incrementarVendasProdutos(itens);
+
+  await atualizarEstatisticasCliente(payload);
 
   return pedidoRef;
 }

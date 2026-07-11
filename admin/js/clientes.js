@@ -3,7 +3,8 @@ import { toast } from "../components/toast.js";
 
 import {
     ouvirClientes,
-    criarCliente
+    criarCliente,
+    editarCliente
 } from "../../js/services/clients.js";
 
 /* ==========================================
@@ -28,57 +29,13 @@ console.log("clientes.js carregado");
 
 ouvirClientes((clientes)=>{
 
-clientesCache = clientes;
+    console.log("Clientes:", clientes);
 
+    clientesCache = clientes;
 
-document.querySelector("#totalClientes")
-.textContent =
-clientes.length;
+    console.log("Cache:", clientesCache);
 
-
-
-document.querySelector("#clientesVip")
-.textContent =
-clientes.filter(
-c=>Number(c.totalPedidos||0)>5
-).length;
-
-
-
-let pedidos =
-clientes.reduce(
-(a,b)=>
-a+Number(b.totalPedidos||0),
-0
-);
-
-
-document.querySelector("#totalPedidosClientes")
-.textContent =
-pedidos;
-
-
-
-let gasto =
-clientes.reduce(
-(a,b)=>
-a+Number(b.totalGasto||0),
-0
-);
-
-
-document.querySelector("#ticketMedio")
-.textContent =
-"R$ "+
-(
-gasto /
-(clientes.length||1)
-)
-.toFixed(2);
-
-
-
-aplicarFiltros();
+    renderClientes(clientesCache);
 
 });
 
@@ -171,7 +128,9 @@ function renderClientes(clientes) {
 
 
             <td>
-                <button class="btn btn-primary">
+                <button
+                    class="btn btn-primary btn-editar"
+                    data-id="${cliente.id}">
                     Editar
                 </button>
             </td>
@@ -181,6 +140,26 @@ function renderClientes(clientes) {
         `;
 
     }).join("");
+
+    document
+        .querySelectorAll(".btn-editar")
+        .forEach(botao => {
+
+            botao.addEventListener("click", () => {
+
+                const id = botao.dataset.id;
+
+                const cliente = clientesCache.find(c => c.id === id);
+
+                if (cliente) {
+
+                    abrirEditarCliente(cliente);
+
+                }
+
+            });
+
+        });
 
 
     atualizarEstatisticas(clientes);
@@ -237,6 +216,91 @@ function atualizarEstatisticas(clientes) {
     document.getElementById("ticketMedio")
         .textContent =
         `R$ ${ticketMedio.toFixed(2)}`;
+
+}
+
+function abrirEditarCliente(cliente){
+
+    abrirModal(
+        "Editar Cliente",
+        `
+        <form id="formEditarCliente" class="form-grid">
+
+            <div class="form-group">
+                <label>Nome</label>
+                <input
+                    id="editarNome"
+                    type="text"
+                    value="${cliente.nome || ""}"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label>Telefone</label>
+                <input
+                    id="editarTelefone"
+                    type="text"
+                    value="${cliente.telefone || ""}">
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancelarEditar"
+                    class="btn btn-secondary">
+
+                    Cancelar
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    Salvar
+
+                </button>
+
+            </div>
+
+        </form>
+        `
+    );
+
+    document
+        .getElementById("cancelarEditar")
+        ?.addEventListener("click", fecharModal);
+
+    document
+        .getElementById("formEditarCliente")
+        ?.addEventListener("submit", async (e)=>{
+
+            e.preventDefault();
+
+            try{
+
+                await editarCliente(cliente.id,{
+
+                    nome: document.getElementById("editarNome").value.trim(),
+
+                    telefone: document.getElementById("editarTelefone").value.trim()
+
+                });
+
+                toast("Cliente atualizado com sucesso!");
+
+                fecharModal();
+
+            }catch(erro){
+
+                console.error(erro);
+
+                toast("Erro ao atualizar cliente.");
+
+            }
+
+        });
 
 }
 

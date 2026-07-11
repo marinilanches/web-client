@@ -1,134 +1,128 @@
 /* ==========================================================
-   STATUS PEDIDO - MESA FÁCIL
-   Segue padrão styles.css
+STATUS PEDIDO - MESA FÁCIL
+Segue padrão styles.css
 ========================================================== */
 
 
 /* ===============================
-   LAYOUT
+LAYOUT
 =============================== */
 
 .status-card {
-  background: var(--mf-surface);
-  border: 1px solid rgba(17,24,39,.06);
-  border-radius: var(--mf-radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--mf-shadow-md);
+    background: var(--mf-surface);
+    border: 1px solid rgba(17,24,39,.06);
+    border-radius: var(--mf-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--mf-shadow-md);
 }
 
 
 #pedidoInfo {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 
 /* ===============================
-   CARD PRINCIPAL
+CARD PRINCIPAL
 =============================== */
 
 .status-card {
 
-  background: var(--mf-surface);
+    background: var(--mf-surface);
 
-  border: 1px solid rgba(17,24,39,.06);
+    border: 1px solid rgba(17,24,39,.06);
 
-  border-radius: var(--mf-radius-lg);
+    border-radius: var(--mf-radius-lg);
 
-  padding: 1.25rem;
+    padding: 1.25rem;
 
-  box-shadow: var(--mf-shadow-md);
+    box-shadow: var(--mf-shadow-md);
 
-  margin-bottom: 1.25rem;
+    margin-bottom:1.25rem;
 
 }
-
 
 
 .status-card h3 {
 
-  margin:0 0 1rem;
+    margin:0 0 1rem;
 
-  font-size:1.35rem;
+    font-size:1.35rem;
 
-  font-weight:900;
+    font-weight:900;
 
-  letter-spacing:-.03em;
+    letter-spacing:-.03em;
 
-  color:var(--mf-text);
+    color:var(--mf-text);
 
 }
 
 
 
 /* ===============================
-   SEÇÕES
+SEÇÕES
 =============================== */
-
 
 .status-section {
 
-  margin-top:1.25rem;
+    margin-top:1.25rem;
 
-  padding-top:1.25rem;
+    padding-top:1.25rem;
 
-  border-top:1px solid var(--mf-border);
+    border-top:1px solid var(--mf-border);
 
 }
-
 
 
 .status-section h4 {
 
-  margin:0 0 .75rem;
+    margin:0 0 .75rem;
 
-  font-size:1rem;
+    font-size:1rem;
 
-  font-weight:900;
+    font-weight:900;
 
-  color:var(--mf-text);
+    color:var(--mf-text);
 
 }
 
 
-
 .status-section p {
 
-  margin:.45rem 0;
+    margin:.45rem 0;
 
-  color:var(--mf-text-soft);
+    color:var(--mf-text-soft);
 
 }
 
 
 
 /* ===============================
-   ITENS
+ITENS
 =============================== */
-
 
 .status-item-linha {
 
-  background:var(--mf-surface-2);
+    background:var(--mf-surface-2);
 
-  border:1px solid var(--mf-border);
+    border:1px solid var(--mf-border);
 
-  border-radius:1rem;
+    border-radius:1rem;
 
-  padding:1rem;
+    padding:1rem;
 
-  margin-bottom:.75rem;
+    margin-bottom:.75rem;
 
 }
 
 
-
 .status-item-linha strong {
 
-  display:block;
+    display:block;
 
-  font-weight:900;
+    font-weight:900;
 
-  color:var(--mf-text);
+    color:var(--mf-text);
 
 }
 
@@ -148,6 +142,13 @@ PROGRESSO
 
 }
 
+
+/*
+Linha base:
+As bolinhas ocupam 25% cada.
+O centro da primeira fica em 12.5%
+e o centro da última em 87.5%.
+*/
 
 .progresso-linha {
 
@@ -211,7 +212,7 @@ PROGRESSO
 
 .progresso-etapa {
 
-    flex:1;
+    width:25%;
 
     display:flex;
 
@@ -277,19 +278,36 @@ PROGRESSO
 
 
 
-.progresso-etapa.concluida {
-
-    color:var(--mf-success);
-
-}
-
-
-
 .progresso-etapa.concluida .progresso-bolinha {
 
     background:var(--mf-success);
 
     color:white;
+
+}
+
+
+
+/*
+Quando a etapa é a atual e já foi concluída
+(ex.: ENTREGUE)
+
+A conclusão tem prioridade.
+*/
+
+.progresso-etapa.ativa.concluida .progresso-bolinha {
+
+    background:var(--mf-success);
+
+    color:white;
+
+}
+
+
+
+.progresso-etapa.ativa.concluida {
+
+    color:var(--mf-success);
 
 }
 
@@ -306,10 +324,142 @@ PROGRESSO
 
 
 /* ===============================
+PIX
+=============================== */
+
+.pix-box {
+
+    margin-top:1.25rem;
+
+    padding:1.25rem;
+
+    border-radius:1.25rem;
+
+    background:#f0fdf4;
+
+    border:1px solid #bbf7d0;
+
+}
+
+
+
+.pix-pago-topo {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+
+
+.pix-pago-topo h4 {
+
+    font-weight:900;
+
+}
+
+
+
+.pix-selo {
+
+    background:var(--mf-success);
+
+    color:white;
+
+    padding:.4rem .75rem;
+
+    border-radius:999px;
+
+    font-size:.75rem;
+
+    font-weight:800;
+
+}
+
+
+
+.pix-linha {
+
+    margin-top:1rem;
+
+}
+
+
+
+.pix-label {
+
+    display:block;
+
+    font-size:.8rem;
+
+    color:var(--mf-text-soft);
+
+}
+
+
+
+.pix-value {
+
+    font-weight:800;
+
+}
+
+
+
+/* ===============================
+BOTÃO
+=============================== */
+
+.btn-finalizar {
+
+    width:100%;
+
+    min-height:54px;
+
+    border:0;
+
+    border-radius:1rem;
+
+    background:var(--mf-primary);
+
+    color:white;
+
+    font-weight:900;
+
+    font-size:1rem;
+
+    box-shadow:
+    0 14px 30px rgba(234,29,44,.25);
+
+}
+
+
+
+.btn-finalizar:hover {
+
+    background:var(--mf-primary-dark);
+
+}
+
+
+
+/* ===============================
 MOBILE
 =============================== */
 
 @media(max-width:480px){
+
+
+    .status-card {
+
+        padding:1rem;
+
+        border-radius:1.25rem;
+
+    }
 
 
     .progresso-bolinha {
@@ -336,181 +486,5 @@ MOBILE
         top:20px;
 
     }
-
-}
-
-
-
-/* ===============================
-   PIX
-=============================== */
-
-
-.pix-box {
-
-  margin-top:1.25rem;
-
-  padding:1.25rem;
-
-  border-radius:1.25rem;
-
-  background:#f0fdf4;
-
-  border:1px solid #bbf7d0;
-
-}
-
-
-
-.pix-pago-topo {
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-}
-
-
-
-.pix-pago-topo h4 {
-
-  font-weight:900;
-
-}
-
-
-
-.pix-selo {
-
-  background:var(--mf-success);
-
-  color:white;
-
-  padding:.4rem .75rem;
-
-  border-radius:999px;
-
-  font-size:.75rem;
-
-  font-weight:800;
-
-}
-
-
-
-.pix-linha {
-
-  margin-top:1rem;
-
-}
-
-
-
-.pix-label {
-
-  display:block;
-
-  font-size:.8rem;
-
-  color:var(--mf-text-soft);
-
-}
-
-
-
-.pix-value {
-
-  font-weight:800;
-
-}
-
-
-
-/* ===============================
-   BOTÃO
-=============================== */
-
-
-.btn-finalizar {
-
-  width:100%;
-
-  min-height:54px;
-
-  border:0;
-
-  border-radius:1rem;
-
-  background:var(--mf-primary);
-
-  color:white;
-
-  font-weight:900;
-
-  font-size:1rem;
-
-  box-shadow:
-
-  0 14px 30px rgba(234,29,44,.25);
-
-}
-
-
-
-.btn-finalizar:hover {
-
-  background:var(--mf-primary-dark);
-
-}
-
-
-
-/* ===============================
-   MOBILE
-=============================== */
-
-
-@media(max-width:480px){
-
-
-.status-card {
-
-  padding:1rem;
-
-  border-radius:1.25rem;
-
-}
-
-
-.progresso-bolinha {
-
-  width:40px;
-
-  height:40px;
-
-  font-size:1rem;
-
-}
-
-
-.progresso-etapa {
-
-  font-size:.68rem;
-
-}
-
-
-}
-
-/* ==========================================================
-   ENTREGA FINALIZADA
-========================================================== */
-
-
-.progresso-etapa.ativa.concluida {
-
-    color:var(--mf-success);
 
 }

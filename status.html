@@ -228,15 +228,18 @@ Seus pedidos
         <div class="progresso-linha"></div>
         <div
           class="progresso-linha-ativa"
-          style="width:${porcentagem}%"
+          style="--progresso:${porcentagem}"
         ></div>
 
         <div class="progresso-etapas">
           ${etapas.map((etapa, index) => {
             let classe = "";
 
-            if (index < indiceAtual) classe = "concluida";
-            if (index === indiceAtual) classe = "ativa";
+            if (index <= indiceAtual) classe = "concluida";
+
+            if (index === indiceAtual && status !== "ENTREGUE") {
+              classe = "ativa";
+            }
 
             return `
               <div class="progresso-etapa ${classe}">

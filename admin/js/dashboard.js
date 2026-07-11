@@ -1,16 +1,19 @@
-import { carregarSidebar } 
+import { carregarSidebar }
 from "../components/sidebar.js";
 
 import { carregarHeader }
 from "../components/header.js";
 
-
 import { ouvirPedidos }
 from "../../js/services/orders.js";
 
-
 import { listarProdutosMaisVendidos }
 from "../../js/services/products.js";
+
+import {
+    atualizarPedidos,
+    atualizarFaturamento
+} from "../components/cards.js";
 
 
 carregarSidebar();
@@ -32,9 +35,11 @@ currency:"BRL"
 ouvirPedidos(pedidos=>{
 
 
-let finalizados =
+const finalizados =
 pedidos.filter(
-p=>p.status==="ENTREGUE"
+p =>
+["ENTREGUE","FINALIZADO"]
+.includes(p.status)
 ).length;
 
 
@@ -64,35 +69,14 @@ pedidos
 0
 );
 
+atualizarPedidos(
+    finalizados,
+    preparo,
+    prontos,
+    entregues
+);
 
-
-document.querySelector("#cardFinalizados")
-.innerHTML=
-`📦<h3>${finalizados}</h3>Pedidos Finalizados`;
-
-
-
-document.querySelector("#cardPreparo")
-.innerHTML=
-`👨‍🍳<h3>${preparo}</h3>Em Preparo`;
-
-
-
-document.querySelector("#cardProntos")
-.innerHTML=
-`✅<h3>${prontos}</h3>Prontos`;
-
-
-
-document.querySelector("#cardEntregues")
-.innerHTML=
-`🚚<h3>${entregues}</h3>Entregues`;
-
-
-
-document.querySelector("#cardFaturamento")
-.innerHTML=
-`💰<h3>${moeda(faturamento)}</h3>Hoje`;
+atualizarFaturamento(faturamento);
 
 
 
@@ -124,17 +108,11 @@ listarProdutosMaisVendidos()
 .then(produtos=>{
 
 
-document.querySelector("#maisVendidos")
-.innerHTML =
-produtos
-.map(p=>
-`
-<div>
-🔥 ${p.nome}
-(${p.vendas})
-</div>
-`
-)
-.join("");
+if(produtos.length===0){
 
-});
+document.querySelector("#maisVendidos").innerHTML=
+"Nenhum produto vendido.";
+
+}
+}
+)

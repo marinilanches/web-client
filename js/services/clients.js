@@ -133,34 +133,27 @@ export async function buscarCliente(id) {
 
 export function ouvirClientes(callback) {
 
-    const q = query(
-        clientesRef,
-        orderBy("createdAt", "desc")
-    );
+    return onSnapshot(clientesRef, (snapshot) => {
 
-    return onSnapshot(
+        const clientes = [];
 
-        q,
+        snapshot.forEach((docItem) => {
 
-        (snapshot) => {
+            console.log(docItem.id, docItem.data());
 
-            const clientes = [];
-
-            snapshot.forEach((docItem) => {
-                clientes.push({
-                    id: docItem.id,
-                    ...docItem.data()
-                });
+            clientes.push({
+                id: docItem.id,
+                ...docItem.data()
             });
 
-            callback(clientes);
+        });
 
-        },
+        callback(clientes);
 
-        (erro) => {
-            console.error("Erro ao ouvir clientes:", erro);
-        }
+    }, (erro) => {
 
-    );
+        console.error("Erro ao ouvir clientes:", erro);
+
+    });
 
 }
