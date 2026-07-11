@@ -170,6 +170,12 @@ function linhaDupla(){
 
 }
 
+function campo(nome, valor){
+
+    return `${nome}: ${texto(valor)}\n`;
+
+}
+
 
 function coluna(nome,valor){
 
@@ -409,14 +415,15 @@ cupom += CMD.LEFT;
 
 cupom += CMD.BOLD_ON;
 
-cupom +=
-`PEDIDO #${pedido.numeroPedido}\n`;
+cupom += campo(
+    "PEDIDO",
+    "#" + pedido.numeroPedido
+);
 
-cupom += CMD.BOLD_OFF;
-
-
-cupom +=
-`${pedido.dataHora || dataAtual()}\n`;
+cupom += campo(
+    "DATA",
+    pedido.dataHora || dataAtual()
+);
 
 
 cupom += linha()+"\n";
@@ -426,19 +433,13 @@ cupom += linha()+"\n";
 // CLIENTE
 
 
-cupom += "CLIENTE\n";
-
-
 cupom += CMD.BOLD_ON;
 
-cupom +=
-`${pedido.cliente}\n`;
+cupom += `CLIENTE ${pedido.cliente}\n`;
 
 cupom += CMD.BOLD_OFF;
 
-
-cupom +=
-`Telefone:\n${pedido.telefone}\n`;
+cupom += `Telefone: ${pedido.telefone}\n`;
 
 
 
@@ -460,47 +461,27 @@ cupom += CMD.BOLD_OFF;
 for(const item of pedido.itens || []){
 
 
-cupom += CMD.BOLD_ON;
-
-
-cupom +=
-`${item.quantidade}x ${item.nome}\n`;
-
-
-cupom += CMD.BOLD_OFF;
-
-
-
 cupom += duasColunas(
 `${item.quantidade}x ${item.nome}`,
 "R$ " + moeda(item.valorUnitario)
-) + "\n";
+);
+
+cupom += "\n";
 
 
 
 if(item.adicionais?.length){
 
+    cupom += "\n";
+    cupom += "COMPLEMENTOS:\n";
 
-cupom +=
-"\nCOMPLEMENTOS:\n";
+    for(const adicional of item.adicionais){
 
+        cupom += `${adicional.nome} R$ ${moeda(
+            adicional.preco || adicional.valor
+        )}\n`;
 
-for(const adicional of item.adicionais){
-
-
-cupom +=
-"  - "+
-coluna(
-adicional.nome,
-"R$ "+moeda(
-    adicional.preco || adicional.valor
-)
-)
-+"\n";
-
-
-}
-
+    }
 
 }
 
@@ -549,24 +530,15 @@ cupom+="ENTREGA\n";
 cupom+=CMD.BOLD_OFF;
 
 
-cupom+="BAIRRO:\n";
+cupom += `BAIRRO: ${pedido.bairro}\n`;
 
-cupom+=
-pedido.bairro+"\n\n";
+cupom += CMD.DOUBLE;
 
+cupom += `ENDEREÇO: ${pedido.endereco}\n`;
 
-cupom+=CMD.DOUBLE;
+cupom += CMD.NORMAL;
 
-
-cupom+=
-"ENDERECO:\n";
-
-
-cupom+=CMD.NORMAL;
-
-
-cupom+=
-pedido.endereco+"\n";
+cupom += CMD.NORMAL;
 
 
 if(pedido.referencia){
@@ -590,15 +562,7 @@ cupom+=linha()+"\n";
 
 cupom+=CMD.BOLD_ON;
 
-cupom+="PAGAMENTO\n";
-
-cupom+=CMD.BOLD_OFF;
-
-
-cupom+=CMD.BOLD_ON;
-
-cupom+=
-pedido.pagamentoMetodo+"\n";
+cupom += `PAGAMENTO ${pedido.pagamentoMetodo}\n`;
 
 cupom+=CMD.BOLD_OFF;
 
@@ -611,37 +575,23 @@ cupom+=linha()+"\n";
 // VALORES
 
 
-cupom+=
-coluna(
-"Subtotal:",
-"R$ "+moeda(pedido.valorSubtotal)
-)
-+"\n";
+cupom += `Subtotal: R$ ${moeda(pedido.valorSubtotal)}\n`;
 
+cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
 
-cupom+=
-coluna(
-"Entrega:",
-"R$ "+moeda(pedido.taxaEntrega)
-)
-+"\n\n";
+cupom += "\n";
 
+cupom += CMD.CENTER;
 
+cupom += CMD.BOLD_ON;
 
-cupom+=CMD.CENTER;
+cupom += CMD.DOUBLE;
 
-cupom+=CMD.BOLD_ON;
+cupom += `TOTAL R$ ${moeda(pedido.valorTotal)}\n`;
 
-cupom+=CMD.DOUBLE;
+cupom += CMD.NORMAL;
 
-
-cupom+=
-"TOTAL\n";
-
-
-cupom+=
-"R$ "+moeda(pedido.valorTotal)
-+"\n";
+cupom += CMD.BOLD_OFF;
 
 
 cupom+=CMD.NORMAL;
