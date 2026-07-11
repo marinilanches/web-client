@@ -70,10 +70,10 @@ const entregue = status === "ENTREGUE";
 
 const progresso =
 entregue
-? 100
+? 76
 : atual <= 0
 ? 0
-: (atual / (etapas.length - 1)) * 100;
+: (atual / (etapas.length - 1)) * 76;
 
 
 

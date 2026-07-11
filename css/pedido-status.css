@@ -171,21 +171,21 @@
 
 .progresso-linha-ativa {
 
-  position:absolute;
+position:absolute;
 
-  top:24px;
+top:24px;
 
-  left:12%;
+left:12%;
 
-  height:4px;
+height:4px;
 
-  width:0;
+width:calc(76% * var(--progresso));
 
-  background:var(--mf-primary);
+background:var(--mf-primary);
 
-  border-radius:999px;
+border-radius:999px;
 
-  transition:.3s;
+transition:.3s;
 
 }
 
@@ -455,19 +455,6 @@ color:white;
 
 }
 
-
-}
-
-/* ==========================================================
-   PEDIDO ENTREGUE - TODAS ETAPAS CONCLUIDAS
-========================================================== */
-
-
-/* Quando entregue, a linha inteira fica verde */
-
-.progresso-linha-ativa {
-
-    background:var(--mf-success);
 
 }
 
