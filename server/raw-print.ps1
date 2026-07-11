@@ -1,6 +1,83 @@
 param(
-    [string]$arquivoRaw
+[string]$arquivoRaw
 )
+
+
+Add-Type -TypeDefinition @"
+
+using System;
+using System.Runtime.InteropServices;
+
+public class RawPrinter
+{
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class DOCINFO
+    {
+        public string pDocName;
+        public string pOutputFile;
+        public string pDataType;
+    }
+
+
+    [DllImport("winspool.Drv", 
+    EntryPoint="OpenPrinter",
+    SetLastError=true,
+    CharSet=CharSet.Unicode,
+    ExactSpelling=false,
+    CallingConvention=CallingConvention.StdCall)]
+    public static extern bool OpenPrinter(
+        string src,
+        ref IntPtr hPrinter,
+        IntPtr pd
+    );
+
+
+    [DllImport("winspool.Drv",
+    EntryPoint="ClosePrinter")]
+    public static extern bool ClosePrinter(
+        IntPtr hPrinter
+    );
+
+
+    [DllImport("winspool.Drv",
+    EntryPoint="StartDocPrinter")]
+    public static extern int StartDocPrinter(
+        IntPtr hPrinter,
+        int level,
+        [In] DOCINFO di
+    );
+
+
+    [DllImport("winspool.Drv")]
+    public static extern bool EndDocPrinter(
+        IntPtr hPrinter
+    );
+
+
+    [DllImport("winspool.Drv")]
+    public static extern bool StartPagePrinter(
+        IntPtr hPrinter
+    );
+
+
+    [DllImport("winspool.Drv")]
+    public static extern bool EndPagePrinter(
+        IntPtr hPrinter
+    );
+
+
+    [DllImport("winspool.Drv")]
+    public static extern bool WritePrinter(
+        IntPtr hPrinter,
+        byte[] data,
+        int count,
+        ref int written
+    );
+
+}
+
+"@
 
 
 $printerName="ELGIN i9(COM3)"
@@ -16,9 +93,9 @@ $data = [System.IO.File]::ReadAllBytes($arquivoRaw)
 
 # corte automático ESC/POS
 
-$data.Add(29)
-$data.Add(86)
-$data.Add(1)
+$corte = [byte[]](29,86,1)
+
+$data = $data + $corte
 
 
 
