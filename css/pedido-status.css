@@ -179,7 +179,7 @@ left:12%;
 
 height:4px;
 
-width:calc(76% * var(--progresso));
+width:calc(76% * var(--progresso) / 100);
 
 background:var(--mf-primary);
 
