@@ -1,14 +1,12 @@
 import { db } from "../services/firebase.js";
-import {
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { loadProducts } from "../services/products.js";
 import { iniciarCarrinho } from "./cart.js";
 import { iniciarCheckout } from "./checkout.js";
 import { carregarMaisPedidos } from "./best-sellers.js";
 import { iniciarPedidosCliente } from "./orders-client.js";
+import { iniciarCliente } from "./customer.js";
 import { garantirClienteAuth } from "../services/customers.js";
 
 /* ==========================================================
@@ -207,21 +205,18 @@ window.addEventListener("DOMContentLoaded", async () => {
   try {
     await garantirClienteAuth();
 
+    await iniciarCliente();
+
     await carregarConfiguracoesLoja();
 
-    // carrega cardápio
     await loadProducts();
 
-    // carrinho
     iniciarCarrinho();
 
-    // checkout
     iniciarCheckout();
 
-    // produtos mais pedidos
     await carregarMaisPedidos();
 
-    // histórico / pedidos do cliente
     await iniciarPedidosCliente();
 
   } catch (error) {
