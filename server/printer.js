@@ -735,11 +735,11 @@ app.post("/print/test", async (req, res) => {
 
         const pedidoFake = {
 
-            id: "TESTE-001",
+            id: "TESTE-ACENTOS-001",
 
-            numeroPedido: "TESTE-001",
+            numeroPedido: "271385",
 
-            cliente: "Cliente Teste",
+            cliente: "João José da Silva Ávila",
 
             telefone: "(19) 99999-9999",
 
@@ -749,71 +749,127 @@ app.post("/print/test", async (req, res) => {
 
             status: "RECEBIDO",
 
-            bairro: "Centro",
+            bairro: "São José do Piauí",
 
-            endereco: "Rua de Teste, 123",
+            endereco: "Rua João Dias da Silva, nº 203 - Vila São Luís",
 
-            referencia: "Casa Azul",
+            referencia: "Casa azul próxima à padaria",
 
-            observacoes: "Sem cebola",
+            observacoes: "Sem cebola, sem pimentão, atenção à entrega rápida",
 
-            pagamentoMetodo: "DINHEIRO",
+            pagamentoMetodo: "PIX",
 
             pagamentoStatus: "PENDENTE",
 
             trocoPara: 100,
 
-            taxaEntrega: 5,
+            taxaEntrega: 8,
 
             valorSubtotal: 39.90,
 
-            valorTotal: 44.90,
+            valorTotal: 47.90,
+
 
             itens: [
 
                 {
 
-                    nome: "X-Burguer",
+                    nome: "X-Búrguer Especial com Queijo",
 
                     quantidade: 2,
 
-                    valorUnitario: 17,
+                    valorUnitario: 19.95,
 
-                    subtotal: 34,
+                    subtotal: 39.90,
 
                     adicionais: [
 
                         {
 
-                            nome: "Bacon",
+                            nome: "Hambúrguer Grande",
 
-                            valor: 4
+                            valor: 5
 
                         },
 
                         {
 
-                            nome: "Cheddar",
+                            nome: "Queijo Muçarela",
 
                             valor: 3
+
+                        },
+
+                        {
+
+                            nome: "Coração de Frango à Milanesa",
+
+                            valor: 7
+
+                        },
+
+                        {
+
+                            nome: "Pimentão Vermelho",
+
+                            valor: 2
 
                         }
 
                     ],
 
-                    observacaoItem: "Sem tomate"
+                    observacaoItem: "Sem tomate, sem cebola, adicionar molho especial"
 
                 },
 
+
                 {
 
-                    nome: "Coca-Cola 2L",
+                    nome: "Coca-Cola 2L Gelada",
 
                     quantidade: 1,
 
                     valorUnitario: 5.90,
 
-                    subtotal: 5.90
+                    subtotal: 5.90,
+
+                    adicionais: [],
+
+                    observacaoItem: "Entregar bem gelada"
+                },
+
+
+                {
+
+                    nome: "Açaí com Banana e Morango",
+
+                    quantidade: 1,
+
+                    valorUnitario: 12.50,
+
+                    subtotal: 12.50,
+
+                    adicionais: [
+
+                        {
+
+                            nome: "Leite Condensado",
+
+                            valor: 2
+
+                        },
+
+                        {
+
+                            nome: "Granola Crocante",
+
+                            valor: 1.50
+
+                        }
+
+                    ],
+
+                    observacaoItem: "Pouco açúcar"
 
                 }
 
