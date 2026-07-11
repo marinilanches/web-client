@@ -82,7 +82,7 @@ if(!$texto){
 }
 
 
-foreach($b in [System.Text.Encoding]::GetEncoding(850).GetBytes($texto)){
+foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){
 
     $data.Add($b)
 

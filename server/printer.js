@@ -367,7 +367,7 @@ async function imprimirPedido(pedido) {
     if(tipo === "Delivery"){
 
         if(endereco)
-            cupom += endereco + "\n";
+            cupom += limparTexto(endereco) + "\n";
 
 
         if(bairro)
