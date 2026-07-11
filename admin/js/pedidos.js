@@ -398,13 +398,11 @@ function abrirDetalhesPedido(id){
 
     document
         .getElementById("btnImprimirComanda")
-        ?.addEventListener("click", () => {
+        ?.addEventListener("click", async () => {
 
-            imprimirComanda(pedido);
+            await enviarParaImpressora(pedido);
 
         });
-
-    }
 
 function bindAcoesPedidos() {
     document.querySelectorAll(".btn-detalhes").forEach((btn)=>{
@@ -775,5 +773,49 @@ function pararSomNovoPedido() {
     audioNovoPedido.pause();
 
     audioNovoPedido.currentTime = 0;
+
+}
+
+async function enviarParaImpressora(pedido){
+
+    try {
+
+        const res = await fetch(
+            "http://localhost:3002/print/order",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(pedido)
+            }
+        );
+
+
+        const data = await res.json();
+
+
+        if(!data.success){
+
+            throw new Error(data.message);
+
+        }
+
+
+        toast("Pedido enviado para impressora");
+
+
+    } catch(erro){
+
+        console.error(
+            "Erro impressão:",
+            erro
+        );
+
+        toast(
+            "Erro ao imprimir"
+        );
+
+    }
 
 }

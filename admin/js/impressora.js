@@ -162,19 +162,78 @@ async function atualizarStatusServico() {
 ========================================== */
 
 function montarPedidoParaImpressao(pedido) {
-  return {
+
+return {
+
     id: pedido.id || null,
-    numeroPedido: pedido.numeroPedido || pedido.id || "-",
-    cliente: pedido.cliente || "",
-    telefone: pedido.telefone || "",
-    tipo: pedido.tipo || "Delivery",
-    endereco: pedido.endereco || "",
-    referencia: pedido.referencia || "",
-    observacoes: printObs.checked ? (pedido.observacoes || "") : "",
-    valorTotal: Number(pedido.valorTotal || 0),
-    status: pedido.status || "RECEBIDO",
-    itens: Array.isArray(pedido.itens) ? pedido.itens : []
-  };
+
+    numeroPedido:
+        pedido.numeroPedido ||
+        pedido.id ||
+        "-",
+
+
+    cliente:
+        pedido.cliente || "",
+
+
+    telefone:
+        pedido.telefone || "",
+
+
+    tipo:
+        pedido.tipo || "Delivery",
+
+
+    bairro:
+        pedido.bairro || "",
+
+
+    endereco:
+        pedido.endereco || "",
+
+
+    referencia:
+        pedido.referencia || "",
+
+
+    observacoes:
+        printObs.checked
+        ? pedido.observacoes || ""
+        : "",
+
+
+    pagamentoMetodo:
+        pedido.pagamentoMetodo || "-",
+
+
+    pagamentoStatus:
+        pedido.pagamentoStatus || "-",
+
+
+    valorSubtotal:
+        Number(pedido.valorSubtotal || 0),
+
+
+    taxaEntrega:
+        Number(pedido.taxaEntrega || 0),
+
+
+    valorTotal:
+        Number(pedido.valorTotal || 0),
+
+
+    status:
+        pedido.status || "RECEBIDO",
+
+
+    itens:
+        Array.isArray(pedido.itens)
+        ? pedido.itens
+        : []
+
+};
+
 }
 
 /* ==========================================

@@ -419,6 +419,17 @@ async function imprimirPedido(pedido) {
 
         }
 
+        if(item.adicionais){
+
+            for(const adicional of item.adicionais){
+
+                cupom +=
+                ` + ${adicional.nome} ${dinheiro(adicional.preco)}\n`;
+
+            }
+
+        }
+
 
     }
 
