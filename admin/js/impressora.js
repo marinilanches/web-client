@@ -165,72 +165,51 @@ function montarPedidoParaImpressao(pedido) {
 
 return {
 
-    id: pedido.id || null,
+id: pedido.id || null,
 
-    numeroPedido:
-        pedido.numeroPedido ||
-        pedido.id ||
-        "-",
+numeroPedido:
+pedido.numeroPedido || pedido.id || "-",
 
+cliente:
+pedido.cliente || "",
 
-    cliente:
-        pedido.cliente || "",
+telefone:
+pedido.telefone || "",
 
+tipo:
+pedido.tipo || "Delivery",
 
-    telefone:
-        pedido.telefone || "",
+bairro:
+pedido.bairro || "",
 
+endereco:
+pedido.endereco || "",
 
-    tipo:
-        pedido.tipo || "Delivery",
+referencia:
+pedido.referencia || "",
 
+pagamentoMetodo:
+pedido.pagamentoMetodo || "-",
 
-    bairro:
-        pedido.bairro || "",
+pagamentoStatus:
+pedido.pagamentoStatus || "-",
 
+valorSubtotal:
+Number(pedido.valorSubtotal || 0),
 
-    endereco:
-        pedido.endereco || "",
+taxaEntrega:
+Number(pedido.taxaEntrega || 0),
 
+valorTotal:
+Number(pedido.valorTotal || 0),
 
-    referencia:
-        pedido.referencia || "",
+observacoes:
+printObs.checked ? pedido.observacoes || "" : "",
 
-
-    observacoes:
-        printObs.checked
-        ? pedido.observacoes || ""
-        : "",
-
-
-    pagamentoMetodo:
-        pedido.pagamentoMetodo || "-",
-
-
-    pagamentoStatus:
-        pedido.pagamentoStatus || "-",
-
-
-    valorSubtotal:
-        Number(pedido.valorSubtotal || 0),
-
-
-    taxaEntrega:
-        Number(pedido.taxaEntrega || 0),
-
-
-    valorTotal:
-        Number(pedido.valorTotal || 0),
-
-
-    status:
-        pedido.status || "RECEBIDO",
-
-
-    itens:
-        Array.isArray(pedido.itens)
-        ? pedido.itens
-        : []
+itens:
+Array.isArray(pedido.itens)
+? pedido.itens
+: []
 
 };
 
