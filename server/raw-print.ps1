@@ -2,13 +2,7 @@ param(
 [string]$texto
 )
 
-
 $printerName="ELGIN i9(COM3)"
-
-
-$data =
-[System.Text.Encoding]::GetEncoding(860)
-.GetBytes($texto)
 
 
 if(!$texto){
@@ -18,6 +12,9 @@ if(!$texto){
 }
 
 
+$data = New-Object System.Collections.Generic.List[byte]
+
+
 foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){
 
     $data.Add($b)
@@ -25,8 +22,11 @@ foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){
 }
 
 
+# corte automático ESC/POS
+
 $data.Add(29)
 $data.Add(86)
+$data.Add(1)
 
 
 
