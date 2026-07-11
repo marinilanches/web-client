@@ -1,14 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 
-const {
-    ThermalPrinter,
-    PrinterTypes,
-    CharacterSet
-} = require("node-thermal-printer");
-
 const { execFile } = require("child_process");
 const path = require("path");
+
+const {
+ThermalPrinter,
+PrinterTypes,
+CharacterSet
+} = require("node-thermal-printer");
 
 const app = express();
 const PORT = 3002;
@@ -24,6 +24,40 @@ const PORT = 3002;
 */
 
 const PRINTER_NAME = "ELGIN i9(COM3)";
+
+function imprimirRAW(){
+
+    return new Promise((resolve,reject)=>{
+
+        const arquivo = path.join(
+            __dirname,
+            "raw-print.ps1"
+        );
+
+        execFile(
+            "powershell",
+            [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                arquivo
+            ],
+            (erro, stdout, stderr)=>{
+
+                if(erro){
+                    console.error(stderr);
+                    reject(erro);
+                    return;
+                }
+
+                resolve();
+
+            }
+        );
+
+    });
+
+}
 
 const LARGURA = 48;
 
@@ -229,19 +263,7 @@ function enviarRAW(texto){
 
 async function verificarImpressora() {
 
-    try {
-
-        return await printer.isPrinterConnected();
-
-    }
-
-    catch (erro) {
-
-        console.error("Erro ao verificar impressora:", erro);
-
-        return false;
-
-    }
+    return true;
 
 }
 
@@ -813,9 +835,33 @@ FIM
 |--------------------------------------------------------------------------
 */
 
-app.get("/status", async (req, res) => {
+app.post("/print/raw-test", async (req,res)=>{
 
-    const online = await verificarImpressora();
+    try {
+
+        await imprimirRAW();
+
+        res.json({
+            success:true,
+            message:"RAW enviado"
+        });
+
+    } catch(erro){
+
+        console.error(erro);
+
+        res.status(500).json({
+            success:false,
+            message:erro.message
+        });
+
+    }
+
+});
+
+
+
+app.get("/status", async (req, res) => {    const online = await verificarImpressora();
 
     estado.online = online;
 

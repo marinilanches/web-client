@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/marinilanches/web-client#readme",
   "dependencies": {
+    "child_process": "^1.0.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "firebase-admin": "^14.1.0",
