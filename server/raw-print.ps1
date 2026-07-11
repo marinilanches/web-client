@@ -1,78 +1,14 @@
 param(
-    [string]$texto
+[string]$texto
 )
 
-$printerName = "ELGIN i9(COM3)"
+
+$printerName="ELGIN i9(COM3)"
 
 
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-
-public class RawPrinter
-{
-    [StructLayout(LayoutKind.Sequential)]
-    public struct DOCINFO
-    {
-        public string pDocName;
-        public string pOutputFile;
-        public string pDataType;
-    }
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true,
-        CharSet=CharSet.Auto)]
-    public static extern bool OpenPrinter(
-        string pPrinterName,
-        out IntPtr phPrinter,
-        IntPtr pDefault);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern bool ClosePrinter(
-        IntPtr hPrinter);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern int StartDocPrinter(
-        IntPtr hPrinter,
-        int level,
-        ref DOCINFO di);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern bool EndDocPrinter(
-        IntPtr hPrinter);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern bool StartPagePrinter(
-        IntPtr hPrinter);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern bool EndPagePrinter(
-        IntPtr hPrinter);
-
-
-    [DllImport("winspool.Drv",
-        SetLastError=true)]
-    public static extern bool WritePrinter(
-        IntPtr hPrinter,
-        byte[] data,
-        int count,
-        out int written);
-}
-"@
-
-
-$data = New-Object System.Collections.Generic.List[byte]
+$data =
+[System.Text.Encoding]::GetEncoding(860)
+.GetBytes($texto)
 
 
 if(!$texto){
@@ -91,7 +27,6 @@ foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){
 
 $data.Add(29)
 $data.Add(86)
-$data.Add(1)
 
 
 
@@ -132,10 +67,11 @@ $written = 0
 
 
 if(-not [RawPrinter]::WritePrinter(
-    $printer,
-    $data.ToArray(),
-    $data.Count,
-    [ref]$written))
+$printer,
+$data,
+$data.Length,
+[ref]$written
+))
 {
     throw "Falha WritePrinter"
 }

@@ -206,10 +206,42 @@ Number(pedido.valorTotal || 0),
 observacoes:
 printObs.checked ? pedido.observacoes || "" : "",
 
-itens:
-Array.isArray(pedido.itens)
-? pedido.itens
-: []
+itens: Array.isArray(pedido.itens)
+?
+pedido.itens.map(item => ({
+
+    nome:item.nome || "",
+
+    quantidade:
+        Number(item.quantidade || 1),
+
+    valorUnitario:
+        Number(item.valorUnitario || 0),
+
+    observacaoItem:
+        item.observacaoItem || "",
+
+    adicionais:
+        Array.isArray(item.adicionais)
+        ?
+        item.adicionais.map(a => ({
+
+            nome:a.nome || "",
+
+            preco:
+                Number(
+                    a.preco ??
+                    a.valor ??
+                    0
+                )
+
+        }))
+        :
+        []
+
+}))
+:
+[]
 
 };
 

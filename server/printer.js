@@ -56,6 +56,45 @@ function imprimirRAW(){
 
 const LARGURA = 48;
 
+
+const ESC="\x1B";
+const GS="\x1D";
+
+
+const CMD={
+
+RESET:
+ESC+"@",
+
+BOLD_ON:
+ESC+"E\x01",
+
+BOLD_OFF:
+ESC+"E\x00",
+
+UNDERLINE:
+ESC+"-\x01",
+
+UNDERLINE_OFF:
+ESC+"-\x00",
+
+CENTER:
+ESC+"a\x01",
+
+LEFT:
+ESC+"a\x00",
+
+DOUBLE:
+ESC+"!\x30",
+
+NORMAL:
+ESC+"!\x00",
+
+CUT:
+GS+"V\x01"
+
+};
+
 /*
 |--------------------------------------------------------------------------
 | MIDDLEWARE
@@ -110,6 +149,46 @@ function formatarMoeda(valor) {
     return numero(valor)
         .toFixed(2)
         .replace(".", ",");
+
+}
+
+function moeda(valor){
+
+    return Number(valor || 0)
+        .toFixed(2)
+        .replace(".",",");
+
+}
+
+
+function linha(){
+
+    return "-".repeat(48);
+
+}
+
+
+function linhaDupla(){
+
+    return "=".repeat(48);
+
+}
+
+
+function coluna(nome,valor){
+
+    const espaco =
+        48 -
+        nome.length -
+        valor.length;
+
+
+    return nome +
+        " ".repeat(
+            Math.max(1,espaco)
+        )
+        +
+        valor;
 
 }
 
@@ -279,225 +358,302 @@ async function iniciarImpressao() {
 
 }
 
-async function imprimirPedido(pedido) {
+async function imprimirPedido(pedido){
 
-    console.log("IMPRIMINDO:");
-    console.log(JSON.stringify(pedido,null,2));
 
-    const numero =
-        pedido.numeroPedido ||
-        pedido.id ||
-        "-";
+let cupom="";
 
-    const cliente =
-        pedido.cliente ||
-        "CLIENTE NAO INFORMADO";
 
-    const telefone =
-        pedido.telefone ||
-        "-";
+cupom += CMD.RESET;
 
-    const tipo =
-        pedido.tipo ||
-        "Delivery";
 
-    const endereco =
-        pedido.endereco ||
-        "";
 
-    const bairro =
-        pedido.bairro ||
-        "";
+// CABEÇALHO
 
-    const pagamento =
-        pedido.pagamentoMetodo ||
-        "-";
+cupom += CMD.CENTER;
 
-    const observacoes =
-        pedido.observacoes ||
-        "";
+cupom += CMD.BOLD_ON;
 
-    const itens =
-        Array.isArray(pedido.itens)
-        ? pedido.itens
-        : [];
+cupom += CMD.DOUBLE;
 
+cupom += "MESA FACIL\n";
 
-    let cupom = "";
+cupom += CMD.NORMAL;
 
+cupom += CMD.BOLD_OFF;
 
-    cupom += "\x1B\x40"; // inicializa ESC/POS
+cupom += linhaDupla()+"\n";
 
 
-    cupom += "\x1B\x61\x00";
-    cupom += "MESA FACIL\n";
-    cupom += linha("=") + "\n";
 
+// PEDIDO
 
-    cupom += "\x1B\x45\x01";
-    cupom += "PEDIDO #" + numero + "\n";
-    cupom += "\x1B\x45\x00";
+cupom += CMD.LEFT;
 
+cupom += CMD.BOLD_ON;
 
-    cupom += linha("-") + "\n";
+cupom +=
+`PEDIDO #${pedido.numeroPedido}\n`;
 
+cupom += CMD.BOLD_OFF;
 
-    cupom += "CLIENTE\n";
 
-    cupom +=
-        limparTexto(cliente.toUpperCase())
-        + "\n";
+cupom +=
+`${pedido.dataHora || dataAtual()}\n`;
 
 
-    cupom +=
-        "Telefone: "
-        + telefone
-        + "\n";
+cupom += linha()+"\n";
 
 
-    cupom += linha("-") + "\n";
 
+// CLIENTE
 
-    cupom +=
-        tipo === "Delivery"
-        ? "ENTREGA\n"
-        : "RETIRADA\n";
 
+cupom += "CLIENTE\n";
 
-    if(tipo === "Delivery"){
 
-        if(endereco)
-            cupom += limparTexto(endereco) + "\n";
+cupom += CMD.BOLD_ON;
 
+cupom +=
+`${pedido.cliente}\n`;
 
-        if(bairro)
-            cupom +=
-            "Bairro: "
-            + bairro
-            + "\n";
+cupom += CMD.BOLD_OFF;
 
-    }
 
+cupom +=
+`Telefone:\n${pedido.telefone}\n`;
 
-    cupom += linha("-") + "\n";
 
 
-    cupom += "ITENS\n";
+cupom += linha()+"\n";
 
 
-    for(const item of itens){
 
-        const qtd =
-            item.quantidade || 1;
+// ITENS
 
 
-        const nome =
-            limparTexto(
-                item.nome || "ITEM"
-            );
+cupom += CMD.BOLD_ON;
 
+cupom += "ITENS DO PEDIDO\n";
 
-        const valor =
-            Number(
-                item.valorUnitario ||
-                item.preco ||
-                0
-            );
+cupom += CMD.BOLD_OFF;
 
 
-        cupom +=
-        `${qtd}x ${nome}\n`;
 
+for(const item of pedido.itens || []){
 
-        cupom +=
-        dinheiro(valor)
-        + "\n";
 
+cupom += CMD.BOLD_ON;
 
-        if(item.observacaoItem){
 
-        cupom += "\n";
+cupom +=
+`${item.quantidade}x ${item.nome}\n`;
 
-        cupom += "\x1B\x45\x01";
 
-        cupom += "OBSERVACAO:\n";
+cupom += CMD.BOLD_OFF;
 
-        cupom +=
-        item.observacaoItem.toUpperCase()
-        +"\n";
 
-        cupom += "\x1B\x45\x00";
 
-        }
+cupom +=
+coluna(
+"",
+"R$ "+
+moeda(item.valorUnitario)
+)
++"\n";
 
-        if(item.adicionais){
 
-            for(const adicional of item.adicionais){
 
-                const valorAdicional =
-                    adicional.preco ??
-                    adicional.valor ??
-                    0;
+if(item.adicionais?.length){
 
 
-                cupom +=
-                ` + ${adicional.nome} ${dinheiro(valorAdicional)}\n`;
+cupom +=
+"\nCOMPLEMENTOS:\n";
 
-            }
 
-        }
+for(const adicional of item.adicionais){
 
 
-    }
+cupom +=
+"  - "+
+coluna(
+adicional.nome,
+"R$ "+moeda(adicional.preco)
+)
++"\n";
 
 
-    cupom += linha("-") + "\n";
+}
 
 
-    cupom +=
-        "PAGAMENTO\n";
+}
 
 
-    cupom +=
-        pagamento
-        + "\n";
 
+if(item.observacaoItem){
 
-    if(observacoes){
 
-        cupom +=
-        "\nOBSERVACOES\n";
+cupom += "\n";
 
-        cupom +=
-        observacoes
-        + "\n";
 
-    }
+cupom += CMD.BOLD_ON;
 
+cupom +=
+"[ OBSERVACAO ]\n";
 
-    cupom += linha("=") + "\n";
 
+cupom += CMD.BOLD_OFF;
 
-    cupom +=
-        centralizar(
-            "OBRIGADO!"
-        )
-        + "\n\n\n";
 
+cupom +=
+item.observacaoItem.toUpperCase()
++"\n";
 
-    // corte ESC/POS
-    cupom += "\x1D\x56\x01";
 
+}
 
-    await enviarRAW(cupom);
 
+cupom+="\n";
 
-	estado.impressosHoje++;
+}
 
-	estado.ultimaImpressao =
-    		new Date().toISOString();
 
-	}
+
+cupom += linha()+"\n";
+
+
+
+// ENTREGA
+
+
+cupom += CMD.BOLD_ON;
+
+cupom+="ENTREGA\n";
+
+cupom+=CMD.BOLD_OFF;
+
+
+cupom+="BAIRRO:\n";
+
+cupom+=
+pedido.bairro+"\n\n";
+
+
+cupom+=CMD.DOUBLE;
+
+
+cupom+=
+"ENDERECO:\n";
+
+
+cupom+=CMD.NORMAL;
+
+
+cupom+=
+pedido.endereco+"\n";
+
+
+if(pedido.referencia){
+
+cupom+=
+"\nREFERENCIA:\n";
+
+cupom+=
+pedido.referencia+"\n";
+
+}
+
+
+
+cupom+=linha()+"\n";
+
+
+
+// PAGAMENTO
+
+
+cupom+=CMD.BOLD_ON;
+
+cupom+="PAGAMENTO\n";
+
+cupom+=CMD.BOLD_OFF;
+
+
+cupom+=CMD.BOLD_ON;
+
+cupom+=
+pedido.pagamentoMetodo+"\n";
+
+cupom+=CMD.BOLD_OFF;
+
+
+
+cupom+=linha()+"\n";
+
+
+
+// VALORES
+
+
+cupom+=
+coluna(
+"Subtotal:",
+"R$ "+moeda(pedido.valorSubtotal)
+)
++"\n";
+
+
+cupom+=
+coluna(
+"Entrega:",
+"R$ "+moeda(pedido.taxaEntrega)
+)
++"\n\n";
+
+
+
+cupom+=CMD.CENTER;
+
+cupom+=CMD.BOLD_ON;
+
+cupom+=CMD.DOUBLE;
+
+
+cupom+=
+"TOTAL\n";
+
+
+cupom+=
+"R$ "+moeda(pedido.valorTotal)
++"\n";
+
+
+cupom+=CMD.NORMAL;
+
+cupom+=CMD.BOLD_OFF;
+
+
+
+cupom+="\n";
+
+cupom+="Obrigado pela preferencia!\n";
+
+
+cupom+="\n\n\n";
+
+cupom+=CMD.CUT;
+
+
+
+await enviarRAW(cupom);
+
+
+estado.impressosHoje++;
+
+estado.ultimaImpressao =
+new Date().toISOString();
+
+}
 
 /*
 |--------------------------------------------------------------------------
