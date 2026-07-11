@@ -243,6 +243,30 @@ export async function buscarPedido(id) {
   }
 }
 
+export async function marcarComoImpresso(id) {
+
+    try {
+
+        await updateDoc(
+            doc(db, "pedidos", id),
+            {
+                impresso: true,
+                impressoEm: serverTimestamp()
+            }
+        );
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao marcar impressão:",
+            erro
+        );
+
+        throw erro;
+    }
+
+}
+
 /* ==========================================================
    OUVIR PEDIDOS (LISTA EM TEMPO REAL)
 ========================================================== */

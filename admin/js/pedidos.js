@@ -2,10 +2,11 @@ import { abrirModal, fecharModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 
 import {
-    ouvirPedidos,
-    criarPedido,
-    alterarStatus,
-    cancelarPedido
+ouvirPedidos,
+criarPedido,
+alterarStatus,
+cancelarPedido,
+marcarComoImpresso
 } from "../../js/services/orders.js";
 
 /* ==========================================
@@ -465,14 +466,55 @@ function bindAcoesPedidos() {
     });
     document.querySelectorAll(".btn-preparando").forEach((btn) => {
         btn.addEventListener("click", async () => {
+
             try {
-                await alterarStatus(btn.dataset.id, "PREPARANDO");
+
+                const pedido = pedidosCache.find(
+                    p => p.id === btn.dataset.id
+                );
+
+
+                if (!pedido) {
+                    toast("Pedido não encontrado");
+                    return;
+                }
+
+
+                // muda status
+                await alterarStatus(
+                    pedido.id,
+                    "PREPARANDO"
+                );
+
+
+                // imprime somente uma vez
+                if (!pedido.impresso) {
+
+                    await enviarParaImpressora(pedido);
+
+                    // marca como impresso no Firebase
+                    await marcarComoImpresso(pedido.id);
+
+                }
+
+
                 pararSomNovoPedido();
-                toast("Pedido marcado como PREPARANDO");
+
+                toast(
+                    "Pedido marcado como PREPARANDO"
+                );
+
+
             } catch (erro) {
+
                 console.error(erro);
-                toast("Erro ao atualizar pedido.");
+
+                toast(
+                    "Erro ao preparar pedido."
+                );
+
             }
+
         });
     });
 
