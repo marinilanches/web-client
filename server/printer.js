@@ -554,13 +554,32 @@ cupom+=linha()+"\n";
 
 // PAGAMENTO
 
-
-cupom+=CMD.BOLD_ON;
+cupom += CMD.BOLD_ON;
 
 cupom += `PAGAMENTO ${pedido.pagamentoMetodo}\n`;
 
-cupom+=CMD.BOLD_OFF;
+cupom += CMD.BOLD_OFF;
 
+
+// TROCO SOMENTE PARA DINHEIRO
+
+if(
+    pedido.pagamentoMetodo &&
+    pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO"
+){
+
+    const pago = Number(pedido.trocoPara || 0);
+
+    const total = Number(pedido.valorTotal || 0);
+
+    const troco = pago - total;
+
+
+    cupom += `PAGO: R$ ${moeda(pago)}\n`;
+
+    cupom += `TROCO: R$ ${moeda(troco)}\n`;
+
+}
 
 
 cupom+=linha()+"\n";
