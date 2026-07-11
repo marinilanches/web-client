@@ -1,20 +1,18 @@
 param(
-[string]$arquivo
+[string]$arquivoRaw
 )
-
 
 $printerName="ELGIN i9(COM3)"
 
-
-$data =
-[System.IO.File]::ReadAllBytes($arquivo)
+$data = [System.IO.File]::ReadAllBytes($arquivo)
 
 
-foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){
-
-    $data.Add($b)
-
+if(!(Test-Path $arquivoRaw)){
+    throw "Arquivo RAW não encontrado: $arquivoRaw"
 }
+
+
+$data = [System.IO.File]::ReadAllBytes($arquivoRaw)
 
 
 # corte automático ESC/POS
