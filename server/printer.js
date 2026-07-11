@@ -534,20 +534,15 @@ cupom += `BAIRRO: ${pedido.bairro}\n`;
 
 cupom += CMD.DOUBLE;
 
-cupom += `ENDEREÇO: ${pedido.endereco}\n`;
+cupom += "ENDEREÇO:\n";
+
+cupom += pedido.endereco + "\n";
 
 cupom += CMD.NORMAL;
-
-cupom += CMD.NORMAL;
-
 
 if(pedido.referencia){
 
-cupom+=
-"\nREFERENCIA:\n";
-
-cupom+=
-pedido.referencia+"\n";
+    cupom += `REFERENCIA: ${pedido.referencia}\n`;
 
 }
 
