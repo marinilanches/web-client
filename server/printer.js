@@ -295,8 +295,6 @@ function quebrarLinha(valor, largura = LARGURA) {
 
 }
 
-const fs = require("fs");
-
 
 function enviarRAW(texto){
 
