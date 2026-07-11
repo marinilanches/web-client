@@ -281,6 +281,9 @@ async function iniciarImpressao() {
 
 async function imprimirPedido(pedido) {
 
+    console.log("IMPRIMINDO:");
+    console.log(JSON.stringify(pedido,null,2));
+
     const numero =
         pedido.numeroPedido ||
         pedido.id ||
@@ -326,13 +329,14 @@ async function imprimirPedido(pedido) {
     cupom += "\x1B\x40"; // inicializa ESC/POS
 
 
-    cupom += centralizar("MESA FACIL") + "\n";
+    cupom += "\x1B\x61\x00";
+    cupom += "MESA FACIL\n";
     cupom += linha("=") + "\n";
 
 
-    cupom += centralizar(
-        "PEDIDO " + numero
-    ) + "\n";
+    cupom += "\x1B\x45\x01";
+    cupom += "PEDIDO #" + numero + "\n";
+    cupom += "\x1B\x45\x00";
 
 
     cupom += linha("-") + "\n";
@@ -412,10 +416,17 @@ async function imprimirPedido(pedido) {
 
         if(item.observacaoItem){
 
-            cupom +=
-            "OBS: "
-            + item.observacaoItem
-            + "\n";
+        cupom += "\n";
+
+        cupom += "\x1B\x45\x01";
+
+        cupom += "OBSERVACAO:\n";
+
+        cupom +=
+        item.observacaoItem.toUpperCase()
+        +"\n";
+
+        cupom += "\x1B\x45\x00";
 
         }
 
@@ -423,8 +434,14 @@ async function imprimirPedido(pedido) {
 
             for(const adicional of item.adicionais){
 
+                const valorAdicional =
+                    adicional.preco ??
+                    adicional.valor ??
+                    0;
+
+
                 cupom +=
-                ` + ${adicional.nome} ${dinheiro(adicional.preco)}\n`;
+                ` + ${adicional.nome} ${dinheiro(valorAdicional)}\n`;
 
             }
 
@@ -674,6 +691,12 @@ app.post("/print/test", async (req, res) => {
 
 app.post("/print/order", async (req, res) => {
 
+    console.log("==============================");
+    console.log("JSON RECEBIDO:");
+    console.log(JSON.stringify(req.body, null, 2));
+    console.log("==============================");
+
+
     try {
 
         const pedido = req.body || {};
@@ -684,28 +707,24 @@ app.post("/print/order", async (req, res) => {
 
         estado.fila = Math.max(0, estado.fila - 1);
 
+
         res.json({
-
             success: true,
-
             message: "Pedido impresso com sucesso."
-
         });
 
-    }
 
-    catch (erro) {
+    } catch (erro) {
 
         estado.fila = Math.max(0, estado.fila - 1);
 
+        console.error("Erro ao imprimir pedido:");
         console.error(erro);
 
+
         res.status(500).json({
-
             success: false,
-
             message: erro.message
-
         });
 
     }

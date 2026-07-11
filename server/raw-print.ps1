@@ -75,16 +75,6 @@ public class RawPrinter
 $data = New-Object System.Collections.Generic.List[byte]
 
 
-# ESC @ inicializar
-$data.Add(27)
-$data.Add(64)
-
-# centralizar
-$data.Add(27)
-$data.Add(97)
-$data.Add(1)
-
-
 if(!$texto){
 
     $texto = "SEM TEXTO RECEBIDO"
@@ -92,14 +82,13 @@ if(!$texto){
 }
 
 
-foreach($b in [System.Text.Encoding]::GetEncoding(850).GetBytes($texto + "`r`n")){
+foreach($b in [System.Text.Encoding]::GetEncoding(850).GetBytes($texto)){
 
     $data.Add($b)
 
 }
 
 
-# corte
 $data.Add(29)
 $data.Add(86)
 $data.Add(1)
