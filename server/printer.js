@@ -57,11 +57,13 @@ let estado = {
 |--------------------------------------------------------------------------
 */
 
+const printerDriver = require("printer");
+
 const printer = new ThermalPrinter({
-
     type: PrinterTypes.EPSON,
-
     interface: `printer:${PRINTER_NAME}`,
+
+    driver: printerDriver,
 
     characterSet: CharacterSet.PC850_MULTILINGUAL,
 
@@ -70,11 +72,8 @@ const printer = new ThermalPrinter({
     lineCharacter: "-",
 
     options: {
-
         timeout: 5000
-
     }
-
 });
 
 /*
@@ -253,6 +252,8 @@ async function iniciarImpressao() {
 }
 
 async function imprimirPedido(pedido) {
+
+  throw new Error("TESTE NOVO PRINTER");
 
     const conectada = await verificarImpressora();
 
@@ -1019,7 +1020,12 @@ app.post("/queue/clear", (req, res) => {
 |--------------------------------------------------------------------------
 */
 
+console.log("======================================");
+console.log(" NOVO PRINTER.JS - ESC/POS ");
+console.log("======================================");
+
 app.listen(PORT, async () => {
+    console.log("SERVIDOR NOVO INICIADO");
 
     const online = await verificarImpressora();
 
