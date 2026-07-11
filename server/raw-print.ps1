@@ -1,3 +1,7 @@
+param(
+    [string]$texto
+)
+
 $printerName = "ELGIN i9(COM3)"
 
 
@@ -81,13 +85,17 @@ $data.Add(97)
 $data.Add(1)
 
 
-$text = "TESTE ELGIN i9`r`n"
-$text += "================`r`n"
-$text += "NODE RAW PRINT`r`n`r`n"
+if(!$texto){
+
+    $texto = "SEM TEXTO RECEBIDO"
+
+}
 
 
-foreach($b in [System.Text.Encoding]::ASCII.GetBytes($text)){
+foreach($b in [System.Text.Encoding]::GetEncoding(850).GetBytes($texto + "`r`n")){
+
     $data.Add($b)
+
 }
 
 
