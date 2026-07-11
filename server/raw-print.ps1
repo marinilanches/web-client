@@ -15,8 +15,7 @@ $data = [System.IO.File]::ReadAllBytes($arquivoRaw)
 
 $printer = Get-Printer -Name $printerName
 
-
-$port = $printer.PortName
+$port = $printer.PortName.Replace(":","")
 
 
 $serial = New-Object System.IO.Ports.SerialPort(
