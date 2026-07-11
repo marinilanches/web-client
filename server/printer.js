@@ -575,7 +575,7 @@ if(
     const troco = pago - total;
 
 
-    cupom += `PAGO: R$ ${moeda(pago)}\n`;
+    cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
 
     cupom += `TROCO: R$ ${moeda(troco)}\n`;
 

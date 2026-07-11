@@ -188,7 +188,7 @@ function renderPedidos(pedidos) {
                 ?
                 `
                 <p>
-                    <strong>PAGO:</strong>
+                    <strong>CLIENTE PAGA:</strong>
                     R$ ${Number(pedido.trocoPara).toFixed(2)}
                 </p>
 
@@ -390,7 +390,7 @@ console.log("METODO:", pedido.pagamentoMetodo);
                 `
 
                 <p>
-                    <strong>PAGO:</strong>
+                    <strong>CLIENTE PAGA:</strong>
                     R$ ${Number(pedido.trocoPara).toFixed(2)}
                 </p>
 
