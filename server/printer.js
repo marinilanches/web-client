@@ -4,12 +4,6 @@ const cors = require("cors");
 const { execFile } = require("child_process");
 const path = require("path");
 
-const {
-ThermalPrinter,
-PrinterTypes,
-CharacterSet
-} = require("node-thermal-printer");
-
 const app = express();
 const PORT = 3002;
 
@@ -293,8 +287,6 @@ async function iniciarImpressao() {
 }
 
 async function imprimirPedido(pedido) {
-
-  throw new Error("TESTE NOVO PRINTER");
 
     const conectada = await verificarImpressora();
 
