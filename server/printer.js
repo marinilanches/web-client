@@ -497,7 +497,9 @@ cupom +=
 "  - "+
 coluna(
 adicional.nome,
-"R$ "+moeda(adicional.preco)
+"R$ "+moeda(
+    adicional.preco || adicional.valor
+)
 )
 +"\n";
 

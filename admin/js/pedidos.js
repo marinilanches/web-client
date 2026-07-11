@@ -563,6 +563,10 @@ function pararSomNovoPedido() {
 
 async function enviarParaImpressora(pedido){
 
+    console.log("========== PEDIDO FIREBASE REAL ==========");
+    console.log(JSON.stringify(pedido, null, 2));
+    console.log("==========================================");
+
     try {
 
         const res = await fetch(
