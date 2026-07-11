@@ -2,6 +2,10 @@ param(
 [string]$arquivoRaw
 )
 
+Add-Content `
+"C:\Users\Usuário\server\raw-debug.log" `
+"Executado $(Get-Date) arquivo=$arquivoRaw"
+
 $printerName="ELGIN i9(COM3)"
 
 

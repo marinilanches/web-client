@@ -162,13 +162,6 @@ function moeda(valor){
 }
 
 
-function linha(){
-
-    return "-".repeat(48);
-
-}
-
-
 function linhaDupla(){
 
     return "=".repeat(48);
@@ -296,38 +289,41 @@ function quebrarLinha(valor, largura = LARGURA) {
 }
 
 
-function enviarRAW(texto){
+async function enviarRAW(texto){
+
+    const arquivoRaw = path.join(
+        __dirname,
+        "cupom.raw"
+    );
+
+
+    fs.writeFileSync(
+        arquivoRaw,
+        Buffer.from(texto, "latin1")
+    );
+
+
+    const script = path.join(
+        __dirname,
+        "raw-print.ps1"
+    );
+
 
     return new Promise((resolve,reject)=>{
 
-
-        const arquivoRaw = path.join(
-            __dirname,
-            "cupom.raw"
-        );
-
-
-        fs.writeFileSync(
-            arquivoRaw,
-            Buffer.from(texto,"binary")
-        );
-
-
-        const script = path.join(
-            __dirname,
-            "raw-print.ps1"
-        );
-
-
         execFile(
-            "powershell",
+            "powershell.exe",
             [
+                "-NoProfile",
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
                 script,
                 arquivoRaw
             ],
+            {
+                windowsHide:true
+            },
             (erro, stdout, stderr)=>{
 
 
@@ -348,7 +344,6 @@ function enviarRAW(texto){
 
             }
         );
-
 
     });
 
@@ -864,6 +859,10 @@ app.post("/print/test", async (req, res) => {
 */
 
 app.post("/print/order", async (req, res) => {
+
+    await enviarRAW(
+    "TESTE SERVICO NSSM\n\n\n"
+    );
 
     console.log("==============================");
     console.log("JSON RECEBIDO:");
