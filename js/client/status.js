@@ -1,23 +1,20 @@
 import {
-  garantirClienteAnonimo
+garantirClienteAnonimo
 } from "../services/customers.js";
 
-
 import {
-  ouvirPedidosCliente
+ouvirPedidosCliente
 } from "../services/orders.js";
-
 
 
 const lista =
 document.getElementById(
-  "listaPedidos"
+"listaPedidos"
 );
-
 
 const nomeCliente =
 document.getElementById(
-  "nomeCliente"
+"nomeCliente"
 );
 
 
@@ -38,7 +35,6 @@ currency:"BRL"
 
 
 function etapaStatus(status){
-
 
 const etapas=[
 "RECEBIDO",
@@ -61,52 +57,144 @@ etapas.indexOf(status);
 
 
 
-return etapas.map(
-(etapa,index)=>{
-
-
-let icone="⚪";
-
-
-if(index < atual)
-icone="🟢";
-
-
-if(index === atual)
-icone="🟢";
-
+if(status === "CANCELADO"){
 
 return `
-<div class="status-etapa">
 
-${icone}
+<div class="status-card">
 
-${nomes[index]}
+<h3>
+❌ Pedido Cancelado
+</h3>
 
 </div>
+
 `;
 
 }
 
-).join("");
+
+
+const entregue =
+status === "ENTREGUE";
+
+
+
+const progresso =
+entregue
+? 100
+: atual <= 0
+? 0
+: (atual / (etapas.length - 1)) * 100;
+
+
+
+return `
+
+
+<div class="status-progresso">
+
+
+<div class="progresso-linha"></div>
+
+
+<div 
+class="progresso-linha-ativa"
+style="width:${progresso}%">
+</div>
+
+
+
+<div class="progresso-etapas">
+
+
+${etapas.map(
+(etapa,index)=>{
+
+
+let classe="";
+
+let icone="⚪";
+
+
+
+// ENTREGUE
+if(entregue){
+
+classe="concluida";
+icone="🟢";
 
 }
 
+
+
+// etapas anteriores
+else if(index < atual){
+
+classe="concluida";
+icone="🟢";
+
+}
+
+
+
+// etapa atual
+else if(index === atual){
+
+classe="ativa";
+icone="🟢";
+
+}
+
+
+
+return `
+
+<div class="progresso-etapa ${classe}">
+
+
+<div class="progresso-bolinha">
+
+${icone}
+
+</div>
+
+
+<span>
+
+${nomes[index]}
+
+</span>
+
+
+</div>
+
+`;
+
+}
+
+).join("")}
+
+
+</div>
+
+
+</div>
+
+
+`;
+
+}
 
 
 
 function renderPedidos(pedidos){
 
-
 if(!pedidos.length){
 
 lista.innerHTML=`
 
-<div class="pedido-vazio">
-
 Você ainda não possui pedidos.
-
-</div>
 
 `;
 
@@ -124,79 +212,58 @@ pedido=>{
 const itens =
 pedido.itens
 .map(
-item => {
+item=>{
 
-let adicionais = "";
+
+let adicionais="";
+
 
 if(item.adicionais && item.adicionais.length){
 
-adicionais = `
-<br>
+adicionais = `<br>
 &nbsp;&nbsp;➕ ${
 item.adicionais
-.map(a => a.nome)
+.map(a=>a.nome)
 .join(", ")
-}
-`;
+}`;
 
 }
 
 
-let observacao = "";
 
-if(item.observacaoItem && item.observacaoItem.trim()){
+let observacao="";
 
-observacao = `
-<br>
-&nbsp;&nbsp;📝 Obs: ${item.observacaoItem}
-`;
+
+if(
+item.observacaoItem &&
+item.observacaoItem.trim()
+){
+
+observacao = `<br>
+&nbsp;&nbsp;📝 Obs: ${item.observacaoItem}`;
 
 }
 
 
-return `
-${item.quantidade}x ${item.nome}
+
+return `${item.quantidade}x ${item.nome}
 ${adicionais}
-${observacao}
-`;
+${observacao}`;
 
 }
+
 )
-.join("<br>");
+.join("");
 
 
 
 return `
 
-<div class="pedido-card">
-
-
-<h3>
-#${pedido.numeroPedido || pedido.id.slice(0,6)}
-</h3>
-
-
-<p>
-${itens}
-</p>
-
-
-<strong>
-${formatarMoeda(pedido.valorTotal)}
-</strong>
-
-
-
-<div class="barra-status">
 
 ${etapaStatus(
 pedido.status
 )}
 
-</div>
-
-
-</div>
 
 `;
 
@@ -205,7 +272,6 @@ pedido.status
 ).join("");
 
 }
-
 
 
 
@@ -228,6 +294,7 @@ nomeCliente.innerText =
 pedidos[0].cliente;
 
 }
+
 
 
 renderPedidos(pedidos);
