@@ -45,7 +45,7 @@ public class RawPrinter
     public static extern int StartDocPrinter(
         IntPtr hPrinter,
         int level,
-        [In] DOCINFO di
+        DOCINFO di
     );
 
 
@@ -117,9 +117,9 @@ $doc.pDataType = "RAW"
 
 
 if([RawPrinter]::StartDocPrinter(
-    $printer,
-    1,
-    [ref]$doc) -eq 0)
+$printer,
+1,
+$doc) -eq 0)
 {
     throw "Falha StartDocPrinter"
 }
