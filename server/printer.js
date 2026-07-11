@@ -1,3 +1,5 @@
+const iconv = require("iconv-lite");
+
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -299,7 +301,7 @@ async function enviarRAW(texto){
 
     fs.writeFileSync(
         arquivoRaw,
-        Buffer.from(texto, "latin1")
+        iconv.encode(texto, "cp850")
     );
 
 
@@ -374,23 +376,24 @@ async function iniciarImpressao() {
 
 async function imprimirPedido(pedido){
 
+    let cupom="";
 
-let cupom="";
+    cupom += CMD.RESET;
+
+    // Código da tabela de caracteres da impressora
+    // ESC t 2 = CP850
+    cupom += "\x1B\x74\x02";
 
 
-cupom += CMD.RESET;
+    // CABEÇALHO
 
+    cupom += CMD.CENTER;
 
+    cupom += CMD.BOLD_ON;
 
-// CABEÇALHO
+    cupom += CMD.DOUBLE;
 
-cupom += CMD.CENTER;
-
-cupom += CMD.BOLD_ON;
-
-cupom += CMD.DOUBLE;
-
-cupom += "MESA FACIL\n";
+    cupom += "MESA FACIL\n";
 
 cupom += CMD.NORMAL;
 
@@ -859,10 +862,6 @@ app.post("/print/test", async (req, res) => {
 */
 
 app.post("/print/order", async (req, res) => {
-
-    await enviarRAW(
-    "TESTE SERVICO NSSM\n\n\n"
-    );
 
     console.log("==============================");
     console.log("JSON RECEBIDO:");

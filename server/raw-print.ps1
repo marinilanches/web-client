@@ -2,25 +2,19 @@ param(
 [string]$arquivoRaw
 )
 
-Add-Content `
-"C:\Users\Usuário\server\raw-debug.log" `
-"Executado $(Get-Date) arquivo=$arquivoRaw"
+Add-Content "$PSScriptRoot\raw-debug.log" "Executado $(Get-Date) arquivo=$arquivoRaw"
 
 $printerName="ELGIN i9(COM3)"
-
 
 if(!(Test-Path $arquivoRaw)){
     throw "Arquivo RAW não encontrado: $arquivoRaw"
 }
 
-
 $data = [System.IO.File]::ReadAllBytes($arquivoRaw)
-
 
 $printer = Get-Printer -Name $printerName
 
 $port = $printer.PortName.Replace(":","")
-
 
 $serial = New-Object System.IO.Ports.SerialPort(
     $port,
@@ -29,7 +23,6 @@ $serial = New-Object System.IO.Ports.SerialPort(
     8,
     "One"
 )
-
 
 try {
 
@@ -42,7 +35,6 @@ try {
     )
 
     $serial.Close()
-
 
     Write-Host "RAW enviado:"
     Write-Host $data.Length "bytes"
