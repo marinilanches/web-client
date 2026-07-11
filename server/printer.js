@@ -309,8 +309,7 @@ function enviarRAW(texto){
 
         fs.writeFileSync(
             arquivoRaw,
-            texto,
-            "binary"
+            Buffer.from(texto,"binary")
         );
 
 

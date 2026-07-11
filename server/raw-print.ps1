@@ -1,10 +1,9 @@
 param(
-[string]$arquivoRaw
+    [string]$arquivoRaw
 )
 
-$printerName="ELGIN i9(COM3)"
 
-$data = [System.IO.File]::ReadAllBytes($arquivo)
+$printerName="ELGIN i9(COM3)"
 
 
 if(!(Test-Path $arquivoRaw)){
@@ -25,13 +24,12 @@ $data.Add(1)
 
 $printer = [IntPtr]::Zero
 
-
 if(-not [RawPrinter]::OpenPrinter(
-    $printerName,
-    [ref]$printer,
-    [IntPtr]::Zero))
+$printerName,
+[ref]$printer,
+[IntPtr]::Zero))
 {
-    throw "Não abriu impressora"
+throw "Não abriu impressora"
 }
 
 
