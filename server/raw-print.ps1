@@ -1,18 +1,13 @@
 param(
-[string]$texto
+[string]$arquivo
 )
+
 
 $printerName="ELGIN i9(COM3)"
 
 
-if(!$texto){
-
-    $texto = "SEM TEXTO RECEBIDO"
-
-}
-
-
-$data = New-Object System.Collections.Generic.List[byte]
+$data =
+[System.IO.File]::ReadAllBytes($arquivo)
 
 
 foreach($b in [System.Text.Encoding]::GetEncoding(860).GetBytes($texto)){

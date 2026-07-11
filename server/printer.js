@@ -294,9 +294,25 @@ function quebrarLinha(valor, largura = LARGURA) {
 
 }
 
+const fs = require("fs");
+
+
 function enviarRAW(texto){
 
     return new Promise((resolve,reject)=>{
+
+
+        const arquivoRaw = path.join(
+            __dirname,
+            "cupom.raw"
+        );
+
+
+        fs.writeFileSync(
+            arquivoRaw,
+            texto,
+            "binary"
+        );
 
 
         const script = path.join(
@@ -312,14 +328,19 @@ function enviarRAW(texto){
                 "Bypass",
                 "-File",
                 script,
-                texto
+                arquivoRaw
             ],
             (erro, stdout, stderr)=>{
 
 
                 if(erro){
+
+                    console.error(stderr);
+
                     reject(erro);
+
                     return;
+
                 }
 
 
