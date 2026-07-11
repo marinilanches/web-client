@@ -245,7 +245,12 @@ function renderPedidos(pedidos) {
 
 function abrirDetalhesPedido(id){
 
-    const pedido = pedidosCache.find(p => p.id === id);
+const pedido = pedidosCache.find(p => p.id === id);
+
+console.log("PEDIDO COMPLETO:", pedido);
+console.log("TROCO PARA:", pedido.trocoPara);
+console.log("VALOR TOTAL:", pedido.valorTotal);
+console.log("METODO:", pedido.pagamentoMetodo);
 
     if(!pedido){
         toast("Pedido não encontrado");
