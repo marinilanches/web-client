@@ -2,87 +2,6 @@ param(
 [string]$arquivoRaw
 )
 
-
-Add-Type -TypeDefinition @"
-
-using System;
-using System.Runtime.InteropServices;
-
-public class RawPrinter
-{
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public class DOCINFO
-    {
-        public string pDocName;
-        public string pOutputFile;
-        public string pDataType;
-    }
-
-
-    [DllImport("winspool.Drv", 
-    EntryPoint="OpenPrinter",
-    SetLastError=true,
-    CharSet=CharSet.Unicode,
-    ExactSpelling=false,
-    CallingConvention=CallingConvention.StdCall)]
-    public static extern bool OpenPrinter(
-        string src,
-        ref IntPtr hPrinter,
-        IntPtr pd
-    );
-
-
-    [DllImport("winspool.Drv",
-    EntryPoint="ClosePrinter")]
-    public static extern bool ClosePrinter(
-        IntPtr hPrinter
-    );
-
-
-    [DllImport(
-    "winspool.Drv",
-    SetLastError=true,
-    CharSet=CharSet.Unicode
-    )]
-    public static extern int StartDocPrinter(
-        IntPtr hPrinter,
-        int level,
-        [In] DOCINFO di
-    );
-
-
-    [DllImport("winspool.Drv")]
-    public static extern bool EndDocPrinter(
-        IntPtr hPrinter
-    );
-
-
-    [DllImport("winspool.Drv")]
-    public static extern bool StartPagePrinter(
-        IntPtr hPrinter
-    );
-
-
-    [DllImport("winspool.Drv")]
-    public static extern bool EndPagePrinter(
-        IntPtr hPrinter
-    );
-
-
-    [DllImport("winspool.Drv")]
-    public static extern bool WritePrinter(
-        IntPtr hPrinter,
-        byte[] data,
-        int count,
-        ref int written
-    );
-
-}
-
-"@
-
-
 $printerName="ELGIN i9(COM3)"
 
 
@@ -94,61 +13,43 @@ if(!(Test-Path $arquivoRaw)){
 $data = [System.IO.File]::ReadAllBytes($arquivoRaw)
 
 
-# corte automático ESC/POS
-
-$corte = [byte[]](29,86,1)
-
-$data = $data + $corte
+$printer = Get-Printer -Name $printerName
 
 
+$port = $printer.PortName
 
-$printer = [IntPtr]::Zero
 
-if(-not [RawPrinter]::OpenPrinter(
-$printerName,
-[ref]$printer,
-[IntPtr]::Zero))
-{
-throw "Não abriu impressora"
+$serial = New-Object System.IO.Ports.SerialPort(
+    $port,
+    9600,
+    "None",
+    8,
+    "One"
+)
+
+
+try {
+
+    $serial.Open()
+
+    $serial.Write(
+        $data,
+        0,
+        $data.Length
+    )
+
+    $serial.Close()
+
+
+    Write-Host "RAW enviado:"
+    Write-Host $data.Length "bytes"
+
 }
+catch {
 
+    if($serial.IsOpen){
+        $serial.Close()
+    }
 
-$doc = New-Object RawPrinter+DOCINFO
-
-$doc.pDocName = "Mesa Facil ESC POS"
-$doc.pOutputFile = $null
-$doc.pDataType = "RAW"
-
-
-Write-Host "Abrindo documento RAW..."
-{
-    throw "Falha StartDocPrinter"
+    throw $_
 }
-
-
-if(-not [RawPrinter]::StartPagePrinter($printer))
-{
-    throw "Falha StartPagePrinter"
-}
-
-
-$written = 0
-
-
-if(-not [RawPrinter]::WritePrinter(
-$printer,
-$data,
-$data.Length,
-[ref]$written
-))
-{
-    throw "Falha WritePrinter"
-}
-
-
-[RawPrinter]::EndPagePrinter($printer) | Out-Null
-[RawPrinter]::EndDocPrinter($printer) | Out-Null
-[RawPrinter]::ClosePrinter($printer) | Out-Null
-
-
-Write-Host "Impresso. Bytes enviados:" $written
