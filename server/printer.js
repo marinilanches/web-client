@@ -22,7 +22,7 @@ const PORT = 3002;
 
 const PRINTER_NAME = "ELGIN i9(COM3)";
 
-const LARGURA = 46;
+const LARGURA = 48;
 
 /*
 |--------------------------------------------------------------------------
@@ -175,11 +175,11 @@ function duasColunas(esquerda, direita) {
 
 }
 
-function quebrarLinha(texto, largura = LARGURA) {
+function quebrarLinha(valor, largura = LARGURA) {
 
-    texto = texto(texto);
+    valor = texto(valor);
 
-    const palavras = texto.split(" ");
+    const palavras = valor.split(" ");
 
     const linhas = [];
 
@@ -253,7 +253,6 @@ async function iniciarImpressao() {
 }
 
 async function imprimirPedido(pedido) {
-  printer.set
 
     const conectada = await verificarImpressora();
 
@@ -363,6 +362,14 @@ async function imprimirPedido(pedido) {
 
     printer.drawLine();
 
+    printer.println(`Telefone : ${telefone}`);
+
+    if (whatsapp && whatsapp !== "-") {
+      printer.println(`WhatsApp : ${whatsapp}`);
+    }
+
+    printer.drawLine();
+
     /*
     ====================================================
     ENTREGA
@@ -376,6 +383,8 @@ async function imprimirPedido(pedido) {
             ? "ENTREGA"
             : "RETIRADA"
     );
+
+    printer.println(`Status : ${status}`);
 
     printer.bold(false);
 
@@ -583,7 +592,7 @@ if (!Array.isArray(pedido.itens) || pedido.itens.length === 0) {
 
             printer.bold(true);
 
-            printer.println(">>> OBSERVACAO <<<");
+            printer.println("OBS:");
 
             printer.bold(false);
 
@@ -622,7 +631,7 @@ const total = Number(
 
 printer.bold(true);
 
-printer.println(">>> OBSERVACAO <<<");
+printer.println("RESUMO DO PEDIDO");
 
 printer.bold(false);
 
@@ -674,8 +683,6 @@ printer.setTextNormal();
 printer.bold(false);
 
 printer.println(linha("="));
-
-printer.e
 
 printer.drawLine();
 
@@ -758,14 +765,6 @@ printer.newLine();
 printer.newLine();
 
 printer.cut();
-
-await printer.execute();
-
-/*
-====================================================
-ENVIA PARA A IMPRESSORA
-====================================================
-*/
 
 await printer.execute();
 
