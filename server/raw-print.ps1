@@ -40,12 +40,15 @@ public class RawPrinter
     );
 
 
-    [DllImport("winspool.Drv",
-    EntryPoint="StartDocPrinter")]
+    [DllImport(
+    "winspool.Drv",
+    SetLastError=true,
+    CharSet=CharSet.Unicode
+    )]
     public static extern int StartDocPrinter(
         IntPtr hPrinter,
         int level,
-        DOCINFO di
+        [In] DOCINFO di
     );
 
 
@@ -112,14 +115,12 @@ throw "Não abriu impressora"
 
 $doc = New-Object RawPrinter+DOCINFO
 
-$doc.pDocName = "Teste ESC POS"
+$doc.pDocName = "Mesa Facil ESC POS"
+$doc.pOutputFile = $null
 $doc.pDataType = "RAW"
 
 
-if([RawPrinter]::StartDocPrinter(
-$printer,
-1,
-$doc) -eq 0)
+Write-Host "Abrindo documento RAW..."
 {
     throw "Falha StartDocPrinter"
 }
