@@ -1,5 +1,3 @@
-console.log("customer.js carregado");
-
 import {
   buscarCliente,
   salvarCliente
@@ -7,8 +5,6 @@ import {
 
 
 export async function iniciarCliente(){
-
-    console.log("iniciarCliente executou");
 
     const cliente = await buscarCliente();
 
@@ -63,13 +59,26 @@ return;
 
 
 
-await salvarCliente({
+const btn = document.getElementById("salvarClienteBtn");
 
-nome,
-telefone
+btn.disabled = true;
+btn.textContent = "Salvando...";
 
-});
+try {
 
+    await salvarCliente({
+        nome,
+        telefone
+    });
+
+    alert("Dados salvos!");
+
+} finally {
+
+    btn.disabled = false;
+    btn.textContent = "Salvar";
+
+}
 
 
 alert(
