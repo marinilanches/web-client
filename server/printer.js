@@ -1,4 +1,4 @@
-const iconv = require("iconv-lite");
+ const iconv = require("iconv-lite");
 
 const express = require("express");
 const cors = require("cors");
@@ -883,6 +883,8 @@ app.post("/print/test", async (req, res) => {
 
 app.post("/print/order", async (req, res) => {
 
+	console.log("TESTE RESTART AUTOMATICO");
+
     console.log("==============================");
     console.log("JSON RECEBIDO:");
     console.log(JSON.stringify(req.body, null, 2));
@@ -964,7 +966,7 @@ app.listen(PORT, async () => {
 
     console.log("======================================");
 
-    console.log(" Mesa Fácil - Printer Service");
+    console.log(" Mesa Facil - Printer Service");
 
     console.log("======================================");
 
