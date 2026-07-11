@@ -182,6 +182,25 @@ function renderPedidos(pedidos) {
                 R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
             </p>
 
+            ${
+                pedido.pagamentoMetodo === "DINHEIRO" &&
+                Number(pedido.trocoPara || 0) > Number(pedido.valorTotal || 0)
+                ?
+                `
+                <p>
+                    <strong>PAGO:</strong>
+                    R$ ${Number(pedido.trocoPara).toFixed(2)}
+                </p>
+
+                <p>
+                    <strong>TROCO:</strong>
+                    R$ ${(Number(pedido.trocoPara) - Number(pedido.valorTotal)).toFixed(2)}
+                </p>
+                `
+                :
+                ""
+            }
+
             <p>
                 <strong>Observações:</strong>
                 ${pedido.observacoes || "-"}
@@ -357,6 +376,28 @@ function abrirDetalhesPedido(id){
                 Status:
                 ${pedido.pagamentoStatus || "-"}
             </p>
+
+
+            ${
+                pedido.pagamentoMetodo === "DINHEIRO" &&
+                Number(pedido.trocoPara || 0) > Number(pedido.valorTotal || 0)
+                ?
+                `
+
+                <p>
+                    <strong>PAGO:</strong>
+                    R$ ${Number(pedido.trocoPara).toFixed(2)}
+                </p>
+
+                <p>
+                    <strong>TROCO:</strong>
+                    R$ ${(Number(pedido.trocoPara) - Number(pedido.valorTotal)).toFixed(2)}
+                </p>
+
+                `
+                :
+                ""
+            }
 
 
 
