@@ -2,10 +2,10 @@ import { abrirModal, fecharModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 
 import {
-    ouvirClientes,
-    criarCliente,
-    editarCliente,
-    excluirCliente
+  ouvirClientes,
+  criarCliente,
+  editarCliente,
+  excluirCliente,
 } from "../../js/services/clients.js";
 
 /* ==========================================
@@ -28,60 +28,25 @@ let clientesCache = [];
 
 console.log("clientes.js carregado");
 
-ouvirClientes((clientes)=>{
+ouvirClientes((clientes) => {
+  clientesCache = clientes;
 
-clientesCache = clientes;
+  document.querySelector("#totalClientes").textContent = clientes.length;
 
+  document.querySelector("#clientesVip").textContent = clientes.filter(
+    (c) => Number(c.totalPedidos || 0) > 5,
+  ).length;
 
-document.querySelector("#totalClientes")
-.textContent =
-clientes.length;
+  let pedidos = clientes.reduce((a, b) => a + Number(b.totalPedidos || 0), 0);
 
+  document.querySelector("#totalPedidosClientes").textContent = pedidos;
 
+  let gasto = clientes.reduce((a, b) => a + Number(b.totalGasto || 0), 0);
 
-document.querySelector("#clientesVip")
-.textContent =
-clientes.filter(
-c=>Number(c.totalPedidos||0)>5
-).length;
+  document.querySelector("#ticketMedio").textContent =
+    "R$ " + (gasto / (clientes.length || 1)).toFixed(2);
 
-
-
-let pedidos =
-clientes.reduce(
-(a,b)=>
-a+Number(b.totalPedidos||0),
-0
-);
-
-
-document.querySelector("#totalPedidosClientes")
-.textContent =
-pedidos;
-
-
-
-let gasto =
-clientes.reduce(
-(a,b)=>
-a+Number(b.totalGasto||0),
-0
-);
-
-
-document.querySelector("#ticketMedio")
-.textContent =
-"R$ "+
-(
-gasto /
-(clientes.length||1)
-)
-.toFixed(2);
-
-
-
-aplicarFiltros();
-
+  aplicarFiltros();
 });
 
 buscarCliente?.addEventListener("input", aplicarFiltros);
@@ -91,24 +56,19 @@ buscarCliente?.addEventListener("input", aplicarFiltros);
 ========================================== */
 
 function aplicarFiltros() {
+  let clientes = [...clientesCache];
+  const termo = buscarCliente?.value?.trim().toLowerCase() || "";
 
-    let clientes = [...clientesCache];
-    const termo = buscarCliente?.value?.trim().toLowerCase() || "";
+  if (termo) {
+    clientes = clientes.filter((cliente) => {
+      const nome = (cliente.nome || "").toLowerCase();
+      const telefone = (cliente.telefone || "").toLowerCase();
 
-    if (termo) {
-        clientes = clientes.filter((cliente) => {
-            const nome = (cliente.nome || "").toLowerCase();
-            const telefone = (cliente.telefone || "").toLowerCase();
+      return nome.includes(termo) || telefone.includes(termo);
+    });
+  }
 
-            return (
-                nome.includes(termo) ||
-                telefone.includes(termo)
-            );
-        });
-    }
-
-    renderClientes(clientes);
-
+  renderClientes(clientes);
 }
 
 /* ==========================================
@@ -116,13 +76,10 @@ function aplicarFiltros() {
 ========================================== */
 
 function renderClientes(clientes) {
+  if (!listaClientes) return;
 
-    if (!listaClientes) return;
-
-
-    if (!clientes.length) {
-
-        listaClientes.innerHTML = `
+  if (!clientes.length) {
+    listaClientes.innerHTML = `
             <tr>
                 <td colspan="7">
                     Nenhum cliente encontrado
@@ -130,15 +87,14 @@ function renderClientes(clientes) {
             </tr>
         `;
 
-        atualizarEstatisticas(clientes);
+    atualizarEstatisticas(clientes);
 
-        return;
-    }
+    return;
+  }
 
-
-    listaClientes.innerHTML = clientes.map(cliente => {
-
-        return `
+  listaClientes.innerHTML = clientes
+    .map((cliente) => {
+      return `
 
         <tr>
 
@@ -189,208 +145,195 @@ function renderClientes(clientes) {
         </tr>
 
         `;
+    })
+    .join("");
 
-    }).join("");
+  document.querySelectorAll(".btn-editar").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const id = botao.dataset.id;
 
-    document
-        .querySelectorAll(".btn-editar")
-        .forEach(botao => {
+      const cliente = clientesCache.find((c) => c.id === id);
 
-            botao.addEventListener("click", () => {
-
-                const id = botao.dataset.id;
-
-                const cliente = clientesCache.find(c => c.id === id);
-
-                if (cliente) {
-
-                    abrirEditarCliente(cliente);
-
-                }
-
-            });
-
-        });
-
-
-    atualizarEstatisticas(clientes);
-
-    document
-    .querySelectorAll(".btn-excluir")
-    .forEach(botao => {
-
-        botao.addEventListener("click", async () => {
-
-            const id = botao.dataset.id;
-
-            const confirmar =
-                confirm("Deseja excluir este cliente?");
-
-
-            if (!confirmar) return;
-
-
-            try {
-
-                await excluirCliente(id);
-
-                toast(
-                    "Cliente excluído com sucesso!"
-                );
-
-
-            } catch (erro) {
-
-                console.error(erro);
-
-                toast(
-                "Erro ao excluir cliente."
-                );
-
-            }
-
-        });
-
+      if (cliente) {
+        abrirEditarCliente(cliente);
+      }
     });
+  });
 
+  atualizarEstatisticas(clientes);
+
+  document.querySelectorAll(".btn-excluir").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      const id = botao.dataset.id;
+
+      const confirmar = confirm("Deseja excluir este cliente?");
+
+      if (!confirmar) return;
+
+      try {
+        await excluirCliente(id);
+
+        toast("Cliente excluído com sucesso!");
+      } catch (erro) {
+        console.error(erro);
+
+        toast("Erro ao excluir cliente.");
+      }
+    });
+  });
 }
 
 function atualizarEstatisticas(clientes) {
+  const totalClientes = clientes.length;
 
-    const totalClientes =
-        clientes.length;
+  const clientesVip = clientes.filter(
+    (cliente) => Number(cliente.totalPedidos || 0) >= 5,
+  ).length;
 
+  const totalPedidos = clientes.reduce(
+    (total, cliente) => total + Number(cliente.totalPedidos || 0),
+    0,
+  );
 
-    const clientesVip =
-        clientes.filter(cliente =>
-            Number(cliente.totalPedidos || 0) >= 5
-        ).length;
+  const totalGasto = clientes.reduce(
+    (total, cliente) => total + Number(cliente.totalGasto || 0),
+    0,
+  );
 
+  const ticketMedio = totalClientes ? totalGasto / totalClientes : 0;
 
-    const totalPedidos =
-        clientes.reduce(
-            (total, cliente) =>
-                total + Number(cliente.totalPedidos || 0),
-            0
-        );
+  document.getElementById("totalClientes").textContent = totalClientes;
 
+  document.getElementById("clientesVip").textContent = clientesVip;
 
-    const totalGasto =
-        clientes.reduce(
-            (total, cliente) =>
-                total + Number(cliente.totalGasto || 0),
-            0
-        );
+  document.getElementById("totalPedidosClientes").textContent = totalPedidos;
 
-
-    const ticketMedio =
-        totalClientes
-        ? totalGasto / totalClientes
-        : 0;
-
-
-
-    document.getElementById("totalClientes")
-        .textContent = totalClientes;
-
-
-    document.getElementById("clientesVip")
-        .textContent = clientesVip;
-
-
-    document.getElementById("totalPedidosClientes")
-        .textContent = totalPedidos;
-
-
-    document.getElementById("ticketMedio")
-        .textContent =
-        `R$ ${ticketMedio.toFixed(2)}`;
-
+  document.getElementById("ticketMedio").textContent =
+    `R$ ${ticketMedio.toFixed(2)}`;
 }
 
-function abrirEditarCliente(cliente){
+function abrirEditarCliente(cliente) {
+  abrirModal(
+    "Editar Cliente",
+    `
+    <form id="formEditarCliente" class="form-grid">
 
-    abrirModal(
-        "Editar Cliente",
-        `
-        <form id="formEditarCliente" class="form-grid">
+        <div class="form-group">
+            <label>Nome</label>
+            <input
+                id="editarNome"
+                type="text"
+                value="${cliente.nome || ""}"
+                required>
+        </div>
 
-            <div class="form-group">
-                <label>Nome</label>
-                <input
-                    id="editarNome"
-                    type="text"
-                    value="${cliente.nome || ""}"
-                    required>
-            </div>
+        <div class="form-group">
+            <label>Telefone</label>
+            <input
+                id="editarTelefone"
+                type="text"
+                value="${cliente.telefone || ""}">
+        </div>
 
-            <div class="form-group">
-                <label>Telefone</label>
-                <input
-                    id="editarTelefone"
-                    type="text"
-                    value="${cliente.telefone || ""}">
-            </div>
+        <div class="form-group">
+            <label>Observações</label>
+            <textarea id="editarObservacoes">${cliente.observacoes || ""}</textarea>
+        </div>
 
-            <div class="modal-actions">
+        <div class="form-group">
+            <label>Rua</label>
+            <input
+                id="editarRua"
+                type="text"
+                value="${cliente.endereco?.rua || ""}">
+        </div>
 
-                <button
-                    type="button"
-                    id="cancelarEditar"
-                    class="btn btn-secondary">
+        <div class="form-group">
+            <label>Número</label>
+            <input
+                id="editarNumero"
+                type="text"
+                value="${cliente.endereco?.numero || ""}">
+        </div>
 
-                    Cancelar
+        <div class="form-group">
+            <label>Bairro</label>
+            <input
+                id="editarBairro"
+                type="text"
+                value="${cliente.endereco?.bairro || ""}">
+        </div>
 
-                </button>
+        <div class="form-group">
+            <label>Complemento</label>
+            <input
+                id="editarComplemento"
+                type="text"
+                value="${cliente.endereco?.complemento || ""}">
+        </div>
 
-                <button
-                    type="submit"
-                    class="btn btn-primary">
+        <div class="modal-actions">
 
-                    Salvar
+            <button
+                type="button"
+                id="cancelarEditar"
+                class="btn btn-secondary">
+                Cancelar
+            </button>
 
-                </button>
+            <button
+                type="submit"
+                class="btn btn-primary">
+                Salvar
+            </button>
 
-            </div>
+        </div>
 
-        </form>
-        `
-    );
+    </form>
+    `,
+  );
 
-    document
-        .getElementById("cancelarEditar")
-        ?.addEventListener("click", fecharModal);
+  document
+    .getElementById("cancelarEditar")
+    ?.addEventListener("click", fecharModal);
 
-    document
-        .getElementById("formEditarCliente")
-        ?.addEventListener("submit", async (e)=>{
+  document
+    .getElementById("formEditarCliente")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-            e.preventDefault();
+      try {
+        await editarCliente(cliente.id, {
+          nome: document.getElementById("editarNome").value.trim(),
 
-            try{
+          telefone: document.getElementById("editarTelefone").value.trim(),
 
-                await editarCliente(cliente.id,{
+          observacoes: document
+            .getElementById("editarObservacoes")
+            .value.trim(),
 
-                    nome: document.getElementById("editarNome").value.trim(),
+          endereco: {
+            rua: document.getElementById("editarRua").value.trim(),
 
-                    telefone: document.getElementById("editarTelefone").value.trim()
+            numero: document.getElementById("editarNumero").value.trim(),
 
-                });
+            bairro: document.getElementById("editarBairro").value.trim(),
 
-                toast("Cliente atualizado com sucesso!");
-
-                fecharModal();
-
-            }catch(erro){
-
-                console.error(erro);
-
-                toast("Erro ao atualizar cliente.");
-
-            }
-
+            complemento: document
+              .getElementById("editarComplemento")
+              .value.trim(),
+          },
         });
 
+        toast("Cliente atualizado com sucesso!");
+
+        fecharModal();
+      } catch (erro) {
+        console.error(erro);
+
+        toast("Erro ao atualizar cliente.");
+      }
+    });
 }
 
 /* ==========================================
@@ -398,10 +341,9 @@ function abrirEditarCliente(cliente){
 ========================================== */
 
 btnNovoCliente?.addEventListener("click", () => {
-
-    abrirModal(
-        "Novo Cliente",
-        `
+  abrirModal(
+    "Novo Cliente",
+    `
         <form id="formNovoCliente" class="form-grid">
 
             <div class="form-group">
@@ -417,6 +359,27 @@ btnNovoCliente?.addEventListener("click", () => {
             <div class="form-group">
                 <label>Observações</label>
                 <textarea id="observacoesCliente"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Rua</label>
+                <input type="text" id="ruaCliente">
+            </div>
+
+            <div class="form-group">
+                <label>Número</label>
+                <input type="text" id="numeroCliente">
+            </div>
+
+            <div class="form-group">
+                <label>Bairro</label>
+                <input type="text" id="bairroCliente">
+            </div>
+
+            <div class="form-group">
+                <label>Complemento</label>
+                <input type="text" id="complementoCliente">
+            </div>
             </div>
 
             <div class="modal-actions">
@@ -435,39 +398,45 @@ btnNovoCliente?.addEventListener("click", () => {
             </div>
 
         </form>
-        `
-    );
+        `,
+  );
 
-    document
-        .getElementById("cancelarCliente")
-        ?.addEventListener("click", fecharModal);
+  document
+    .getElementById("cancelarCliente")
+    ?.addEventListener("click", fecharModal);
 
-    document
-        .getElementById("formNovoCliente")
-        ?.addEventListener("submit", async (e) => {
+  document
+    .getElementById("formNovoCliente")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-            e.preventDefault();
+      try {
+        await criarCliente({
+          endereco: {
+            rua: document.getElementById("ruaCliente").value.trim(),
 
-            try {
+            numero: document.getElementById("numeroCliente").value.trim(),
 
-                await criarCliente({
-                    nome: document.getElementById("nomeCliente").value.trim(),
-                    telefone: document.getElementById("telefoneCliente").value.trim(),
-                    observacoes: document.getElementById("observacoesCliente").value.trim(),
-                    totalPedidos: 0,
-                    totalGasto: 0
-                });
+            bairro: document.getElementById("bairroCliente").value.trim(),
 
-                toast("Cliente criado com sucesso!");
-                fecharModal();
-
-            } catch (erro) {
-
-                console.error(erro);
-                toast("Erro ao criar cliente.");
-
-            }
-
+            complemento: document
+              .getElementById("complementoCliente")
+              .value.trim(),
+          },
+          nome: document.getElementById("nomeCliente").value.trim(),
+          telefone: document.getElementById("telefoneCliente").value.trim(),
+          observacoes: document
+            .getElementById("observacoesCliente")
+            .value.trim(),
+          totalPedidos: 0,
+          totalGasto: 0,
         });
 
+        toast("Cliente criado com sucesso!");
+        fecharModal();
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao criar cliente.");
+      }
+    });
 });
