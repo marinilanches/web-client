@@ -27,6 +27,62 @@ let clientesCache = [];
 
 console.log("clientes.js carregado");
 
+<<<<<<< HEAD
+ouvirClientes((clientes)=>{
+
+clientesCache = clientes;
+
+
+document.querySelector("#totalClientes")
+.textContent =
+clientes.length;
+
+
+
+document.querySelector("#clientesVip")
+.textContent =
+clientes.filter(
+c=>Number(c.totalPedidos||0)>5
+).length;
+
+
+
+let pedidos =
+clientes.reduce(
+(a,b)=>
+a+Number(b.totalPedidos||0),
+0
+);
+
+
+document.querySelector("#totalPedidosClientes")
+.textContent =
+pedidos;
+
+
+
+let gasto =
+clientes.reduce(
+(a,b)=>
+a+Number(b.totalGasto||0),
+0
+);
+
+
+document.querySelector("#ticketMedio")
+.textContent =
+"R$ "+
+(
+gasto /
+(clientes.length||1)
+)
+.toFixed(2);
+
+
+
+aplicarFiltros();
+
+=======
 ouvirClientes((clientes)=>{
 
     console.log("Clientes:", clientes);
@@ -37,6 +93,7 @@ ouvirClientes((clientes)=>{
 
     renderClientes(clientesCache);
 
+>>>>>>> d39abec0ce4d740fe78a1dbba3c43894371ac0cc
 });
 
 buscarCliente?.addEventListener("input", aplicarFiltros);
