@@ -43,15 +43,91 @@ export function initCliente() {
    CARREGAR CLIENTES
 ========================================================== */
 
-function carregarClientes() {
 
-    ouvirClientes((clientes) => {
+export function carregarClientes() {
 
-        clientesCache = ordenarClientes(clientes);
 
-        renderClientes();
+    try {
 
-    });
+
+        ouvirClientes(
+
+            (clientes) => {
+
+
+                clientesCache =
+                    ordenarClientes(clientes);
+
+
+                atualizarSelectClientes();
+
+
+            },
+
+
+            (erro) => {
+
+
+                console.error(erro);
+
+
+                toast(
+                    "Erro ao sincronizar clientes."
+                );
+
+
+            }
+
+        );
+
+
+    } catch (erro) {
+
+
+        console.error(erro);
+
+
+        toast(
+            "Erro ao carregar clientes."
+        );
+
+
+    }
+
+
+}
+
+/* ==========================================================
+   ATUALIZAR SELECT
+========================================================== */
+
+
+function atualizarSelectClientes() {
+
+
+    const clienteAtual =
+        clienteSelecionado?.id || "";
+
+
+    renderClientes();
+
+
+    if (
+        clienteAtual &&
+        [...selectCliente.options]
+            .some(
+                option =>
+                    option.value === clienteAtual
+            )
+    ) {
+
+
+        selectCliente.value =
+            clienteAtual;
+
+
+    }
+
 
 }
 
@@ -219,18 +295,52 @@ export function limparCliente() {
 
 export function selecionarClientePorId(id) {
 
+
     if (!id) {
 
+
         selecionarConsumidorFinal();
+
+
         return;
 
+
     }
+
+
+    const cliente =
+        buscarClientePorId(id);
+
+
+    if (!cliente) {
+
+
+        toast(
+            "Cliente não encontrado."
+        );
+
+
+        selecionarConsumidorFinal();
+
+
+        return;
+
+
+    }
+
+
+    clienteSelecionado = cliente;
+
 
     if (selectCliente) {
-        selectCliente.value = id;
+
+
+        selectCliente.value =
+            id;
+
+
     }
 
-    selecionarCliente(id);
 
 }
 
@@ -309,9 +419,51 @@ export function getClientes() {
 
 }
 
+/* ==========================================================
+   RESET DO MÓDULO
+========================================================== */
+
+
+export function resetClientePDV() {
+
+
+    clienteSelecionado = null;
+
+
+    clientesCache = [];
+
+
+    if (selectCliente) {
+
+
+        selectCliente.innerHTML = "";
+
+
+        adicionarOpcaoConsumidorFinal();
+
+
+        adicionarOpcaoNovoCliente();
+
+
+        selectCliente.value = "";
+
+
+    }
+
+
+}
+
+
+/* ==========================================================
+   ATUALIZAÇÃO EXTERNA
+========================================================== */
+
+
 export function atualizarClientes() {
 
+
     carregarClientes();
+
 
 }
 

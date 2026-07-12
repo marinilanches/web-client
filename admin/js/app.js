@@ -82,6 +82,10 @@ async function iniciarAdmin() {
             await import("./adicionais.js");
             break;
 
+        case "pdv.html":
+            await import("./pdv/pdv.js");
+            break;
+
         default:
             console.warn("Nenhum módulo encontrado para a página:", pagina);
             break;
