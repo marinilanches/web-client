@@ -4,7 +4,8 @@ import { toast } from "../components/toast.js";
 import {
     ouvirClientes,
     criarCliente,
-    editarCliente
+    editarCliente,
+    excluirCliente
 } from "../../js/services/clients.js";
 
 /* ==========================================
@@ -27,7 +28,6 @@ let clientesCache = [];
 
 console.log("clientes.js carregado");
 
-<<<<<<< HEAD
 ouvirClientes((clientes)=>{
 
 clientesCache = clientes;
@@ -82,18 +82,6 @@ gasto /
 
 aplicarFiltros();
 
-=======
-ouvirClientes((clientes)=>{
-
-    console.log("Clientes:", clientes);
-
-    clientesCache = clientes;
-
-    console.log("Cache:", clientesCache);
-
-    renderClientes(clientesCache);
-
->>>>>>> d39abec0ce4d740fe78a1dbba3c43894371ac0cc
 });
 
 buscarCliente?.addEventListener("input", aplicarFiltros);
@@ -190,6 +178,12 @@ function renderClientes(clientes) {
                     data-id="${cliente.id}">
                     Editar
                 </button>
+
+                <button
+                    class="btn btn-danger btn-excluir"
+                    data-id="${cliente.id}">
+                    Excluir
+                </button>
             </td>
 
         </tr>
@@ -220,6 +214,44 @@ function renderClientes(clientes) {
 
 
     atualizarEstatisticas(clientes);
+
+    document
+    .querySelectorAll(".btn-excluir")
+    .forEach(botao => {
+
+        botao.addEventListener("click", async () => {
+
+            const id = botao.dataset.id;
+
+            const confirmar =
+                confirm("Deseja excluir este cliente?");
+
+
+            if (!confirmar) return;
+
+
+            try {
+
+                await excluirCliente(id);
+
+                toast(
+                    "Cliente excluído com sucesso!"
+                );
+
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                toast(
+                "Erro ao excluir cliente."
+                );
+
+            }
+
+        });
+
+    });
 
 }
 

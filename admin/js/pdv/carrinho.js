@@ -6,6 +6,8 @@ import { atualizarCarrinhoUI } from "./ui-carrinho.js";
    ESTADO
 ========================================== */
 
+let taxaEntrega = 0;
+
 let carrinho = [];
 
 /* ==========================================
@@ -15,6 +17,12 @@ let carrinho = [];
 export function obterCarrinho() {
 
     return structuredClone(carrinho);
+
+}
+
+export function obterTaxaEntrega(){
+
+    return taxaEntrega;
 
 }
 
@@ -29,10 +37,14 @@ export function quantidadeItensCarrinho() {
 
 export function totalCarrinho() {
 
-    return carrinho.reduce(
-        (total, item) => total + Number(item.valorTotal || 0),
+    const subtotal = carrinho.reduce(
+        (total, item) =>
+            total + Number(item.valorTotal || 0),
         0
     );
+
+
+    return subtotal + taxaEntrega;
 
 }
 
@@ -150,6 +162,14 @@ export function diminuirQuantidadeCarrinho(idCarrinho) {
 
 }
 
+export function definirTaxaEntrega(valor){
+
+    taxaEntrega = Number(valor || 0);
+
+    atualizarCarrinhoUI();
+
+}
+
 /* ==========================================
    LIMPAR
 ========================================== */
@@ -157,6 +177,8 @@ export function diminuirQuantidadeCarrinho(idCarrinho) {
 export function limparCarrinho() {
 
     carrinho = [];
+
+    taxaEntrega = 0;
 
     atualizarCarrinhoUI();
 

@@ -94,7 +94,7 @@
 
                         <h2>Carrinho</h2>
 
-                        <div id="itensCarrinho">
+                        <div id="listaCarrinho">
 
                             <div class="empty-state">
 
@@ -132,19 +132,19 @@
 
                             <select id="tipoPedidoPDV">
 
-                                <option value="Retirada">
+                                <option value="RETIRADA">
 
                                     Retirada
 
                                 </option>
 
-                                <option value="Delivery">
+                                <option value="DELIVERY">
 
                                     Delivery
 
                                 </option>
 
-                                <option value="Mesa">
+                                <option value="MESA">
 
                                     Mesa
 
@@ -172,11 +172,49 @@
                             id="enderecoEntregaPDV"
                             style="display:none">
 
+
+                            <label>Rua</label>
+
+                            <input
+                                id="ruaPDV"
+                                type="text"
+                                placeholder="Rua">
+
+
+                            <label>Número</label>
+
+                            <input
+                                id="numeroPDV"
+                                type="text"
+                                placeholder="Número">
+
+
                             <label>Bairro</label>
 
                             <select id="bairroPDV">
 
+                                <option value="">
+                                    Selecione o bairro
+                                </option>
+
                             </select>
+
+
+                            <label>Complemento</label>
+
+                            <input
+                                id="complementoPDV"
+                                type="text"
+                                placeholder="Apartamento, casa...">
+
+
+                            <label>Referência</label>
+
+                            <input
+                                id="referenciaPDV"
+                                type="text"
+                                placeholder="Próximo a...">
+
 
                         </div>
 
@@ -184,11 +222,13 @@
 
                     <div class="panel">
 
+                        <span id="quantidadeCarrinho">0</span>
+
                         <div class="pdv-total">
 
                             <span>Subtotal</span>
 
-                            <strong id="subtotalPDV">
+                            <strong id="subtotalCarrinho">
 
                                 R$ 0,00
 
@@ -208,25 +248,13 @@
 
                         </div>
 
-                        <div class="pdv-total">
-
-                            <span>Desconto</span>
-
-                            <strong id="descontoPDV">
-
-                                R$ 0,00
-
-                            </strong>
-
-                        </div>
-
                         <hr>
 
                         <div class="pdv-total total-geral">
 
                             <span>Total</span>
 
-                            <strong id="totalPDV">
+                            <strong id="totalCarrinho">
 
                                 R$ 0,00
 
@@ -244,25 +272,25 @@
 
                             <select id="formaPagamentoPDV">
 
-                                <option value="DINHEIRO">
+                                <option value="dinheiro">
 
                                     Dinheiro
 
                                 </option>
 
-                                <option value="PIX">
+                                <option value="pix">
 
                                     Pix
 
                                 </option>
 
-                                <option value="CREDITO">
+                                <option value="credito">
 
                                     Cartão de Crédito
 
                                 </option>
 
-                                <option value="DEBITO">
+                                <option value="debito">
 
                                     Cartão de Débito
 
@@ -284,6 +312,18 @@
                                 min="0"
                                 step="0.01"
                             >
+
+                        </div>
+
+                        <div class="pdv-total">
+
+                            <span>Troco</span>
+
+                            <strong id="trocoPDV">
+
+                                R$ 0,00
+
+                            </strong>
 
                         </div>
 

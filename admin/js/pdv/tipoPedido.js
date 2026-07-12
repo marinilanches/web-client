@@ -2,7 +2,12 @@
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
+
+import {
+    atualizarDelivery,
+    preencherEnderecoCliente
+} from "./delivery.js";
 
 /* ==========================================================
    ELEMENTOS
@@ -84,6 +89,14 @@ export function selecionarTipoPedido(tipo) {
     }
 
     tipoPedido = tipo;
+
+    if(tipo==="DELIVERY"){
+
+        preencherEnderecoCliente();
+
+    }
+
+    atualizarDelivery();
 
     atualizarInterface();
 

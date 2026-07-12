@@ -17,7 +17,13 @@ async function iniciarAdmin() {
     carregarSidebar();
     carregarHeader();
 
-    const pagina = window.location.pathname.split("/").pop() || "index.html";
+    const pagina =
+        window.location.pathname.split("/").pop() || "index.html";
+
+    const paginaNormalizada =
+        pagina.includes(".html")
+            ? pagina
+            : "index.html";
 
     console.log("Página:", pagina);
 
@@ -83,7 +89,13 @@ async function iniciarAdmin() {
             break;
 
         case "pdv.html":
-            await import("./pdv/pdv.js");
+
+            console.log("Carregando pdv.js");
+
+            const { initPDV } = await import("./pdv/pdv.js");
+
+            await initPDV();
+
             break;
 
         default:

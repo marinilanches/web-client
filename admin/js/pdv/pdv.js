@@ -40,9 +40,7 @@ import {
 } from "./finalizar.js";
 
 
-import {
-    toast
-} from "../components/toast.js";
+import { toast } from "../../components/toast.js";
 
 
 
@@ -183,20 +181,6 @@ export function resetPDV() {
    BOOT
 ========================================================== */
 
+bindEventosGlobais();
 
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-
-        bindEventosGlobais();
-
-
-        initPDV();
-
-
-    }
-
-);
+initPDV();

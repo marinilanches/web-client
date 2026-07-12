@@ -44,12 +44,12 @@ import {
 
 import {
     criarPedido
-} from "../../js/services/orders.js";
+} from "../../../js/services/orders.js";
 
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 
 

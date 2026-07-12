@@ -1,15 +1,15 @@
 // admin/js/pdv/produtos.js
 
-import { abrirModal, fecharModal } from "../components/modal.js";
-import { toast } from "../components/toast.js";
+import { abrirModal, fecharModal } from "../../components/modal.js";
+import { toast } from "../../components/toast.js";
 
 import {
     ouvirProdutos
-} from "../../js/services/products.js";
+} from "../../../js/services/products.js";
 
 import {
     listarAdicionais
-} from "../../js/services/additionals.js";
+} from "../../../js/services/additionals.js";
 
 import {
     adicionarItemCarrinho
@@ -559,17 +559,15 @@ function renderGrupos(produto){
 
                     <label class="checkbox">
 
-                        <input
-                            type="checkbox"
-                            class="grupo-personalizacao"
-                            data-grupo="${grupo.nome}"
-                            data-nome="${opcao.nome}"
-                            data-preco="${opcao.preco || 0}"
-                        >
-
                         ${opcao.nome}
 
-                        (+ ${formatarMoeda(opcao.preco)})
+                        ${
+                            Number(opcao.preco || 0) > 0
+                            ?
+                            `(+ ${formatarMoeda(opcao.preco)})`
+                            :
+                            ""
+                        }
 
                     </label>
 
@@ -615,7 +613,13 @@ function renderAdicionais(){
 
                     ${adicional.nome}
 
-                    (+ ${formatarMoeda(adicional.preco)})
+                    ${
+                        Number(adicional.preco || 0) > 0
+                        ?
+                        `(+ ${formatarMoeda(adicional.preco)})`
+                        :
+                        ""
+                    }
 
                 </label>
 

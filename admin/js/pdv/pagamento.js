@@ -3,7 +3,7 @@
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 
 
@@ -58,6 +58,10 @@ export function initPagamento() {
 
     bindEventos();
 
+    selecionarFormaPagamento(
+        formaPagamento?.value || "DINHEIRO"
+    );
+
 
     atualizarInterface();
 
@@ -73,25 +77,22 @@ export function initPagamento() {
 
 function bindEventos() {
 
-
     formaPagamento?.addEventListener(
-
         "change",
-
         alterarFormaPagamento
-
     );
-
-
 
     valorRecebido?.addEventListener(
-
         "input",
-
-        calcularTroco
-
+        atualizarValorRecebido
     );
 
+}
+
+function atualizarValorRecebido() {
+
+    pagamentoSelecionado.valorRecebido =
+        Number(valorRecebido?.value || 0);
 
 }
 
@@ -117,24 +118,21 @@ function alterarFormaPagamento() {
 export function selecionarFormaPagamento(forma) {
 
 
+    forma = String(forma || "")
+        .toUpperCase();
+
+
     const formasValidas = [
 
+        "DINHEIRO",
 
-        "dinheiro",
+        "PIX",
 
+        "CREDITO",
 
-        "pix",
-
-
-        "credito",
-
-
-        "debito"
-
-
+        "DEBITO"
 
     ];
-
 
 
     if (
@@ -153,14 +151,11 @@ export function selecionarFormaPagamento(forma) {
     }
 
 
-
     pagamentoSelecionado.forma =
         forma;
 
 
-
     atualizarInterface();
-
 
 
 }
@@ -191,37 +186,15 @@ export function definirValorRecebido(valor) {
 
 export function calcularTroco(total = 0) {
 
-
-    const recebido =
-
-
-        Number(
-            valorRecebido?.value || 0
-        );
-
-
-
-    pagamentoSelecionado.valorRecebido =
-        recebido;
-
-
-
     pagamentoSelecionado.troco =
-
-
         Math.max(
-            recebido - Number(total || 0),
+            pagamentoSelecionado.valorRecebido - Number(total || 0),
             0
         );
 
-
-
     atualizarTrocoVisual();
 
-
-
     return pagamentoSelecionado.troco;
-
 
 }
 
@@ -261,7 +234,7 @@ function atualizarInterface() {
 
     if (
         pagamentoSelecionado.forma ===
-        "dinheiro"
+        "DINHEIRO"
     ) {
 
 
@@ -332,7 +305,7 @@ export function validarPagamento(total = 0) {
 
     if (
         pagamentoSelecionado.forma ===
-        "dinheiro"
+        "DINHEIRO"
     ) {
 
 
@@ -444,8 +417,9 @@ export function limparPagamento() {
     if (formaPagamento) {
 
 
-        formaPagamento.value =
-            "";
+        formaPagamento.value = "DINHEIRO";
+
+        pagamentoSelecionado.forma = "DINHEIRO";
 
 
     }

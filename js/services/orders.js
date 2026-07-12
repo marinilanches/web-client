@@ -14,8 +14,7 @@ import {
   where,
   serverTimestamp,
   Timestamp,
-  increment,
-  setDoc
+  increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -24,8 +23,6 @@ import {
 ========================================================== */
 
 const pedidosRef = collection(db, "pedidos");
-
-const clientesRef = collection(db, "clientes");
 
 function getInicioEFimDeHoje() {
   const agora = new Date();

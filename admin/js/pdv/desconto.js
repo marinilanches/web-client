@@ -3,7 +3,7 @@
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 
 

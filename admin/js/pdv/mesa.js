@@ -3,12 +3,12 @@
 
 import {
     ouvirMesas
-} from "../../js/services/tables.js";
+} from "../../../js/services/tables.js";
 
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 
 

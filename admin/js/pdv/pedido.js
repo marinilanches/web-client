@@ -15,6 +15,7 @@ import {
 
 import {
     getEnderecoEntrega,
+    getTaxaEntrega,
     validarEntrega
 } from "./delivery.js";
 
@@ -46,7 +47,7 @@ import {
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 
 
@@ -72,20 +73,18 @@ export function montarPedido() {
 
 
 
-    const subtotal =
+    const valorSubtotal =
         totalCarrinho();
 
 
+    const taxaEntrega =
+        getTaxaEntrega();
 
-    const total =
+
+    const valorTotal =
         calcularTotalComDesconto(
-            subtotal
+            valorSubtotal + taxaEntrega
         );
-
-
-
-    const desconto =
-        getDesconto();
 
 
 
@@ -95,10 +94,8 @@ export function montarPedido() {
         clienteId:
             getClienteId(),
 
-
-
         cliente:
-            obterDadosCliente(),
+            getClienteSelecionado()?.nome || "",
 
 
 
@@ -107,13 +104,14 @@ export function montarPedido() {
 
 
 
-        mesa:
-            obterDadosMesa(),
+        tipo:
+            getTipoPedido(),
 
+        endereco:
+            getEnderecoFormatado(),
 
-
-        entrega:
-            montarEntrega(),
+        bairro:
+            getEnderecoEntrega().bairro || "",
 
 
 
@@ -122,30 +120,31 @@ export function montarPedido() {
 
 
 
-        subtotal,
+        valorSubtotal,
+
+        taxaEntrega,
+
+        valorTotal,
 
 
 
-        desconto,
+        pagamentoMetodo:
+            getPagamento().forma || "",
 
-
-
-        total,
-
-
-
-        pagamento:
-            getPagamento(),
+        trocoPara:
+            getPagamento().forma === "dinheiro"
+                ? getPagamento().valorRecebido
+                : null,
 
 
 
         status:
-            "aberto",
+            "RECEBIDO",
 
 
 
-        criadoEm:
-            new Date()
+        origem:
+            "PDV"
 
 
 
@@ -232,7 +231,7 @@ export function validarPedido() {
 
 
 
-    const total =
+    const valorTotal =
         calcularTotalComDesconto(
             totalCarrinho()
         );
@@ -240,7 +239,7 @@ export function validarPedido() {
 
 
     if (
-        !validarPagamento(total)
+        !validarPagamento(valorTotal)
     ) {
 
 
@@ -304,60 +303,32 @@ function obterDadosCliente() {
 
 
 /* ==========================================================
-   MESA
-========================================================== */
-
-
-function obterDadosMesa() {
-
-
-    const mesa =
-        getMesaSelecionada();
-
-
-
-    if (!mesa) {
-
-
-        return null;
-
-
-    }
-
-
-
-    return {
-
-
-        id:
-            mesa.id,
-
-
-        numero:
-            mesa.numero
-
-
-    };
-
-
-}
-
-
-
-/* ==========================================================
    ENTREGA
 ========================================================== */
 
 
-function montarEntrega() {
+function getEnderecoFormatado() {
 
-    return {
+    const endereco =
+        getEnderecoEntrega();
 
-        tipo: getTipoPedido(),
+    if (!endereco) {
 
-        endereco: getEnderecoEntrega()
+        return "";
 
-    };
+    }
+
+    return [
+
+        endereco.rua,
+
+        endereco.numero,
+
+        endereco.bairro
+
+    ]
+        .filter(Boolean)
+        .join(", ");
 
 }
 

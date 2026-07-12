@@ -2,12 +2,18 @@
 
 import {
     obterCarrinho,
+    obterTaxaEntrega,
     totalCarrinho,
     quantidadeItensCarrinho,
     aumentarQuantidadeCarrinho,
     diminuirQuantidadeCarrinho,
     removerItemCarrinho
 } from "./carrinho.js";
+
+import {
+getTaxaEntrega
+}
+from "./delivery.js";
 
 /* ==========================================
    ELEMENTOS
@@ -21,6 +27,12 @@ const subtotalCarrinho =
 
 const totalCarrinhoElemento =
     document.getElementById("totalCarrinho");
+
+const taxaPDV =
+    document.getElementById("taxaPDV");
+
+const taxaElemento =
+    document.getElementById("taxaPDV");
 
 const quantidadeCarrinho =
     document.getElementById("quantidadeCarrinho");
@@ -97,9 +109,9 @@ function renderItens(carrinho) {
 
 function renderItemCarrinho(item) {
 
-    const adicionais = (item.adicionais || [])
-        .map(a => `+ ${a.nome}`)
-        .join("<br>");
+    console.log("ITEM CARRINHO:", JSON.stringify(item,null,2));
+
+    const adicionais = "";
 
     const personalizacoes = (item.personalizacoes || [])
         .map(p => `${p.grupo}: ${p.nome}`)
@@ -126,20 +138,6 @@ function renderItemCarrinho(item) {
                     <div class="carrinho-extra">
 
                         ${personalizacoes}
-
-                    </div>
-                    `
-                    :
-                    ""
-                }
-
-                ${
-                    adicionais
-                    ?
-                    `
-                    <div class="carrinho-extra">
-
-                        ${adicionais}
 
                     </div>
                     `
@@ -223,23 +221,49 @@ function atualizarResumo() {
 
     const total = totalCarrinho();
 
-    const quantidade = quantidadeItensCarrinho();
+    const taxa =
+        obterTaxaEntrega();
 
-    if (subtotalCarrinho) {
+    const quantidade =
+        quantidadeItensCarrinho();
+
+
+    if(subtotalCarrinho){
 
         subtotalCarrinho.textContent =
-            formatarMoeda(total);
+            formatarMoeda(
+                total - taxa
+            );
 
     }
 
-    if (totalCarrinhoElemento) {
+
+    if(taxaPDV){
+
+        taxaPDV.textContent =
+            formatarMoeda(taxa);
+
+    }
+
+    if(taxaElemento){
+
+    taxaElemento.textContent =
+    formatarMoeda(
+    getTaxaEntrega()
+    );
+
+    }
+
+
+    if(totalCarrinhoElemento){
 
         totalCarrinhoElemento.textContent =
             formatarMoeda(total);
 
     }
 
-    if (quantidadeCarrinho) {
+
+    if(quantidadeCarrinho){
 
         quantidadeCarrinho.textContent =
             quantidade;

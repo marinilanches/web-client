@@ -29,22 +29,48 @@ export async function criarCliente(dados) {
     try {
 
         const cliente = {
+
             nome: dados.nome || "",
+
             telefone: dados.telefone || "",
+
             email: dados.email || "",
+
             observacoes: dados.observacoes || "",
+
+
+            endereco: {
+
+                rua: dados.endereco?.rua || "",
+
+                numero: dados.endereco?.numero || "",
+
+                bairro: dados.endereco?.bairro || "",
+
+                complemento: dados.endereco?.complemento || ""
+
+            },
+
+
             totalPedidos: Number(dados.totalPedidos || 0),
+
             totalGasto: Number(dados.totalGasto || 0),
 
+
             createdAt: serverTimestamp(),
+
             updatedAt: serverTimestamp()
+
         };
 
+
         return await addDoc(clientesRef, cliente);
+
 
     } catch (erro) {
 
         console.error("Erro ao criar cliente:", erro);
+
         throw erro;
 
     }

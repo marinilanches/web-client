@@ -1,16 +1,16 @@
 import {
     ouvirClientes,
     criarCliente
-} from "../services/clients.js";
+} from "../../../js/services/clients.js";
 
 import {
     abrirModal,
     fecharModal
-} from "../components/modal.js";
+} from "../../components/modal.js";
 
 import {
     toast
-} from "../components/toast.js";
+} from "../../components/toast.js";
 
 /* ==========================================================
    ELEMENTOS
@@ -419,6 +419,12 @@ export function getClientes() {
 
 }
 
+export function getEnderecoCliente(){
+
+    return clienteSelecionado?.endereco || null;
+
+}
+
 /* ==========================================================
    RESET DO MÓDULO
 ========================================================== */
@@ -511,6 +517,53 @@ function abrirModalNovoCliente() {
 
             </div>
 
+            <div class="form-group">
+
+                <label>Rua</label>
+
+                <input
+                    id="pdvRuaCliente"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Número</label>
+
+                <input
+                    id="pdvNumeroCliente"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Bairro</label>
+
+                <input
+                    id="pdvBairroCliente"
+                    type="text"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Complemento</label>
+
+                <input
+                    id="pdvComplementoCliente"
+                    type="text"
+                >
+
+            </div>
+
             <div class="modal-actions">
 
                 <button
@@ -574,15 +627,17 @@ async function salvarNovoCliente(evento) {
 
         const referencia = await criarCliente({
 
-            nome: dados.nome,
+            nome:dados.nome,
 
-            telefone: dados.telefone,
+            telefone:dados.telefone,
 
-            observacoes: dados.observacoes,
+            observacoes:dados.observacoes,
 
-            totalPedidos: 0,
+            endereco:dados.endereco,
 
-            totalGasto: 0
+            totalPedidos:0,
+
+            totalGasto:0
 
         });
 
@@ -616,17 +671,51 @@ function obterDadosFormulario() {
                 ?.value
                 .trim() || "",
 
+
         telefone:
             document
                 .getElementById("pdvTelefoneCliente")
                 ?.value
                 .trim() || "",
 
+
         observacoes:
             document
                 .getElementById("pdvObservacoesCliente")
                 ?.value
-                .trim() || ""
+                .trim() || "",
+
+
+        endereco: {
+
+            rua:
+                document
+                    .getElementById("pdvRuaCliente")
+                    ?.value
+                    .trim() || "",
+
+
+            numero:
+                document
+                    .getElementById("pdvNumeroCliente")
+                    ?.value
+                    .trim() || "",
+
+
+            bairro:
+                document
+                    .getElementById("pdvBairroCliente")
+                    ?.value
+                    .trim() || "",
+
+
+            complemento:
+                document
+                    .getElementById("pdvComplementoCliente")
+                    ?.value
+                    .trim() || ""
+
+        }
 
     };
 
