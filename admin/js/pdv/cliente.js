@@ -1,7 +1,7 @@
 import {
     ouvirClientes,
     criarCliente
-} from "../../js/services/clients.js";
+} from "../services/clients.js";
 
 import {
     abrirModal,
