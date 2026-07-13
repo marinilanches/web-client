@@ -65,7 +65,7 @@ function verificarCarrinhoAntesCheckout() {
   let carrinho = [];
 
   try {
-    carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+    carrinho = JSON.parse(localStorage.getItem("mesaFacilCarrinho")) || [];
   } catch {
     carrinho = [];
   }

@@ -1,1038 +1,873 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checkout - Pedido</title>
-  <link rel="stylesheet" href="./css/styles.css" />
-  <link rel="stylesheet" href="./css/pedido-status.css" />
-  <style>
-    .checkout-form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 20px;
-      margin-bottom: 24px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout - Pedido</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/pedido-status.css" />
+    <style>
+      .checkout-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 20px;
+        margin-bottom: 24px;
+      }
 
-    .checkout-form label {
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: block;
-    }
+      .checkout-form label {
+        font-weight: 600;
+        margin-bottom: 4px;
+        display: block;
+      }
 
-    .checkout-form input,
-    .checkout-form select,
-    .checkout-form textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
+      .checkout-form input,
+      .checkout-form select,
+      .checkout-form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
 
-    .checkout-form textarea {
-      resize: vertical;
-      min-height: 90px;
-    }
+      .checkout-form textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
 
-    .hidden {
-      display: none;
-    }
+      .hidden {
+        display: none;
+      }
 
-    .campo {
-      margin-bottom: 8px;
-    }
+      .campo {
+        margin-bottom: 8px;
+      }
 
-    .bloco {
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.06);
-    }
+      .bloco {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      }
 
-    .item-resumo {
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
-    }
+      .item-resumo {
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+      }
 
-    .item-resumo:last-child {
-      border-bottom: none;
-    }
+      .item-resumo:last-child {
+        border-bottom: none;
+      }
 
-    .linha-total {
-      margin-top: 12px;
-      font-size: 16px;
-      font-weight: 600;
-    }
+      .linha-total {
+        margin-top: 12px;
+        font-size: 16px;
+        font-weight: 600;
+      }
 
-    .linha-total strong {
-      font-size: 18px;
-    }
+      .linha-total strong {
+        font-size: 18px;
+      }
 
-    .btn-finalizar {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-    }
+      .btn-finalizar {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+      }
 
-    .resumo-box p {
-      margin: 6px 0;
-    }
-  </style>
-</head>
+      .resumo-box p {
+        margin: 6px 0;
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
+    <header class="topbar">
+      <h2>🛒 Finalizar Pedido</h2>
+    </header>
 
-<header class="topbar">
-  <h2>🛒 Finalizar Pedido</h2>
-</header>
+    <section class="menu">
+      <div class="bloco">
+        <h3>Resumo do Carrinho</h3>
+        <div id="resumo"></div>
 
-<section class="menu">
-  <div class="bloco">
-    <h3>Resumo do Carrinho</h3>
-    <div id="resumo"></div>
-
-    <div class="resumo-box">
-      <p>Subtotal: <strong>R$ <span id="subtotal">0.00</span></strong></p>
-      <p id="linhaTaxa">Taxa de entrega: <strong>R$ <span id="taxaEntrega">0.00</span></strong></p>
-      <p class="linha-total">Total: <strong>R$ <span id="total">0.00</span></strong></p>
-    </div>
-  </div>
-
-  <div class="bloco">
-    <h3>Seus dados</h3>
-
-    <form id="checkoutForm" class="checkout-form">
-      <div class="campo">
-        <label for="cliente">Nome</label>
-        <input
-          type="text"
-          id="cliente"
-          placeholder="Digite seu nome"
-          required
-        />
-      </div>
-
-      <div class="campo">
-        <label for="telefone">Telefone</label>
-        <input
-          type="tel"
-          id="telefone"
-          placeholder="(11) 99999-9999"
-          required
-        />
-      </div>
-
-      <div class="campo">
-        <label for="tipoPedido">Tipo do pedido</label>
-        <select id="tipoPedido" required>
-          <option value="Delivery">Delivery</option>
-          <option value="Retirada">Retirada</option>
-        </select>
-      </div>
-
-      <div id="camposDelivery">
-        <div class="campo">
-          <label for="bairro">Bairro</label>
-          <select id="bairro">
-            <option value="">Selecione o bairro</option>
-          </select>
+        <div class="resumo-box">
+          <p>
+            Subtotal: <strong>R$ <span id="subtotal">0.00</span></strong>
+          </p>
+          <p id="linhaTaxa">
+            Taxa de entrega:
+            <strong>R$ <span id="taxaEntrega">0.00</span></strong>
+          </p>
+          <p class="linha-total">
+            Total: <strong>R$ <span id="total">0.00</span></strong>
+          </p>
         </div>
+      </div>
 
-        <div class="campo">
-          <label for="endereco">Endereço</label>
+      <div class="bloco">
+        <h3>Seus dados</h3>
 
-          <input
-            type="text"
-            id="endereco"
-            placeholder="Rua, número"
-          />
+        <form id="checkoutForm" class="checkout-form">
+          <div class="campo">
+            <label for="cliente">Nome</label>
+            <input
+              type="text"
+              id="cliente"
+              placeholder="Digite seu nome"
+              required
+            />
+          </div>
 
-          <button
-            type="button"
-            id="btnLocalizacao"
-            style="
-              margin-top:8px;
-              padding:10px;
-              border:none;
-              border-radius:8px;
-              cursor:pointer;
-            "
-          >
-            📍 Usar localização atual
+          <div class="campo">
+            <label for="telefone">Telefone</label>
+            <input
+              type="tel"
+              id="telefone"
+              placeholder="(11) 99999-9999"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label for="tipoPedido">Tipo do pedido</label>
+            <select id="tipoPedido" required>
+              <option value="Delivery">Delivery</option>
+              <option value="Retirada">Retirada</option>
+            </select>
+          </div>
+
+          <div id="camposDelivery">
+            <div class="campo">
+              <label for="bairro">Bairro</label>
+              <select id="bairro">
+                <option value="">Selecione o bairro</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="endereco">Endereço</label>
+
+              <input type="text" id="endereco" placeholder="Rua, número" />
+
+              <button
+                type="button"
+                id="btnLocalizacao"
+                style="
+                  margin-top: 8px;
+                  padding: 10px;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                "
+              >
+                📍 Usar localização atual
+              </button>
+
+              <small id="statusLocalizacao"></small>
+            </div>
+
+            <div class="campo">
+              <label for="referencia">Referência</label>
+              <input
+                type="text"
+                id="referencia"
+                placeholder="Ex.: portão preto, casa de esquina"
+              />
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="pagamentoMetodo">Forma de pagamento</label>
+            <select id="pagamentoMetodo" required>
+              <option value="">Selecione</option>
+              <option value="PIX">PIX</option>
+              <option value="DINHEIRO">Dinheiro</option>
+              <option value="CARTAO_CREDITO">Cartão de crédito</option>
+              <option value="CARTAO_DEBITO">Cartão de débito</option>
+            </select>
+          </div>
+
+          <div class="campo hidden" id="campoTrocoPara">
+            <label for="trocoPara">Troco para</label>
+            <input
+              type="number"
+              id="trocoPara"
+              min="0"
+              step="0.01"
+              placeholder="Ex.: 50.00"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="observacoes">Observações</label>
+            <textarea
+              id="observacoes"
+              placeholder="Ex.: sem cebola, tocar interfone..."
+            ></textarea>
+          </div>
+
+          <button type="submit" id="btnFinalizar" class="btn-finalizar">
+            Confirmar Pedido
           </button>
-
-          <small id="statusLocalizacao"></small>
-        </div>
-
-        <div class="campo">
-          <label for="referencia">Referência</label>
-          <input
-            type="text"
-            id="referencia"
-            placeholder="Ex.: portão preto, casa de esquina"
-          />
-        </div>
+        </form>
       </div>
+    </section>
 
-      <div class="campo">
-        <label for="pagamentoMetodo">Forma de pagamento</label>
-        <select id="pagamentoMetodo" required>
-          <option value="">Selecione</option>
-          <option value="PIX">PIX</option>
-          <option value="DINHEIRO">Dinheiro</option>
-          <option value="CARTAO_CREDITO">Cartão de crédito</option>
-          <option value="CARTAO_DEBITO">Cartão de débito</option>
-        </select>
-      </div>
+    <script type="module">
+      import { criarPedido } from "./js/services/orders.js";
+      import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
 
-      <div class="campo hidden" id="campoTrocoPara">
-        <label for="trocoPara">Troco para</label>
-        <input
-          type="number"
-          id="trocoPara"
-          min="0"
-          step="0.01"
-          placeholder="Ex.: 50.00"
-        />
-      </div>
+      import {
+        garantirClienteAuth,
+        buscarCliente,
+        salvarCliente,
+      } from "./js/services/customers.js";
 
-      <div class="campo">
-        <label for="observacoes">Observações</label>
-        <textarea
-          id="observacoes"
-          placeholder="Ex.: sem cebola, tocar interfone..."
-        ></textarea>
-      </div>
+      const carrinho = (() => {
+        try {
+          return JSON.parse(localStorage.getItem("mesaFacilCarrinho")) || [];
+        } catch {
+          return [];
+        }
+      })();
 
-      <button type="submit" id="btnFinalizar" class="btn-finalizar">
-        Confirmar Pedido
-      </button>
-    </form>
-  </div>
-</section>
+      const resumo = document.getElementById("resumo");
+      const subtotalEl = document.getElementById("subtotal");
+      const taxaEntregaEl = document.getElementById("taxaEntrega");
+      const totalEl = document.getElementById("total");
+      const linhaTaxa = document.getElementById("linhaTaxa");
 
-<script type="module">
-  import { criarPedido } from "./js/services/orders.js";
-  import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
+      const form = document.getElementById("checkoutForm");
+      const tipoPedidoEl = document.getElementById("tipoPedido");
 
-  import {
-      garantirClienteAuth,
-      buscarCliente,
-    salvarCliente
-  } from "./js/services/customers.js";
+      const clienteEl = document.getElementById("cliente");
+      const telefoneEl = document.getElementById("telefone");
 
-  const carrinho = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("carrinho")) || [];
-    } catch {
-      return [];
-    }
-  })();
+      const camposDelivery = document.getElementById("camposDelivery");
+      const bairroEl = document.getElementById("bairro");
+      const enderecoEl = document.getElementById("endereco");
+      const referenciaEl = document.getElementById("referencia");
+      const observacoesEl = document.getElementById("observacoes");
 
-  const resumo = document.getElementById("resumo");
-  const subtotalEl = document.getElementById("subtotal");
-  const taxaEntregaEl = document.getElementById("taxaEntrega");
-  const totalEl = document.getElementById("total");
-  const linhaTaxa = document.getElementById("linhaTaxa");
+      const btnLocalizacaoEl = document.getElementById("btnLocalizacao");
+      const statusLocalizacaoEl = document.getElementById("statusLocalizacao");
 
-  const form = document.getElementById("checkoutForm");
-  const tipoPedidoEl = document.getElementById("tipoPedido");
+      let latitudeCliente = null;
+      let longitudeCliente = null;
 
-  const clienteEl = document.getElementById("cliente");
-  const telefoneEl = document.getElementById("telefone");
+      const pagamentoMetodoEl = document.getElementById("pagamentoMetodo");
+      const campoTrocoParaEl = document.getElementById("campoTrocoPara");
+      const trocoParaEl = document.getElementById("trocoPara");
 
-  const camposDelivery = document.getElementById("camposDelivery");
-  const bairroEl = document.getElementById("bairro");
-  const enderecoEl = document.getElementById("endereco");
-  const referenciaEl = document.getElementById("referencia");
-  const observacoesEl = document.getElementById("observacoes");
+      let valorSubtotal = 0;
+      let taxaEntrega = 0;
+      let valorTotal = 0;
+      let bairrosEntrega = [];
 
-  const btnLocalizacaoEl = document.getElementById("btnLocalizacao");
-  const statusLocalizacaoEl = document.getElementById("statusLocalizacao");
+      function normalizarTelefone(telefone) {
+        let numero = String(telefone || "").replace(/\D/g, "");
 
-  let latitudeCliente = null;
-  let longitudeCliente = null;
+        numero = numero.replace(/^0+/, "");
 
-  const pagamentoMetodoEl = document.getElementById("pagamentoMetodo");
-  const campoTrocoParaEl = document.getElementById("campoTrocoPara");
-  const trocoParaEl = document.getElementById("trocoPara");
+        if (numero.length === 8 || numero.length === 9) {
+          numero = `19${numero}`;
+        }
 
-  let valorSubtotal = 0;
-  let taxaEntrega = 0;
-  let valorTotal = 0;
-  let bairrosEntrega = [];
+        if (numero.length === 10 || numero.length === 11) {
+          numero = `55${numero}`;
+        }
 
-  function normalizarTelefone(telefone) {
-    let numero = String(telefone || "").replace(/\D/g, "");
+        if (
+          (numero.length === 12 || numero.length === 13) &&
+          !numero.startsWith("55")
+        ) {
+          numero = `55${numero}`;
+        }
 
-    numero = numero.replace(/^0+/, "");
-
-    if (numero.length === 8 || numero.length === 9) {
-      numero = `19${numero}`;
-    }
-
-    if (numero.length === 10 || numero.length === 11) {
-      numero = `55${numero}`;
-    }
-
-    if ((numero.length === 12 || numero.length === 13) && !numero.startsWith("55")) {
-      numero = `55${numero}`;
-    }
-
-    return numero;
-  }
-
-  function telefoneEhValido(numeroNormalizado) {
-    return /^55\d{10,11}$/.test(numeroNormalizado);
-  }
-
-  function formatarTelefone(numeroNormalizado) {
-    let numero = String(numeroNormalizado || "").replace(/\D/g, "");
-
-    if (numero.startsWith("55")) {
-      numero = numero.slice(2);
-    }
-
-    if (numero.length === 11) {
-      return `(${numero.slice(0, 2)}) ${numero.slice(2, 7)}-${numero.slice(7)}`;
-    }
-
-    if (numero.length === 10) {
-      return `(${numero.slice(0, 2)}) ${numero.slice(2, 6)}-${numero.slice(6)}`;
-    }
-
-    return numero;
-  }
-
-  function formatarMoeda(valor) {
-    return Number(valor || 0).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-  }
-
-  async function carregarDadosCliente() {
-
-    try {
-
-      const cliente = await buscarCliente();
-
-
-      if (!cliente) {
-        console.log("Cliente novo");
-        return;
+        return numero;
       }
 
-
-      if (cliente.nome) {
-        clienteEl.value = cliente.nome || "";
+      function telefoneEhValido(numeroNormalizado) {
+        return /^55\d{10,11}$/.test(numeroNormalizado);
       }
 
+      function formatarTelefone(numeroNormalizado) {
+        let numero = String(numeroNormalizado || "").replace(/\D/g, "");
 
-      if (cliente.telefone) {
-        telefoneEl.value = cliente.telefone || "";
+        if (numero.startsWith("55")) {
+          numero = numero.slice(2);
+        }
+
+        if (numero.length === 11) {
+          return `(${numero.slice(0, 2)}) ${numero.slice(2, 7)}-${numero.slice(7)}`;
+        }
+
+        if (numero.length === 10) {
+          return `(${numero.slice(0, 2)}) ${numero.slice(2, 6)}-${numero.slice(6)}`;
+        }
+
+        return numero;
       }
 
+      function formatarMoeda(valor) {
+        return Number(valor || 0).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
+      }
 
-      console.log(
-        "Cliente carregado:",
-        cliente
-      );
+      function renderCarrinho() {
+        resumo.innerHTML = "";
+        valorSubtotal = 0;
 
+        if (!Array.isArray(carrinho) || carrinho.length === 0) {
+          resumo.innerHTML = `<p>Seu carrinho está vazio.</p>`;
+          taxaEntrega = 0;
+          valorTotal = 0;
+          subtotalEl.innerText = "0.00";
+          taxaEntregaEl.innerText = "0.00";
+          totalEl.innerText = "0.00";
+          return;
+        }
 
-    } catch (erro) {
+        carrinho.forEach((item) => {
+          const quantidade = Number(item.quantidade || 1);
+          const valorUnitario = Number(
+            item.valorUnitario ?? item.valor ?? item.preco ?? 0,
+          );
+          const subtotalItem = quantidade * valorUnitario;
 
-      console.error(
-        "Erro ao carregar cliente:",
-        erro
-      );
+          valorSubtotal += subtotalItem;
 
-    }
+          const adicionais = item.personalizados?.adicionais || [];
 
-  }
+          const adicionaisHtml = adicionais.length
+            ? `
+                <div style="margin-top:6px;">
+                  <strong>Adicionais:</strong>
+                  <ul style="margin:4px 0 0 18px;padding:0;">
+                    ${adicionais
+                      .map(
+                        (adicional) => `
+                      <li>
+                        ${adicional.nome}
+                        ${
+                          Number(adicional.preco || 0) > 0
+                            ? `(+ ${formatarMoeda(adicional.preco)})`
+                            : ""
+                        }
+                      </li>
+                    `,
+                      )
+                      .join("")}
+                  </ul>
+                </div>
+              `
+            : "";
 
-  function renderCarrinho() {
-    resumo.innerHTML = "";
-    valorSubtotal = 0;
+          const observacaoItemHtml = item.personalizados?.observacao
+            ? `
+                  <div style="margin-top:6px;">
+                    <strong>Obs. do item:</strong>
+                    ${item.personalizados.observacao}
+                  </div>
+                `
+            : "";
 
-    if (!Array.isArray(carrinho) || carrinho.length === 0) {
-      resumo.innerHTML = `<p>Seu carrinho está vazio.</p>`;
-      taxaEntrega = 0;
-      valorTotal = 0;
-      subtotalEl.innerText = "0.00";
-      taxaEntregaEl.innerText = "0.00";
-      totalEl.innerText = "0.00";
-      return;
-    }
-
-    carrinho.forEach((item) => {
-      const quantidade = Number(item.quantidade || 1);
-      const valorUnitario = Number(item.valorUnitario || item.preco || 0);
-      const subtotalItem = quantidade * valorUnitario;
-
-      valorSubtotal += subtotalItem;
-
-      const adicionaisHtml = Array.isArray(item.adicionais) && item.adicionais.length
-        ? `
-          <div style="margin-top:6px;">
-            <strong>Adicionais:</strong>
-            <ul style="margin:4px 0 0 18px;padding:0;">
-              ${item.adicionais.map((adicional) => `
-                <li>${adicional.nome} ${Number(adicional.preco || 0) > 0 ? `(+ ${formatarMoeda(adicional.preco)})` : ""}</li>
-              `).join("")}
-            </ul>
-          </div>
-        `
-        : "";
-
-      const personalizacoesHtml = Array.isArray(item.personalizacao) && item.personalizacao.length
-        ? `
-          <div style="margin-top:6px;">
-            <strong>Personalização:</strong>
-            <ul style="margin:4px 0 0 18px;padding:0;">
-              ${item.personalizacao.map((grupo) => `
-                <li>
-                  <strong>${grupo.grupoNome || "Opções"}:</strong>
-                  ${(grupo.opcoes || []).map((opcao) => {
-                    const preco = Number(opcao.preco || 0);
-                    return `${opcao.nome}${preco > 0 ? ` (+ ${formatarMoeda(preco)})` : ""}`;
-                  }).join(", ")}
-                </li>
-              `).join("")}
-            </ul>
-          </div>
-        `
-        : "";
-
-      const observacaoItemHtml = item.observacao
-        ? `
-          <div style="margin-top:6px;">
-            <strong>Obs. do item:</strong> ${item.observacaoItem}
-          </div>
-        `
-        : "";
-
-      resumo.innerHTML += `
+          resumo.innerHTML += `
         <div class="item-resumo">
           <h4>${item.nome}</h4>
           <p>Quantidade: ${quantidade}</p>
           <p>Unitário: ${formatarMoeda(valorUnitario)}</p>
           <p>Subtotal: ${formatarMoeda(subtotalItem)}</p>
           ${adicionaisHtml}
-          ${personalizacoesHtml}
           ${observacaoItemHtml}
         </div>
       `;
-    });
+        });
 
-    recalcularTotal();
-  }
-
-  async function carregarBairros() {
-    try {
-      bairrosEntrega = await listarTaxasEntregaAtivas();
-
-      bairroEl.innerHTML = `<option value="">Selecione o bairro</option>`;
-
-      bairrosEntrega.forEach((bairro) => {
-        const option = document.createElement("option");
-        option.value = bairro.id;
-        option.textContent = `${bairro.nome} — ${formatarMoeda(bairro.taxa)}`;
-        bairroEl.appendChild(option);
-      });
-
-      recalcularTotal();
-    } catch (erro) {
-      console.error("Erro ao carregar bairros:", erro);
-      bairroEl.innerHTML = `<option value="">Erro ao carregar bairros</option>`;
-    }
-  }
-
-  function obterBairroSelecionado() {
-    const bairroId = bairroEl.value;
-    return bairrosEntrega.find((item) => item.id === bairroId) || null;
-  }
-
-  function recalcularTotal() {
-    const tipo = tipoPedidoEl.value;
-    const bairroSelecionado = obterBairroSelecionado();
-
-    if (tipo === "Delivery") {
-      taxaEntrega = Number(bairroSelecionado?.taxa || 0);
-      linhaTaxa.style.display = "block";
-    } else {
-      taxaEntrega = 0;
-      linhaTaxa.style.display = "none";
-    }
-
-    valorTotal = valorSubtotal + taxaEntrega;
-
-    subtotalEl.innerText = valorSubtotal.toFixed(2);
-    taxaEntregaEl.innerText = taxaEntrega.toFixed(2);
-    totalEl.innerText = valorTotal.toFixed(2);
-  }
-
-  function atualizarCamposTipoPedido() {
-    const tipo = tipoPedidoEl.value;
-
-    if (tipo === "Delivery") {
-      camposDelivery.classList.remove("hidden");
-      bairroEl.required = true;
-      enderecoEl.required = true;
-    } else {
-      camposDelivery.classList.add("hidden");
-      bairroEl.required = false;
-      enderecoEl.required = false;
-
-      bairroEl.value = "";
-      enderecoEl.value = "";
-      referenciaEl.value = "";
-    }
-
-    recalcularTotal();
-  }
-
-  function atualizarCampoTroco() {
-    const metodo = pagamentoMetodoEl.value;
-
-    if (metodo === "DINHEIRO") {
-      campoTrocoParaEl.classList.remove("hidden");
-    } else {
-      campoTrocoParaEl.classList.add("hidden");
-      trocoParaEl.value = "";
-    }
-  }
-
-  function validarFormulario() {
-    const cliente = clienteEl.value.trim();
-    const telefone = telefoneEl.value.trim();
-    const tipo = tipoPedidoEl.value;
-    const endereco = enderecoEl.value.trim();
-    const pagamentoMetodo = pagamentoMetodoEl.value;
-    const telefoneWhatsapp = normalizarTelefone(telefone);
-    const bairroSelecionado = obterBairroSelecionado();
-
-    if (carrinho.length === 0) {
-      alert("Carrinho vazio!");
-      return false;
-    }
-
-    if (!cliente) {
-      alert("Preencha seu nome.");
-      clienteEl.focus();
-      return false;
-    }
-
-    if (!telefone) {
-      alert("Preencha seu telefone.");
-      telefoneEl.focus();
-      return false;
-    }
-
-    if (!telefoneEhValido(telefoneWhatsapp)) {
-      alert("Telefone inválido.");
-      telefoneEl.focus();
-      return false;
-    }
-
-    if (tipo === "Delivery" && !bairroSelecionado) {
-      alert("Selecione o bairro.");
-      bairroEl.focus();
-      return false;
-    }
-
-    if (tipo === "Delivery" && !endereco) {
-      alert("Preencha o endereço para delivery.");
-      enderecoEl.focus();
-      return false;
-    }
-
-    if (!pagamentoMetodo) {
-      alert("Selecione a forma de pagamento.");
-      pagamentoMetodoEl.focus();
-      return false;
-    }
-
-    if (pagamentoMetodo === "DINHEIRO") {
-      const trocoPara = Number(trocoParaEl.value || 0);
-
-      if (!trocoPara || trocoPara <= 0) {
-        alert("Informe o valor para troco.");
-        trocoParaEl.focus();
-        return false;
+        recalcularTotal();
       }
 
-      if (trocoPara < valorTotal) {
-        alert("O troco para não pode ser menor que o valor total do pedido.");
-        trocoParaEl.focus();
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  // ======================================================
-  // LOCALIZAÇÃO ATUAL + GEOCODIFICAÇÃO REVERSA
-  // ======================================================
-
-  function normalizarTexto(texto) {
-
-    return String(texto || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-
-  }
-
-
-  function encontrarBairro(nomeBairroAPI) {
-
-    if (!nomeBairroAPI) return null;
-
-
-    const busca = normalizarTexto(nomeBairroAPI);
-
-
-    // 1 - comparação exata
-    let encontrado = bairrosEntrega.find(b =>
-      normalizarTexto(b.nome) === busca
-    );
-
-
-    if (encontrado) return encontrado;
-
-
-
-    // 2 - ignorando maiúsculas/minúsculas + acentos
-    encontrado = bairrosEntrega.find(b =>
-      normalizarTexto(b.nome).includes(busca)
-    );
-
-
-    if (encontrado) return encontrado;
-
-
-
-    // 3 - parcial invertido
-    encontrado = bairrosEntrega.find(b =>
-      busca.includes(normalizarTexto(b.nome))
-    );
-
-
-    return encontrado || null;
-
-  }
-
-
-
-  async function buscarEnderecoPorCoordenadas(lat, lon) {
-
-    const url =
-      `https://nominatim.openstreetmap.org/reverse?` +
-      `format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
-
-
-    const resposta = await fetch(url, {
-      headers:{
-        "Accept":"application/json"
-      }
-    });
-
-
-    if (!resposta.ok) {
-      throw new Error("Erro na geocodificação");
-    }
-
-
-    return await resposta.json();
-
-  }
-
-
-
-  async function usarLocalizacaoAtual() {
-
-
-    if (!navigator.geolocation) {
-
-      alert("Seu navegador não suporta localização.");
-      return;
-
-    }
-
-
-    statusLocalizacaoEl.innerText =
-      "Obtendo localização...";
-
-
-    navigator.geolocation.getCurrentPosition(
-    
-      async (posicao)=>{
-
-
+      async function carregarBairros() {
         try {
+          bairrosEntrega = await listarTaxasEntregaAtivas();
 
+          bairroEl.innerHTML = `<option value="">Selecione o bairro</option>`;
 
-          latitudeCliente =
-            posicao.coords.latitude;
+          bairrosEntrega.forEach((bairro) => {
+            const option = document.createElement("option");
+            option.value = bairro.id;
+            option.textContent = `${bairro.nome} — ${formatarMoeda(bairro.taxa)}`;
+            bairroEl.appendChild(option);
+          });
 
+          recalcularTotal();
+        } catch (erro) {
+          console.error("Erro ao carregar bairros:", erro);
+          bairroEl.innerHTML = `<option value="">Erro ao carregar bairros</option>`;
+        }
+      }
 
-          longitudeCliente =
-            posicao.coords.longitude;
+      function obterBairroSelecionado() {
+        const bairroId = bairroEl.value;
+        return bairrosEntrega.find((item) => item.id === bairroId) || null;
+      }
 
+      function recalcularTotal() {
+        const tipo = tipoPedidoEl.value;
+        const bairroSelecionado = obterBairroSelecionado();
 
-
-          const dados =
-            await buscarEnderecoPorCoordenadas(
-              latitudeCliente,
-              longitudeCliente
-            );
-
-
-
-          const endereco =
-            dados.address || {};
-
-
-
-          const rua =
-            endereco.road ||
-            endereco.pedestrian ||
-            "";
-
-
-          const numero =
-            endereco.house_number ||
-            "";
-
-
-
-          if (rua) {
-
-            enderecoEl.value =
-              `${rua}${numero ? ", " + numero : " (confirme o número)"}`;
-
-          }
-
-
-
-          const bairroAPI =
-            endereco.suburb ||
-            endereco.neighbourhood ||
-            endereco.city_district ||
-            "";
-
-
-
-          const bairroEncontrado =
-            encontrarBairro(bairroAPI);
-
-
-
-          if (bairroEncontrado) {
-
-
-            bairroEl.value =
-              bairroEncontrado.id;
-
-
-            recalcularTotal();
-
-
-
-            statusLocalizacaoEl.innerText =
-              "Localização encontrada!";
-
-            setTimeout(() => {
-              statusLocalizacaoEl.innerText = "";
-            }, 5000);
-
-
-          } else {
-
-
-            statusLocalizacaoEl.innerText =
-              "Localização encontrada! Bairro precisa ser selecionado manualmente.";
-
-
-          }
-
-
-
-        } catch(erro){
-
-
-          console.error(
-            "Erro ao converter localização:",
-            erro
-          );
-
-
-          statusLocalizacaoEl.innerText =
-            "Não foi possível obter sua localização.";
-
+        if (tipo === "Delivery") {
+          taxaEntrega = Number(bairroSelecionado?.taxa || 0);
+          linhaTaxa.style.display = "block";
+        } else {
+          taxaEntrega = 0;
+          linhaTaxa.style.display = "none";
         }
 
+        valorTotal = valorSubtotal + taxaEntrega;
 
-      },
+        subtotalEl.innerText = valorSubtotal.toFixed(2);
+        taxaEntregaEl.innerText = taxaEntrega.toFixed(2);
+        totalEl.innerText = valorTotal.toFixed(2);
+      }
 
+      function atualizarCamposTipoPedido() {
+        const tipo = tipoPedidoEl.value;
 
-      (erro)=>{
+        if (tipo === "Delivery") {
+          camposDelivery.classList.remove("hidden");
+          bairroEl.required = true;
+          enderecoEl.required = true;
+        } else {
+          camposDelivery.classList.add("hidden");
+          bairroEl.required = false;
+          enderecoEl.required = false;
 
+          bairroEl.value = "";
+          enderecoEl.value = "";
+          referenciaEl.value = "";
+        }
 
-        console.error(
-          "Erro localização:",
-          erro
+        recalcularTotal();
+      }
+
+      function atualizarCampoTroco() {
+        const metodo = pagamentoMetodoEl.value;
+
+        if (metodo === "DINHEIRO") {
+          campoTrocoParaEl.classList.remove("hidden");
+        } else {
+          campoTrocoParaEl.classList.add("hidden");
+          trocoParaEl.value = "";
+        }
+      }
+
+      function validarFormulario() {
+        const cliente = clienteEl.value.trim();
+        const telefone = telefoneEl.value.trim();
+        const tipo = tipoPedidoEl.value;
+        const endereco = enderecoEl.value.trim();
+        const pagamentoMetodo = pagamentoMetodoEl.value;
+        const telefoneWhatsapp = normalizarTelefone(telefone);
+        const bairroSelecionado = obterBairroSelecionado();
+
+        if (carrinho.length === 0) {
+          alert("Carrinho vazio!");
+          return false;
+        }
+
+        if (!cliente) {
+          alert("Preencha seu nome.");
+          clienteEl.focus();
+          return false;
+        }
+
+        if (!telefone) {
+          alert("Preencha seu telefone.");
+          telefoneEl.focus();
+          return false;
+        }
+
+        if (!telefoneEhValido(telefoneWhatsapp)) {
+          alert("Telefone inválido.");
+          telefoneEl.focus();
+          return false;
+        }
+
+        if (tipo === "Delivery" && !bairroSelecionado) {
+          alert("Selecione o bairro.");
+          bairroEl.focus();
+          return false;
+        }
+
+        if (tipo === "Delivery" && !endereco) {
+          alert("Preencha o endereço para delivery.");
+          enderecoEl.focus();
+          return false;
+        }
+
+        if (!pagamentoMetodo) {
+          alert("Selecione a forma de pagamento.");
+          pagamentoMetodoEl.focus();
+          return false;
+        }
+
+        if (pagamentoMetodo === "DINHEIRO") {
+          const trocoPara = Number(trocoParaEl.value || 0);
+
+          if (!trocoPara || trocoPara <= 0) {
+            alert("Informe o valor para troco.");
+            trocoParaEl.focus();
+            return false;
+          }
+
+          if (trocoPara < valorTotal) {
+            alert(
+              "O troco para não pode ser menor que o valor total do pedido.",
+            );
+            trocoParaEl.focus();
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      // ======================================================
+      // LOCALIZAÇÃO ATUAL + GEOCODIFICAÇÃO REVERSA
+      // ======================================================
+
+      function normalizarTexto(texto) {
+        return String(texto || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+      }
+
+      function encontrarBairro(nomeBairroAPI) {
+        if (!nomeBairroAPI) return null;
+
+        const busca = normalizarTexto(nomeBairroAPI);
+
+        // 1 - comparação exata
+        let encontrado = bairrosEntrega.find(
+          (b) => normalizarTexto(b.nome) === busca,
         );
 
+        if (encontrado) return encontrado;
 
-        statusLocalizacaoEl.innerText =
-          "Não foi possível obter sua localização.";
-
-
-      },
-
-
-      {
-        enableHighAccuracy:true,
-        timeout:10000,
-        maximumAge:0
-      }
-
-    );
-
-  }
-
-  async function finalizarPedido(event) {
-    event.preventDefault();
-
-    if (!validarFormulario()) return;
-
-
-    const clienteAuth = await garantirClienteAuth();
-
-
-    await salvarCliente({
-      nome: clienteEl.value.trim(),
-      telefone: telefoneEl.value.trim()
-    });
-
-    const tipo = tipoPedidoEl.value;
-    const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
-    const telefoneFormatado = formatarTelefone(telefoneWhatsapp);
-    const numeroPedido = Date.now().toString().slice(-6);
-    const bairroSelecionado = obterBairroSelecionado();
-
-    const itensPedido = carrinho.map((item) => {
-      const quantidade = Number(item.quantidade || 1);
-      const precoBase = Number(item.precoBase || item.preco || 0);
-      const valorUnitario = Number(item.valorUnitario || item.preco || 0);
-
-      const personalizacoes = Array.isArray(item.personalizacao)
-        ? item.personalizacao.map((grupo) => ({
-            grupoId: grupo.grupoId || null,
-            grupoNome: grupo.grupoNome || "",
-            opcoes: (grupo.opcoes || []).map((opcao) => ({
-              id: opcao.id || null,
-              nome: opcao.nome || "",
-              preco: Number(opcao.preco || 0)
-            }))
-          }))
-        : [];
-
-      const adicionais = personalizacoes.flatMap((grupo) =>
-        grupo.opcoes.map((opcao) => ({
-          id: opcao.id,
-          nome: opcao.nome,
-          preco: opcao.preco
-        }))
-      );
-
-      const acrescimoAdicionais = adicionais.reduce(
-        (acc, item) => acc + Number(item.preco || 0),
-        0
-      );
-
-      const acrescimoPersonalizacao = personalizacoes.reduce((acc, grupo) => {
-        return acc + grupo.opcoes.reduce(
-          (soma, opcao) => soma + Number(opcao.preco || 0),
-          0
+        // 2 - ignorando maiúsculas/minúsculas + acentos
+        encontrado = bairrosEntrega.find((b) =>
+          normalizarTexto(b.nome).includes(busca),
         );
-      }, 0);
 
-      return {
-        produtoId: item.produtoId || item.id || null,
-        nome: item.nome || "Item",
-        quantidade,
-        precoBase,
-        valorUnitario,
-        subtotal: quantidade * valorUnitario,
+        if (encontrado) return encontrado;
 
-        adicionais,
-        personalizacoes,
+        // 3 - parcial invertido
+        encontrado = bairrosEntrega.find((b) =>
+          busca.includes(normalizarTexto(b.nome)),
+        );
 
-        observacaoItem: item.observacao || "",
-        acrescimoAdicionais,
-        acrescimoPersonalizacao
-      };
-    });
-
-    const bairroNome = tipo === "Delivery" ? (bairroSelecionado?.nome || "") : "";
-    const bairroId = tipo === "Delivery" ? (bairroSelecionado?.id || null) : null;
-    const taxaFinal = tipo === "Delivery" ? Number(bairroSelecionado?.taxa || 0) : 0;
-    const bairroLabel = tipo === "Delivery" && bairroSelecionado
-      ? `${bairroSelecionado.nome} (${formatarMoeda(taxaFinal)})`
-      : "";
-
-
-    console.log("Coordenadas antes de enviar:", {
-      latitudeCliente,
-      longitudeCliente
-    });
-
-
-    const pedido = {
-      numeroPedido,
-      origem: "CLIENTE_WEB",
-
-      cliente: clienteEl.value.trim(),
-      telefone: telefoneFormatado,
-      telefoneWhatsapp,
-
-      tipo,
-      status: "RECEBIDO",
-
-      pagamentoMetodo: pagamentoMetodoEl.value,
-      pagamentoStatus: "PENDENTE",
-      trocoPara: pagamentoMetodoEl.value === "DINHEIRO"
-        ? Number(trocoParaEl.value || 0)
-        : null,
-
-      bairroId,
-      bairro: bairroNome,
-      bairroLabel,
-      taxaEntrega: taxaFinal,
-      endereco: tipo === "Delivery"
-        ? enderecoEl.value.trim()
-        : "",
-
-      referencia: tipo === "Delivery"
-        ? referenciaEl.value.trim()
-        : "",
-
-      latitude: tipo === "Delivery"
-        ? latitudeCliente
-        : null,
-
-      longitude: tipo === "Delivery"
-        ? longitudeCliente
-        : null,
-      observacoes: observacoesEl.value.trim(),
-
-      itens: itensPedido,
-
-      valorSubtotal,
-      valorTotal: valorSubtotal + taxaFinal,
-
-      clienteId: clienteAuth.uid,
-      mesaId: null,
-
-      ultimoStatusNotificado: null,
-
-      impresso: false,
-      impressoEm: null
-    };
-
-    try {
-      await salvarCliente({
-
-        nome:clienteEl.value.trim(),
-
-        telefone:telefoneFormatado
-
-      });
-
-
-      const docRef = await criarPedido(pedido);
-
-      alert("Pedido enviado com sucesso!");
-      localStorage.removeItem("carrinho");
-
-      window.location.href = `./status.html?id=${docRef.id}`;
-    } catch (erro) {
-      console.error("Erro ao finalizar pedido:", erro);
-      alert("Não foi possível finalizar o pedido.");
-    }
-  }
-
-  async function init() {
-    try {
-      await garantirClienteAuth();
-
-      // 1) recuperar tipo escolhido no index
-      const tipoSalvo = localStorage.getItem("tipoPedido");
-      if (tipoSalvo === "Delivery" || tipoSalvo === "Retirada") {
-        tipoPedidoEl.value = tipoSalvo;
+        return encontrado || null;
       }
 
-      // 2) carregar cliente sem quebrar se não existir
-      const cliente = await buscarCliente();
+      async function buscarEnderecoPorCoordenadas(lat, lon) {
+        const url =
+          `https://nominatim.openstreetmap.org/reverse?` +
+          `format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
 
-      if (cliente) {
-        clienteEl.value = cliente.nome || "";
-        telefoneEl.value = cliente.telefone || "";
+        const resposta = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!resposta.ok) {
+          throw new Error("Erro na geocodificação");
+        }
+
+        return await resposta.json();
       }
 
-      // 3) renderizar carrinho
-      renderCarrinho();
+      async function usarLocalizacaoAtual() {
+        if (!navigator.geolocation) {
+          alert("Seu navegador não suporta localização.");
+          return;
+        }
 
-      // 4) carregar bairros antes de recalcular total
-      await carregarBairros();
+        statusLocalizacaoEl.innerText = "Obtendo localização...";
 
-      // 5) agora sim ajustar interface do tipo de pedido
-      atualizarCamposTipoPedido();
-      atualizarCampoTroco();
+        navigator.geolocation.getCurrentPosition(
+          async (posicao) => {
+            try {
+              latitudeCliente = posicao.coords.latitude;
 
-      // eventos
-      tipoPedidoEl.addEventListener("change", () => {
-        localStorage.setItem("tipoPedido", tipoPedidoEl.value);
-        atualizarCamposTipoPedido();
-      });
+              longitudeCliente = posicao.coords.longitude;
 
-      bairroEl.addEventListener("change", recalcularTotal);
+              const dados = await buscarEnderecoPorCoordenadas(
+                latitudeCliente,
+                longitudeCliente,
+              );
 
-      pagamentoMetodoEl.addEventListener(
-        "change",
-        atualizarCampoTroco
-      );
+              const endereco = dados.address || {};
 
-      btnLocalizacaoEl.addEventListener(
-        "click",
-        usarLocalizacaoAtual
-      );
+              const rua = endereco.road || endereco.pedestrian || "";
 
-      form.addEventListener(
-        "submit",
-        finalizarPedido
-      );
+              const numero = endereco.house_number || "";
 
-    } catch (erro) {
-      console.error("Erro ao iniciar checkout:", erro);
-    }
-  }
+              if (rua) {
+                enderecoEl.value = `${rua}${numero ? ", " + numero : " (confirme o número)"}`;
+              }
 
-  init();
-</script>
+              const bairroAPI =
+                endereco.suburb ||
+                endereco.neighbourhood ||
+                endereco.city_district ||
+                "";
 
-</body>
+              const bairroEncontrado = encontrarBairro(bairroAPI);
+
+              if (bairroEncontrado) {
+                bairroEl.value = bairroEncontrado.id;
+
+                recalcularTotal();
+
+                statusLocalizacaoEl.innerText = "Localização encontrada!";
+
+                setTimeout(() => {
+                  statusLocalizacaoEl.innerText = "";
+                }, 5000);
+              } else {
+                statusLocalizacaoEl.innerText =
+                  "Localização encontrada! Bairro precisa ser selecionado manualmente.";
+              }
+            } catch (erro) {
+              console.error("Erro ao converter localização:", erro);
+
+              statusLocalizacaoEl.innerText =
+                "Não foi possível obter sua localização.";
+            }
+          },
+
+          (erro) => {
+            console.error("Erro localização:", erro);
+
+            statusLocalizacaoEl.innerText =
+              "Não foi possível obter sua localização.";
+          },
+
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          },
+        );
+      }
+
+      async function finalizarPedido(event) {
+        event.preventDefault();
+
+        if (!validarFormulario()) return;
+
+        const clienteAuth = await garantirClienteAuth();
+
+        await salvarCliente({
+          nome: clienteEl.value.trim(),
+          telefone: telefoneEl.value.trim(),
+        });
+
+        const tipo = tipoPedidoEl.value;
+        const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
+        const telefoneFormatado = formatarTelefone(telefoneWhatsapp);
+        const numeroPedido = Date.now().toString().slice(-6);
+        const bairroSelecionado = obterBairroSelecionado();
+
+        const itensPedido = carrinho.map((item) => {
+          const quantidade = Number(item.quantidade || 1);
+          const precoBase = Number(
+            item.precoBase ?? item.preco ?? item.valor ?? 0,
+          );
+          const valorUnitario = Number(
+            item.valorUnitario ?? item.valor ?? item.preco ?? 0,
+          );
+
+          const adicionais = item.personalizados?.adicionais || [];
+
+          const observacaoItem = item.personalizados?.observacao || "";
+
+          const acrescimoAdicionais = adicionais.reduce(
+            (total, adicional) => total + Number(adicional.preco || 0),
+            0,
+          );
+
+          return {
+            produtoId: item.produtoId || item.id || null,
+            nome: item.nome || "Item",
+
+            quantidade,
+            precoBase,
+            valorUnitario,
+            subtotal: quantidade * valorUnitario,
+
+            adicionais: adicionais.map((adicional) => ({
+              id: adicional.id,
+              nome: adicional.nome,
+              preco: Number(adicional.preco || 0),
+            })),
+
+            personalizados: {
+              adicionais: adicionais.map((adicional) => ({
+                id: adicional.id,
+                nome: adicional.nome,
+                preco: Number(adicional.preco || 0),
+              })),
+              observacao: observacaoItem,
+            },
+
+            observacaoItem,
+
+            acrescimoAdicionais,
+          };
+        });
+
+        const bairroNome =
+          tipo === "Delivery" ? bairroSelecionado?.nome || "" : "";
+        const bairroId =
+          tipo === "Delivery" ? bairroSelecionado?.id || null : null;
+        const taxaFinal =
+          tipo === "Delivery" ? Number(bairroSelecionado?.taxa || 0) : 0;
+        const bairroLabel =
+          tipo === "Delivery" && bairroSelecionado
+            ? `${bairroSelecionado.nome} (${formatarMoeda(taxaFinal)})`
+            : "";
+
+        console.log("Coordenadas antes de enviar:", {
+          latitudeCliente,
+          longitudeCliente,
+        });
+
+        const pedido = {
+          numeroPedido,
+          origem: "CLIENTE_WEB",
+
+          cliente: clienteEl.value.trim(),
+          telefone: telefoneFormatado,
+          telefoneWhatsapp,
+
+          tipo,
+          status: "RECEBIDO",
+
+          pagamentoMetodo: pagamentoMetodoEl.value,
+          pagamentoStatus: "PENDENTE",
+          trocoPara:
+            pagamentoMetodoEl.value === "DINHEIRO"
+              ? Number(trocoParaEl.value || 0)
+              : null,
+
+          bairroId,
+          bairro: bairroNome,
+          bairroLabel,
+          taxaEntrega: taxaFinal,
+          endereco: tipo === "Delivery" ? enderecoEl.value.trim() : "",
+
+          referencia: tipo === "Delivery" ? referenciaEl.value.trim() : "",
+
+          latitude: tipo === "Delivery" ? latitudeCliente : null,
+
+          longitude: tipo === "Delivery" ? longitudeCliente : null,
+          observacoes: observacoesEl.value.trim(),
+
+          itens: itensPedido,
+
+          valorSubtotal,
+          valorTotal: valorSubtotal + taxaFinal,
+
+          clienteId: clienteAuth.uid,
+          mesaId: null,
+
+          ultimoStatusNotificado: null,
+
+          impresso: false,
+          impressoEm: null,
+        };
+
+        try {
+          await salvarCliente({
+            nome: clienteEl.value.trim(),
+
+            telefone: telefoneFormatado,
+          });
+
+          const docRef = await criarPedido(pedido);
+
+          alert("Pedido enviado com sucesso!");
+          localStorage.removeItem("mesaFacilCarrinho");
+
+          window.location.href = `./status.html?id=${docRef.id}`;
+        } catch (erro) {
+          console.error("Erro ao finalizar pedido:", erro);
+          alert("Não foi possível finalizar o pedido.");
+        }
+      }
+
+      async function init() {
+        try {
+          await garantirClienteAuth();
+
+          // 1) recuperar tipo escolhido no index
+          const tipoSalvo = localStorage.getItem("tipoPedido");
+          if (tipoSalvo === "Delivery" || tipoSalvo === "Retirada") {
+            tipoPedidoEl.value = tipoSalvo;
+          }
+
+          // 2) carregar cliente sem quebrar se não existir
+          const cliente = await buscarCliente();
+
+          if (cliente) {
+            clienteEl.value = cliente.nome || "";
+            telefoneEl.value = cliente.telefone || "";
+          }
+
+          // 3) renderizar carrinho
+          renderCarrinho();
+
+          // 4) carregar bairros antes de recalcular total
+          await carregarBairros();
+
+          // 5) agora sim ajustar interface do tipo de pedido
+          atualizarCamposTipoPedido();
+          atualizarCampoTroco();
+
+          // eventos
+          tipoPedidoEl.addEventListener("change", () => {
+            localStorage.setItem("tipoPedido", tipoPedidoEl.value);
+            atualizarCamposTipoPedido();
+          });
+
+          bairroEl.addEventListener("change", recalcularTotal);
+
+          pagamentoMetodoEl.addEventListener("change", atualizarCampoTroco);
+
+          btnLocalizacaoEl.addEventListener("click", usarLocalizacaoAtual);
+
+          form.addEventListener("submit", finalizarPedido);
+        } catch (erro) {
+          console.error("Erro ao iniciar checkout:", erro);
+        }
+      }
+
+      init();
+    </script>
+  </body>
 </html>
