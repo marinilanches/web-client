@@ -367,7 +367,7 @@
               <div class="endereco-grid">
                 <div class="campo">
                   <label for="bairro">Bairro</label>
-                  <select id="bairro" disabled>
+                  <select id="bairro" required>
                     <option value="">Selecione o bairro</option>
                   </select>
                 </div>
@@ -667,21 +667,30 @@
         try {
           bairrosEntrega = await listarTaxasEntregaAtivas();
 
-          bairroEl.innerHTML = `<option value="">Detectado automaticamente</option>`;
+          bairroEl.innerHTML = `
+            <option value="">Selecione o bairro</option>
+          `;
 
           bairrosEntrega.forEach((bairro) => {
             const option = document.createElement("option");
+
             option.value = bairro.id;
+
             option.textContent = `${bairro.nome} — ${formatarMoeda(bairro.taxa)}`;
+
             bairroEl.appendChild(option);
           });
 
           recalcularTotal();
+
         } catch (erro) {
           console.error("Erro ao carregar bairros:", erro);
-          bairroEl.innerHTML = `<option value="">Erro ao carregar bairros</option>`;
+
+          bairroEl.innerHTML = `
+            <option value="">Erro ao carregar bairros</option>
+          `;
         }
-      }
+      }   
 
       function obterBairroSelecionado() {
         if (bairroDetectado) {
