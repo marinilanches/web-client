@@ -6609,3 +6609,26 @@ position:static;
     font-size:18px;
 
 }
+
+.ferramentas-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(260px,1fr));
+
+    gap:16px;
+
+    margin-top:20px;
+
+}
+
+.btn-ferramenta{
+
+    min-height:56px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+}

@@ -2,7 +2,7 @@ import {
   criarTaxaEntrega,
   editarTaxaEntrega,
   excluirTaxaEntrega,
-  ouvirTaxasEntrega
+  ouvirTaxasEntrega,
 } from "../../../js/services/delivery-fees.js";
 
 const form = document.getElementById("taxaForm");
@@ -13,6 +13,7 @@ const nomeEl = document.getElementById("nome");
 const taxaEl = document.getElementById("taxa");
 const ordemEl = document.getElementById("ordem");
 const ativoEl = document.getElementById("ativo");
+const ruasEl = document.getElementById("ruas");
 
 const btnSalvar = document.getElementById("btnSalvar");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
@@ -23,7 +24,7 @@ let taxasCache = [];
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
     style: "currency",
-    currency: "BRL"
+    currency: "BRL",
   });
 }
 
@@ -35,6 +36,7 @@ function resetForm() {
   taxaEl.value = "";
   ordemEl.value = "";
   ativoEl.value = "true";
+  ruasEl.value = "";
 
   formTitulo.textContent = "Cadastrar bairro";
   btnSalvar.textContent = "Salvar bairro";
@@ -48,6 +50,7 @@ function preencherFormulario(taxa) {
   taxaEl.value = Number(taxa.taxa || 0);
   ordemEl.value = Number(taxa.ordem || 0);
   ativoEl.value = String(Boolean(taxa.ativo));
+  ruasEl.value = Array.isArray(taxa.ruas) ? taxa.ruas.join("\n") : "";
 
   formTitulo.textContent = "Editar bairro";
   btnSalvar.textContent = "Salvar alterações";
@@ -76,7 +79,11 @@ function validarFormulario() {
 
   const duplicado = taxasCache.find((item) => {
     if (taxaEditandoId && item.id === taxaEditandoId) return false;
-    return String(item.nome || "").trim().toLowerCase() === nomeNormalizado;
+    return (
+      String(item.nome || "")
+        .trim()
+        .toLowerCase() === nomeNormalizado
+    );
   });
 
   if (duplicado) {
@@ -100,7 +107,9 @@ function renderLista(taxas) {
     return;
   }
 
-  listaTaxas.innerHTML = taxas.map((taxa) => `
+  listaTaxas.innerHTML = taxas
+    .map(
+      (taxa) => `
     <tr>
       <td>${taxa.nome || "—"}</td>
       <td>${formatarMoeda(taxa.taxa)}</td>
@@ -128,7 +137,9 @@ function renderLista(taxas) {
         </div>
       </td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 async function onSubmit(event) {
@@ -138,9 +149,17 @@ async function onSubmit(event) {
 
   const payload = {
     nome: nomeEl.value.trim(),
+
     taxa: Number(taxaEl.value || 0),
+
     ordem: Number(ordemEl.value || 0),
-    ativo: ativoEl.value === "true"
+
+    ativo: ativoEl.value === "true",
+
+    ruas: ruasEl.value
+      .split("\n")
+      .map((rua) => rua.trim())
+      .filter(Boolean),
   };
 
   try {

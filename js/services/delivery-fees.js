@@ -9,7 +9,7 @@ import {
   getDocs,
   getDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -52,11 +52,18 @@ export async function criarTaxaEntrega(dados) {
 
   const payload = {
     nome,
+
     taxa: Number(dados.taxa || 0),
+
     ativo: Boolean(dados.ativo),
+
     ordem: Number(dados.ordem || 0),
+
+    ruas: Array.isArray(dados.ruas) ? dados.ruas : [],
+
     criadoEm: serverTimestamp(),
-    atualizadoEm: serverTimestamp()
+
+    atualizadoEm: serverTimestamp(),
   };
 
   return await addDoc(taxasEntregaRef, payload);
@@ -69,7 +76,7 @@ export async function criarTaxaEntrega(dados) {
 export async function editarTaxaEntrega(id, dados) {
   const updatePayload = {
     ...dados,
-    atualizadoEm: serverTimestamp()
+    atualizadoEm: serverTimestamp(),
   };
 
   if ("nome" in dados) {
@@ -86,6 +93,10 @@ export async function editarTaxaEntrega(id, dados) {
 
   if ("ativo" in dados) {
     updatePayload.ativo = Boolean(dados.ativo);
+  }
+
+  if ("ruas" in dados) {
+    updatePayload.ruas = Array.isArray(dados.ruas) ? dados.ruas : [];
   }
 
   await updateDoc(doc(db, "taxasEntrega", id), updatePayload);
@@ -110,7 +121,7 @@ export async function buscarTaxaEntrega(id) {
 
   return {
     id: snap.id,
-    ...snap.data()
+    ...snap.data(),
   };
 }
 
@@ -123,7 +134,7 @@ export async function listarTaxasEntrega() {
 
   const taxas = snapshot.docs.map((docItem) => ({
     id: docItem.id,
-    ...docItem.data()
+    ...docItem.data(),
   }));
 
   return ordenarTaxas(taxas);
@@ -148,13 +159,25 @@ export function ouvirTaxasEntrega(callback) {
     (snapshot) => {
       const taxas = snapshot.docs.map((docItem) => ({
         id: docItem.id,
-        ...docItem.data()
+        ...docItem.data(),
       }));
 
       callback(ordenarTaxas(taxas));
     },
     (erro) => {
       console.error("Erro ao ouvir taxas de entrega:", erro);
-    }
+    },
   );
+}
+
+export async function buscarBairrosPorNome(nome) {
+  const busca = normalizarNomeBairro(nome).toLowerCase();
+
+  const taxas = await listarTaxasEntrega();
+
+  return taxas.filter((bairro) => {
+    const nomeBanco = normalizarNomeBairro(bairro.nome).toLowerCase();
+
+    return nomeBanco.includes(busca);
+  });
 }

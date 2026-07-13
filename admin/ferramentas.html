@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Ferramentas • Mesa Fácil</title>
+
+    <link rel="stylesheet" href="css/admin.css" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="layout">
+      <aside id="sidebar"></aside>
+
+      <main class="content">
+        <header id="header"></header>
+
+        <section class="dashboard">
+          <h1>Ferramentas</h1>
+
+          <p class="subtitle">
+            Utilitários de manutenção e testes do sistema Mesa Fácil. Use com
+            cuidado, principalmente as opções de limpeza.
+          </p>
+
+          <!-- =========================================
+           LIMPEZA
+      ========================================== -->
+
+          <div class="panel">
+            <div class="panel-title">🗑 Limpeza de dados</div>
+
+            <p>Remova dados temporários ou registros de teste do Firestore.</p>
+
+            <div class="toolbar">
+              <button class="btn-danger btn-ferramenta" data-colecao="pedidos">
+                🗑 Limpar pedidos
+              </button>
+
+              <button class="btn-danger btn-ferramenta" data-colecao="clientes">
+                🗑 Limpar clientes
+              </button>
+
+              <button class="btn-danger btn-ferramenta" data-colecao="mesas">
+                🗑 Limpar mesas
+              </button>
+
+              <button
+                class="btn-danger btn-ferramenta"
+                data-colecao="pagamentos"
+              >
+                🗑 Limpar pagamentos
+              </button>
+
+              <button class="btn-danger btn-ferramenta" data-colecao="usuarios">
+                🗑 Limpar usuários
+              </button>
+
+              <button id="limparCarrinho">🗑 Limpar carrinho local</button>
+
+              <button id="limparVendasProdutos" class="btn-danger">
+                🗑 Limpar vendas dos produtos
+              </button>
+
+              <button id="limparProdutos" class="btn-danger">
+                🗑 Limpar produtos
+              </button>
+
+              <button id="limparTaxasEntrega" class="btn-danger">
+                🗑 Limpar bairros cadastrados
+              </button>
+            </div>
+          </div>
+
+          <!-- =========================================
+           TESTES
+      ========================================== -->
+
+          <div class="panel" style="margin-top: 20px">
+            <div class="panel-title">🧪 Dados de teste</div>
+
+            <p>
+              Gere informações falsas para validar o funcionamento do sistema.
+            </p>
+
+            <div class="toolbar">
+              <button id="gerarClientesTeste">🧪 Gerar clientes</button>
+
+              <button id="gerarPedidosTeste">🧪 Gerar pedidos</button>
+            </div>
+          </div>
+
+          <!-- =========================================
+           CONFIGURAÇÕES
+      ========================================== -->
+
+          <div class="panel" style="margin-top: 20px">
+            <div class="panel-title">⚙ Sistema</div>
+
+            <p>Ferramentas administrativas para manutenção do ambiente.</p>
+
+            <div class="toolbar">
+              <button id="resetConfiguracoes">🔄 Resetar configurações</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

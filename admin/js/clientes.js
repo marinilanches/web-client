@@ -109,7 +109,13 @@ function renderClientes(clientes) {
 
 
             <td>
-                -
+              ${
+                cliente.ultimaCompra
+                  ? new Date(
+                      cliente.ultimaCompra.seconds * 1000,
+                    ).toLocaleDateString("pt-BR")
+                  : "-"
+              }
             </td>
 
 
@@ -119,7 +125,10 @@ function renderClientes(clientes) {
 
 
             <td>
-                R$ ${Number(cliente.totalGasto || 0).toFixed(2)}
+                ${Number(cliente.totalGasto || 0).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
             </td>
 
 
@@ -307,6 +316,10 @@ function abrirEditarCliente(cliente) {
           nome: document.getElementById("editarNome").value.trim(),
 
           telefone: document.getElementById("editarTelefone").value.trim(),
+
+          telefoneWhatsapp: document
+            .getElementById("editarTelefone")
+            .value.replace(/\D/g, ""),
 
           observacoes: document
             .getElementById("editarObservacoes")

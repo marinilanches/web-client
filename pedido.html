@@ -375,7 +375,14 @@
                 <div class="campo full">
                   <label for="endereco">Rua e número</label>
 
-                  <input type="text" id="endereco" placeholder="Rua, número" />
+                  <input type="text" id="rua" placeholder="Rua" required />
+
+                  <input
+                    type="text"
+                    id="numero"
+                    placeholder="Número"
+                    required
+                  />
 
                   <button
                     type="button"
@@ -473,7 +480,8 @@
 
       const camposDelivery = document.getElementById("camposDelivery");
       const bairroEl = document.getElementById("bairro");
-      const enderecoEl = document.getElementById("endereco");
+      const ruaEl = document.getElementById("rua");
+      const numeroEl = document.getElementById("numero");
       const referenciaEl = document.getElementById("referencia");
       const observacoesEl = document.getElementById("observacoes");
 
@@ -666,15 +674,20 @@
 
         if (tipo === "Delivery") {
           camposDelivery.classList.remove("hidden");
+
           bairroEl.required = true;
-          enderecoEl.required = true;
+          ruaEl.required = true;
+          numeroEl.required = true;
         } else {
           camposDelivery.classList.add("hidden");
+
           bairroEl.required = false;
-          enderecoEl.required = false;
+          ruaEl.required = false;
+          numeroEl.required = false;
 
           bairroEl.value = "";
-          enderecoEl.value = "";
+          ruaEl.value = "";
+          numeroEl.value = "";
           referenciaEl.value = "";
         }
 
@@ -696,7 +709,8 @@
         const cliente = clienteEl.value.trim();
         const telefone = telefoneEl.value.trim();
         const tipo = tipoPedidoEl.value;
-        const endereco = enderecoEl.value.trim();
+        const rua = ruaEl.value.trim();
+        const numero = numeroEl.value.trim();
         const pagamentoMetodo = pagamentoMetodoEl.value;
         const telefoneWhatsapp = normalizarTelefone(telefone);
         const bairroSelecionado = obterBairroSelecionado();
@@ -730,9 +744,15 @@
           return false;
         }
 
-        if (tipo === "Delivery" && !endereco) {
-          alert("Preencha o endereço para delivery.");
-          enderecoEl.focus();
+        if (tipo === "Delivery" && !rua) {
+          alert("Preencha a rua.");
+          ruaEl.focus();
+          return false;
+        }
+
+        if (tipo === "Delivery" && !numero) {
+          alert("Informe o número.");
+          numeroEl.focus();
           return false;
         }
 
@@ -847,7 +867,11 @@
               const numero = endereco.house_number || "";
 
               if (rua) {
-                enderecoEl.value = `${rua}${numero ? ", " + numero : " (confirme o número)"}`;
+                ruaEl.value = rua;
+
+                if (numero) {
+                  numeroEl.value = numero;
+                }
               }
 
               const bairroAPI =
@@ -902,16 +926,31 @@
 
         const clienteAuth = await garantirClienteAuth();
 
+        const tipo = tipoPedidoEl.value;
+
+        const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
+
+        const telefoneFormatado = formatarTelefone(telefoneWhatsapp);
+
+        const numeroPedido = Date.now().toString().slice(-6);
+
+        const bairroSelecionado = obterBairroSelecionado();
+
         await salvarCliente({
           nome: clienteEl.value.trim(),
-          telefone: telefoneEl.value.trim(),
-        });
 
-        const tipo = tipoPedidoEl.value;
-        const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
-        const telefoneFormatado = formatarTelefone(telefoneWhatsapp);
-        const numeroPedido = Date.now().toString().slice(-6);
-        const bairroSelecionado = obterBairroSelecionado();
+          telefone: telefoneFormatado,
+
+          endereco:
+            tipo === "Delivery"
+              ? {
+                  rua: ruaEl.value.trim(),
+                  numero: numeroEl.value.trim(),
+                  bairro: bairroSelecionado?.nome || "",
+                  complemento: referenciaEl.value.trim(),
+                }
+              : null,
+        });
 
         const itensPedido = carrinho.map((item) => {
           const quantidade = Number(item.quantidade || 1);
@@ -999,7 +1038,12 @@
           bairro: bairroNome,
           bairroLabel,
           taxaEntrega: taxaFinal,
-          endereco: tipo === "Delivery" ? enderecoEl.value.trim() : "",
+          endereco: {
+            rua: tipo === "Delivery" ? ruaEl.value.trim() : "",
+            numero: tipo === "Delivery" ? numeroEl.value.trim() : "",
+            bairro: bairroNome,
+            complemento: tipo === "Delivery" ? referenciaEl.value.trim() : "",
+          },
 
           referencia: tipo === "Delivery" ? referenciaEl.value.trim() : "",
 
@@ -1023,11 +1067,7 @@
         };
 
         try {
-          await salvarCliente({
-            nome: clienteEl.value.trim(),
-
-            telefone: telefoneFormatado,
-          });
+          // cliente já foi salvo antes da criação do pedido
 
           const docRef = await criarPedido(pedido);
 
@@ -1056,7 +1096,14 @@
 
           if (cliente) {
             clienteEl.value = cliente.nome || "";
+
             telefoneEl.value = cliente.telefone || "";
+
+            ruaEl.value = cliente.endereco?.rua || "";
+
+            numeroEl.value = cliente.endereco?.numero || "";
+
+            referenciaEl.value = cliente.endereco?.complemento || "";
           }
 
           // 3) renderizar carrinho
@@ -1064,6 +1111,27 @@
 
           // 4) carregar bairros antes de recalcular total
           await carregarBairros();
+
+          if (cliente) {
+            selecionarBairroCliente(cliente);
+          }
+
+          function selecionarBairroCliente(cliente) {
+            const nomeBairro = cliente?.endereco?.bairro || "";
+
+            if (!nomeBairro) return;
+
+            const bairroEncontrado = bairrosEntrega.find(
+              (bairro) =>
+                normalizarTexto(bairro.nome) === normalizarTexto(nomeBairro),
+            );
+
+            if (bairroEncontrado) {
+              bairroEl.value = bairroEncontrado.id;
+
+              recalcularTotal();
+            }
+          }
 
           // 5) agora sim ajustar interface do tipo de pedido
           atualizarCamposTipoPedido();

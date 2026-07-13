@@ -14,7 +14,7 @@ import {
   where,
   serverTimestamp,
   Timestamp,
-  increment
+  increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -35,7 +35,7 @@ function getInicioEFimDeHoje() {
 
   return {
     inicioHoje: Timestamp.fromDate(inicioHoje),
-    inicioAmanha: Timestamp.fromDate(inicioAmanha)
+    inicioAmanha: Timestamp.fromDate(inicioAmanha),
   };
 }
 
@@ -75,7 +75,10 @@ function normalizarTelefoneWhatsapp(telefone) {
   }
 
   // se vier com 12/13 sem 55 mas já parecer Brasil, força 55
-  if ((numero.length === 12 || numero.length === 13) && !numero.startsWith("55")) {
+  if (
+    (numero.length === 12 || numero.length === 13) &&
+    !numero.startsWith("55")
+  ) {
     numero = `55${numero}`;
   }
 
@@ -84,7 +87,10 @@ function normalizarTelefoneWhatsapp(telefone) {
 
 function extrairBairro(endereco = "") {
   if (!endereco) return "";
-  const partes = endereco.split(",").map(p => p.trim()).filter(Boolean);
+  const partes = endereco
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
 
   // heurística simples:
   // "Rua X, 123, Centro"
@@ -99,23 +105,19 @@ function extrairBairro(endereco = "") {
 ========================================================== */
 
 async function atualizarEstatisticasCliente(dados) {
-
   if (!dados.clienteId) return;
 
   const clienteRef = doc(db, "clientes", dados.clienteId);
 
   await updateDoc(clienteRef, {
-
     totalPedidos: increment(1),
 
     totalGasto: increment(Number(dados.valorTotal || 0)),
 
     ultimaCompra: serverTimestamp(),
 
-    atualizadoEm: serverTimestamp()
-
+    atualizadoEm: serverTimestamp(),
   });
-
 }
 
 export async function criarPedido(dados) {
@@ -127,7 +129,7 @@ export async function criarPedido(dados) {
 
   const valorSubtotal = Number(dados.valorSubtotal ?? dados.valorTotal ?? 0);
   const taxaEntrega = Number(dados.taxaEntrega ?? 0);
-  const valorTotal = Number(dados.valorTotal ?? (valorSubtotal + taxaEntrega));
+  const valorTotal = Number(dados.valorTotal ?? valorSubtotal + taxaEntrega);
 
   const itens = Array.isArray(dados.itens) ? dados.itens : [];
 
@@ -145,7 +147,12 @@ export async function criarPedido(dados) {
     tipo: dados.tipo || "Delivery",
     status: dados.status || "RECEBIDO",
 
-    endereco: dados.endereco || "",
+    endereco: dados.endereco || {
+      rua: "",
+      numero: "",
+      bairro: "",
+      complemento: "",
+    },
     referencia: dados.referencia || "",
     observacoes: dados.observacoes || "",
 
@@ -173,14 +180,18 @@ export async function criarPedido(dados) {
     impressoEm: dados.impressoEm || null,
 
     criadoEm: agora,
-    atualizadoEm: agora
+    atualizadoEm: agora,
   };
 
   const pedidoRef = await addDoc(pedidosRef, payload);
 
   await incrementarVendasProdutos(itens);
 
-  await atualizarEstatisticasCliente(payload);
+  try {
+    await atualizarEstatisticasCliente(payload);
+  } catch (erro) {
+    console.error("Erro ao atualizar estatísticas do cliente:", erro);
+  }
 
   return pedidoRef;
 }
@@ -193,11 +204,13 @@ export async function editarPedido(id, dados) {
   try {
     const updatePayload = {
       ...dados,
-      atualizadoEm: serverTimestamp()
+      atualizadoEm: serverTimestamp(),
     };
 
     if ("telefone" in dados && !("telefoneWhatsapp" in dados)) {
-      updatePayload.telefoneWhatsapp = normalizarTelefoneWhatsapp(dados.telefone);
+      updatePayload.telefoneWhatsapp = normalizarTelefoneWhatsapp(
+        dados.telefone,
+      );
     }
 
     await updateDoc(doc(db, "pedidos", id), updatePayload);
@@ -215,7 +228,7 @@ export async function alterarStatus(id, status) {
   try {
     await updateDoc(doc(db, "pedidos", id), {
       status,
-      atualizadoEm: serverTimestamp()
+      atualizadoEm: serverTimestamp(),
     });
   } catch (erro) {
     console.error("Erro ao alterar status:", erro);
@@ -258,7 +271,7 @@ export async function buscarPedido(id) {
 
     return {
       id: pedidoSnap.id,
-      ...pedidoSnap.data()
+      ...pedidoSnap.data(),
     };
   } catch (erro) {
     console.error("Erro ao buscar pedido:", erro);
@@ -267,27 +280,16 @@ export async function buscarPedido(id) {
 }
 
 export async function marcarComoImpresso(id) {
+  try {
+    await updateDoc(doc(db, "pedidos", id), {
+      impresso: true,
+      impressoEm: serverTimestamp(),
+    });
+  } catch (erro) {
+    console.error("Erro ao marcar impressão:", erro);
 
-    try {
-
-        await updateDoc(
-            doc(db, "pedidos", id),
-            {
-                impresso: true,
-                impressoEm: serverTimestamp()
-            }
-        );
-
-    } catch (erro) {
-
-        console.error(
-            "Erro ao marcar impressão:",
-            erro
-        );
-
-        throw erro;
-    }
-
+    throw erro;
+  }
 }
 
 /* ==========================================================
@@ -301,7 +303,7 @@ export function ouvirPedidos(callback) {
     pedidosRef,
     where("criadoEm", ">=", inicioHoje),
     where("criadoEm", "<", inicioAmanha),
-    orderBy("criadoEm", "desc")
+    orderBy("criadoEm", "desc"),
   );
 
   return onSnapshot(
@@ -312,7 +314,7 @@ export function ouvirPedidos(callback) {
       snapshot.forEach((docItem) => {
         pedidos.push({
           id: docItem.id,
-          ...docItem.data()
+          ...docItem.data(),
         });
       });
 
@@ -320,7 +322,7 @@ export function ouvirPedidos(callback) {
     },
     (erro) => {
       console.error("Erro ao ouvir pedidos:", erro);
-    }
+    },
   );
 }
 
@@ -341,12 +343,12 @@ export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
 
       onSuccess({
         id: snap.id,
-        ...snap.data()
+        ...snap.data(),
       });
     },
     (erro) => {
       console.error("Erro ao ouvir pedido por ID:", erro);
-    }
+    },
   );
 }
 
@@ -357,14 +359,14 @@ export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
 export function contarPedidos(pedidos) {
   return {
     total: pedidos.length,
-    recebidos: pedidos.filter(p => p.status === "RECEBIDO").length,
-    preparando: pedidos.filter(p => p.status === "PREPARANDO").length,
-    prontos: pedidos.filter(p => p.status === "PRONTO").length,
-    entregues: pedidos.filter(p => p.status === "ENTREGUE").length,
-    cancelados: pedidos.filter(p => p.status === "CANCELADO").length,
+    recebidos: pedidos.filter((p) => p.status === "RECEBIDO").length,
+    preparando: pedidos.filter((p) => p.status === "PREPARANDO").length,
+    prontos: pedidos.filter((p) => p.status === "PRONTO").length,
+    entregues: pedidos.filter((p) => p.status === "ENTREGUE").length,
+    cancelados: pedidos.filter((p) => p.status === "CANCELADO").length,
     faturamento: pedidos
-      .filter(p => p.status === "ENTREGUE")
-      .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0)
+      .filter((p) => p.status === "ENTREGUE")
+      .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0),
   };
 }
 
@@ -380,7 +382,7 @@ export function ouvirPedidosCliente(uid, callback) {
     where("clienteId", "==", uid),
     where("criadoEm", ">=", inicioHoje),
     where("criadoEm", "<", inicioAmanha),
-    orderBy("criadoEm", "desc")
+    orderBy("criadoEm", "desc"),
   );
 
   return onSnapshot(
@@ -391,7 +393,7 @@ export function ouvirPedidosCliente(uid, callback) {
       snapshot.forEach((docItem) => {
         pedidos.push({
           id: docItem.id,
-          ...docItem.data()
+          ...docItem.data(),
         });
       });
 
@@ -399,6 +401,6 @@ export function ouvirPedidosCliente(uid, callback) {
     },
     (erro) => {
       console.error("Erro ao ouvir pedidos do cliente:", erro);
-    }
+    },
   );
 }

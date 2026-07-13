@@ -2,14 +2,12 @@ import { db, auth } from "./firebase.js";
 
 import {
   doc,
- getDoc,
+  getDoc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* ==========================================================
    AUTH CLIENTE
@@ -40,7 +38,7 @@ export async function buscarCliente() {
 
   return {
     id: snap.id,
-    ...snap.data()
+    ...snap.data(),
   };
 }
 
@@ -53,24 +51,52 @@ export async function salvarCliente(dados) {
 
   const cliente = {
     nome: dados.nome || "",
-    telefone: dados.telefone || "",
+
+    telefone: String(dados.telefone || "").replace(/\D/g, ""),
+
     telefoneWhatsapp: dados.telefoneWhatsapp || "",
-    atualizadoEm: serverTimestamp()
+
+    observacoes: dados.observacoes || "",
+
+    endereco: dados.endereco || {
+      rua: "",
+
+      numero: "",
+
+      bairro: "",
+
+      complemento: "",
+    },
+
+    atualizadoEm: serverTimestamp(),
   };
 
   const ref = doc(db, "clientes", user.uid);
+
+  const clienteExistente = await getDoc(ref);
 
   await setDoc(
     ref,
     {
       ...cliente,
-      criadoEm: serverTimestamp()
+
+      ...(clienteExistente.exists()
+        ? {}
+        : {
+            criadoEm: serverTimestamp(),
+
+            totalPedidos: 0,
+
+            totalGasto: 0,
+          }),
     },
-    { merge: true }
+    {
+      merge: true,
+    },
   );
 
   return {
     id: user.uid,
-    ...cliente
+    ...cliente,
   };
 }

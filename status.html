@@ -305,16 +305,44 @@ Seus pedidos
     const isDelivery = pedido.tipo === "Delivery";
     const blocoPix = getPixHtml(pedido);
 
-    const blocoEntrega = isDelivery
-      ? `
-        <div class="status-section">
-          <h4>Entrega</h4>
-          <p><strong>Bairro:</strong> ${pedido.bairro || "—"}</p>
-          <p><strong>Endereço:</strong> ${pedido.endereco || "—"}</p>
-          <p><strong>Referência:</strong> ${pedido.referencia || "—"}</p>
-        </div>
-      `
+    const endereco = pedido.endereco || {};
+
+    const enderecoTexto = [
+      endereco.rua,
+      endereco.numero
+    ]
+    .filter(Boolean)
+    .join(", ");
+
+
+    const complementoTexto = endereco.complemento
+      ? ` - ${endereco.complemento}`
       : "";
+
+
+    const blocoEntrega = isDelivery
+          ? `
+            <div class="status-section">
+              <h4>Entrega</h4>
+
+              <p>
+                <strong>Bairro:</strong>
+                ${pedido.bairro || endereco.bairro || "—"}
+              </p>
+
+              <p>
+                <strong>Endereço:</strong>
+                ${enderecoTexto || "—"}${complementoTexto}
+              </p>
+
+              <p>
+                <strong>Referência:</strong>
+                ${pedido.referencia || "—"}
+              </p>
+
+            </div>
+          `
+          : "";
 
     pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
