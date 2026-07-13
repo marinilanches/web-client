@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Mesa Fácil - Printer Service",
+  "main": "printer.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node printer.js"
+  },
+  "keywords": [
+    "mesa-facil",
+    "elgin",
+    "escpos",
+    "thermal"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "node-thermal-printer": "^4.5.0"
+  }
+}

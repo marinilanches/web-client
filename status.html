@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Status do Pedido</title>
+  <link 
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/styles.css" />
+
+  <link rel="stylesheet" href="./css/pedido-status.css" />
+</head>
+
+<body class="cliente-body">
+
+<header class="store-header">
+
+<div class="container py-3 py-lg-4">
+
+<div class="store-hero card border-0 shadow-sm">
+
+<div class="card-body p-4">
+
+<div class="d-flex align-items-center gap-3">
+
+<div class="store-logo">
+<i class="bi bi-bag-check-fill"></i>
+</div>
+
+<div>
+<p class="store-kicker mb-1">
+Acompanhe seu pedido
+</p>
+
+<h2 class="store-title">
+Seus pedidos
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</header>
+
+
+<main class="container py-3">
+
+  <section>
+
+    <div class="mb-4">
+
+      <h2 class="section-title">
+        Seus pedidos
+      </h2>
+
+      <p class="section-subtitle">
+        Acompanhe o andamento do seu pedido em tempo real.
+      </p>
+
+    </div>
+
+
+    <div id="pedidoAtual"></div>
+
+    <div class="mt-4">
+      <h2 class="section-title">Seus pedidos</h2>
+      <p class="section-subtitle">
+        Acompanhe seus pedidos recentes.
+      </p>
+      <div id="listaPedidos">
+        <div class="status-card mb-3">Carregando...</div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script type="module">
+  import {
+    ouvirPedidosCliente,
+    ouvirPedidoPorId
+  } from "./js/services/orders.js";
+
+  import {
+    garantirClienteAuth,
+    buscarCliente
+  } from "./js/services/customers.js";
+
+  const pedidoAtual = document.getElementById("pedidoAtual");
+  const listaPedidos = document.getElementById("listaPedidos");
+
+  function formatarMoeda(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  }
+
+  function formatarData(data) {
+    if (!data) return "—";
+
+    if (typeof data.toDate === "function") {
+      return data.toDate().toLocaleString("pt-BR");
+    }
+
+    try {
+      return new Date(data).toLocaleString("pt-BR");
+    } catch {
+      return "—";
+    }
+  }
+
+  function renderMensagem(texto) {
+    pedidoAtual.innerHTML = `
+      <div class="item status-card" style="display:block;">
+        <p>${texto}</p>
+      </div>
+    `;
+  }
+  function getStatusLabel(status) {
+    switch (status) {
+      case "RECEBIDO": return "🟡 Recebido";
+      case "PREPARANDO": return "👨‍🍳 Em preparo";
+      case "PRONTO": return "✅ Pronto";
+      case "ENTREGUE": return "🚚 Entregue";
+      case "CANCELADO": return "❌ Cancelado";
+      default: return status || "—";
+    }
+  }
+
+  function isPix(metodo) {
+    if (!metodo) return false;
+    const texto = String(metodo).toLowerCase().trim();
+    return texto === "pix" || texto.includes("pix");
+  }
+
+  function getPixHtml(pedido) {
+    if (!isPix(pedido.pagamentoMetodo)) return "";
+
+    return `
+      <div class="pix-box">
+        <div class="pix-pago-topo">
+          <h4>Pagamento via PIX</h4>
+          <span class="pix-selo">PIX disponível</span>
+        </div>
+
+        <div class="pix-grid">
+          <div class="pix-linha">
+            <span class="pix-label">Tipo da chave</span>
+            <div class="pix-value">Celular</div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Chave PIX</span>
+            <div class="pix-value">
+              <span id="pixChave">(19) 99162-0881</span>
+            </div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Titular</span>
+            <div class="pix-value">Darci Cândido Gonçalves</div>
+          </div>
+
+          <div class="pix-linha">
+            <span class="pix-label">Banco / conta</span>
+            <div class="pix-value">PagSeguro</div>
+          </div>
+        </div>
+
+        <button class="btn-copiar-pix" id="btnCopiarPix" type="button">
+          Copiar chave PIX
+        </button>
+
+        <div class="pix-aviso">
+          Após realizar o pagamento, aguarde a confirmação da loja.
+        </div>
+      </div>
+    `;
+  }
+
+  function ativarBotaoCopiarPix() {
+    const botao = document.getElementById("btnCopiarPix");
+    if (!botao) return;
+
+    botao.addEventListener("click", async () => {
+      const chave = "(19) 99162-0881";
+
+      try {
+        await navigator.clipboard.writeText(chave);
+        const textoOriginal = botao.textContent;
+        botao.textContent = "Chave copiada!";
+
+        setTimeout(() => {
+          botao.textContent = textoOriginal;
+        }, 2000);
+      } catch {
+        alert("Não foi possível copiar automaticamente. Chave PIX: " + chave);
+      }
+    });
+  }
+
+  function gerarProgresso(status) {
+    const etapas = [
+      { id: "RECEBIDO", nome: "Recebido", emoji: "📥" },
+      { id: "PREPARANDO", nome: "Preparando", emoji: "👨‍🍳" },
+      { id: "PRONTO", nome: "Pronto", emoji: "✅" },
+      { id: "ENTREGUE", nome: "Entregue", emoji: "🚚" }
+    ];
+
+    const indiceAtual = etapas.findIndex(etapa => etapa.id === status);
+
+    const porcentagem = indiceAtual < 0
+      ? 0
+      : (indiceAtual / (etapas.length - 1)) * 100;
+
+    return `
+      <div class="status-progresso">
+        <div class="progresso-linha"></div>
+        <div
+          class="progresso-linha-ativa"
+          style="--progresso:${porcentagem}"
+        ></div>
+
+        <div class="progresso-etapas">
+          ${etapas.map((etapa, index) => {
+            let classe = "";
+
+            if (index <= indiceAtual) classe = "concluida";
+
+            if (index === indiceAtual && status !== "ENTREGUE") {
+              classe = "ativa";
+            }
+
+            return `
+              <div class="progresso-etapa ${classe}">
+                <div class="progresso-bolinha">${etapa.emoji}</div>
+                <span>${etapa.nome}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPedido(pedido, pedidoId) {
+    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+
+    const itensHtml = itens.length
+      ? itens.map(item => {
+          const quantidade = Number(item.quantidade || 1);
+          const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+          const subtotal = Number(item.subtotal || quantidade * valorUnitario);
+
+          const adicionais = (item.adicionais || [])
+            .map(a => `${a.nome} (+${formatarMoeda(a.preco)})`)
+            .join("<br>");
+
+          return `
+            <div class="status-item-linha">
+
+              <strong>${quantidade}x ${item.nome || "Item"}</strong>
+
+              <div>Unitário: ${formatarMoeda(valorUnitario)}</div>
+
+              <div>Subtotal: ${formatarMoeda(subtotal)}</div>
+
+              ${
+                adicionais
+                  ? `
+                  <div class="mt-2">
+                    <strong>Adicionais:</strong><br>
+                    ${adicionais}
+                  </div>
+                  `
+                  : ""
+              }
+
+              ${
+                item.observacaoItem
+                  ? `
+                  <div class="mt-2">
+                    <strong>Obs:</strong><br>
+                    ${item.observacaoItem}
+                  </div>
+                  `
+                  : ""
+              }
+
+            </div>
+          `;
+        }).join("")
+      : "<p>Nenhum item.</p>";
+
+    const isDelivery = pedido.tipo === "Delivery";
+    const blocoPix = getPixHtml(pedido);
+
+    const blocoEntrega = isDelivery
+      ? `
+        <div class="status-section">
+          <h4>Entrega</h4>
+          <p><strong>Bairro:</strong> ${pedido.bairro || "—"}</p>
+          <p><strong>Endereço:</strong> ${pedido.endereco || "—"}</p>
+          <p><strong>Referência:</strong> ${pedido.referencia || "—"}</p>
+        </div>
+      `
+      : "";
+
+    pedidoAtual.innerHTML = `
+      <div class="item status-card" style="display:block;">
+        <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
+
+        ${gerarProgresso(pedido.status)}
+
+        <p>
+          <strong>Status:</strong>
+          ${getStatusLabel(pedido.status)}
+        </p>
+
+        <p><strong>Data:</strong> ${formatarData(pedido.criadoEm || pedido.createdAt)}</p>
+
+        <div class="status-section">
+          <h4>Cliente</h4>
+          <p><strong>Nome:</strong> ${pedido.cliente || "—"}</p>
+          <p><strong>Telefone:</strong> ${pedido.telefone || pedido.telefoneWhatsapp || "—"}</p>
+          <p><strong>Tipo:</strong> ${pedido.tipo || "—"}</p>
+        </div>
+
+        <div class="status-section">
+          <h4>Pagamento</h4>
+          <p><strong>Método:</strong> ${pedido.pagamentoMetodo || "—"}</p>
+          <p><strong>Status do pagamento:</strong> ${pedido.pagamentoStatus || "—"}</p>
+        </div>
+
+        ${blocoPix}
+        ${blocoEntrega}
+
+        <div class="status-section">
+          <h4>Observações</h4>
+          <p>${pedido.observacoes || "—"}</p>
+        </div>
+
+        <div class="status-section">
+          <h4>Itens</h4>
+          ${itensHtml}
+        </div>
+
+        <div class="status-section">
+          <h4>Resumo</h4>
+          <p><strong>Subtotal:</strong> ${formatarMoeda(pedido.valorSubtotal)}</p>
+          <p><strong>Taxa de entrega:</strong> ${formatarMoeda(pedido.taxaEntrega)}</p>
+          <p><strong>Total:</strong> ${formatarMoeda(pedido.valorTotal)}</p>
+        </div>
+      </div>
+    `;
+
+    ativarBotaoCopiarPix();
+  }
+
+  function renderListaPedidos(pedidos, cliente) {
+    if (!pedidos.length) {
+      listaPedidos.innerHTML = `
+        <div class="status-card mb-3">
+          <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
+          <p>Nenhum outro pedido encontrado.</p>
+        </div>
+
+        <button
+          class="btn btn-danger w-100 mt-3"
+          onclick="location.href='./index.html'"
+        >
+          Novo pedido
+        </button>
+      `;
+      return;
+    }
+
+    listaPedidos.innerHTML = `
+      <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
+
+      ${pedidos.map(p => `
+        <div class="status-card mb-3">
+          <h4>#${p.numeroPedido || p.id.slice(0, 6).toUpperCase()}</h4>
+
+          <p>
+          ${
+          (p.itens || []).map(i => {
+
+              const adicionais = (i.adicionais || [])
+                  .map(a => a.nome)
+                  .join(", ");
+
+              return `
+                  <strong>${i.quantidade || 1}x ${i.nome}</strong>
+
+                  ${
+                      adicionais
+                      ? `<br><small><strong>Adicionais:</strong> ${adicionais}</small>`
+                      : ""
+                  }
+
+                  ${
+                      i.observacaoItem
+                      ? `<br><small><strong>Obs:</strong> ${i.observacaoItem}</small>`
+                      : ""
+                  }
+              `;
+
+          }).join("<hr>")
+          }
+          </p>
+
+          <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
+          <p><strong>Status:</strong> ${getStatusLabel(p.status)}</p>
+
+          ${gerarProgresso(p.status)}
+
+          <button
+            class="btn btn-outline-danger mt-3"
+            onclick="location.href='./status.html?id=${p.id}'"
+          >
+            Ver detalhes
+          </button>
+        </div>
+      `).join("")}
+
+      <button
+        class="btn btn-danger w-100 mt-3"
+        onclick="location.href='./index.html'"
+      >
+        Novo pedido
+      </button>
+    `;
+  }
+
+  async function carregarStatus() {
+    const params = new URLSearchParams(window.location.search);
+    const pedidoId = params.get("id");
+
+    const user = await garantirClienteAuth();
+    const cliente = await buscarCliente(user.uid);
+
+    // Mostra o pedido atual no topo, se vier ?id=
+    if (pedidoId) {
+      ouvirPedidoPorId(
+        pedidoId,
+        (pedido) => {
+          renderPedido(pedido, pedidoId);
+        },
+        () => {
+          renderMensagem("Pedido não encontrado.");
+        }
+      );
+    } else {
+      pedidoAtual.innerHTML = "";
+    }
+
+    // Lista os demais pedidos, sem duplicar o que já está no topo
+    ouvirPedidosCliente(user.uid, (pedidos) => {
+      const pedidosFiltrados = pedidoId
+        ? pedidos.filter(p => p.id !== pedidoId)
+        : pedidos;
+
+      renderListaPedidos(pedidosFiltrados, cliente);
+    });
+  }
+
+  carregarStatus();
+</script>
+
+<script 
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>

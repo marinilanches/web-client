@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Admin - Mesa Fácil</title>
+  <link rel="stylesheet" href="./css/login.css" />
+</head>
+
+<body>
+
+  <div class="login-card">
+    <div class="login-logo">🍔</div>
+    <h2 class="login-title">Mesa Fácil</h2>
+    <p class="login-subtitle">Acesso ao painel administrativo</p>
+
+    <form id="loginForm" class="login-form">
+      <div>
+        <label for="email">E-mail</label>
+        <input type="text" id="email" required />
+      </div>
+
+      <div>
+        <label for="password">Senha</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Digite sua senha"
+          required
+        />
+      </div>
+
+      <button type="submit" class="login-btn">Entrar</button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { login } from "./js/services/auth.js";
+
+    const form = document.getElementById("loginForm");
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = emailEl.value.trim();
+      const password = passwordEl.value;
+
+      if (!email || !password) {
+        alert("Preencha e-mail e senha.");
+        return;
+      }
+
+      try {
+        await login(email, password);
+        alert("Login realizado com sucesso!");
+        window.location.href = "./admin/index.html";
+      } catch (erro) {
+        console.error("Erro no login:", erro);
+        alert("Login ou senha inválidos.");
+      }
+    });
+  </script>
+
+</body>
+</html>

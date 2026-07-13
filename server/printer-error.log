@@ -1,0 +1,333 @@
+Erro ao imprimir pedido:
+TypeError [ERR_INVALID_ARG_VALUE]: The argument 'args[4]' must be a string without null bytes. Received '\x1B@\x1Ba\x01\x1BE\x01\x1B!0MESA FACIL\n' +
+  '\x1B!\x00\x1BE\x00================================================\n' +
+  '\x1B...
+    at new NodeError (node:internal/errors:405:5)
+    at validateArgumentNullCheck (node:child_process:973:11)
+    at validateArgumentsNullCheck (node:child_process:980:5)
+    at normalizeSpawnArguments (node:child_process:565:3)
+    at spawn (node:child_process:754:13)
+    at execFile (node:child_process:351:17)
+    at C:\Users\Usuário\server\printer.js:308:9
+    at new Promise (<anonymous>)
+    at enviarRAW (C:\Users\Usuário\server\printer.js:299:12)
+    at imprimirPedido (C:\Users\Usuário\server\printer.js:648:7) {
+  code: 'ERR_INVALID_ARG_VALUE'
+}
+Erro ao imprimir pedido:
+TypeError [ERR_INVALID_ARG_VALUE]: The argument 'args[4]' must be a string without null bytes. Received '\x1B@\x1Ba\x01\x1BE\x01\x1B!0MESA FACIL\n' +
+  '\x1B!\x00\x1BE\x00================================================\n' +
+  '\x1B...
+    at new NodeError (node:internal/errors:405:5)
+    at validateArgumentNullCheck (node:child_process:973:11)
+    at validateArgumentsNullCheck (node:child_process:980:5)
+    at normalizeSpawnArguments (node:child_process:565:3)
+    at spawn (node:child_process:754:13)
+    at execFile (node:child_process:351:17)
+    at C:\Users\Usuário\server\printer.js:308:9
+    at new Promise (<anonymous>)
+    at enviarRAW (C:\Users\Usuário\server\printer.js:299:12)
+    at imprimirPedido (C:\Users\Usuário\server\printer.js:648:7) {
+  code: 'ERR_INVALID_ARG_VALUE'
+}
+Erro ao imprimir pedido:
+TypeError [ERR_INVALID_ARG_VALUE]: The argument 'args[4]' must be a string without null bytes. Received '\x1B@\x1Ba\x01\x1BE\x01\x1B!0MESA FACIL\n' +
+  '\x1B!\x00\x1BE\x00================================================\n' +
+  '\x1B...
+    at new NodeError (node:internal/errors:405:5)
+    at validateArgumentNullCheck (node:child_process:973:11)
+    at validateArgumentsNullCheck (node:child_process:980:5)
+    at normalizeSpawnArguments (node:child_process:565:3)
+    at spawn (node:child_process:754:13)
+    at execFile (node:child_process:351:17)
+    at C:\Users\Usuário\server\printer.js:308:9
+    at new Promise (<anonymous>)
+    at enviarRAW (C:\Users\Usuário\server\printer.js:299:12)
+    at imprimirPedido (C:\Users\Usuário\server\printer.js:648:7) {
+  code: 'ERR_INVALID_ARG_VALUE'
+}
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
+C:\Users\Usuário\server\printer.js:298
+const fs = require("fs");
+      ^
+
+SyntaxError: Identifier 'fs' has already been declared
+    at internalCompileFunction (node:internal/vm:76:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+    at Module._compile (node:internal/modules/cjs/loader:1328:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v18.20.8
