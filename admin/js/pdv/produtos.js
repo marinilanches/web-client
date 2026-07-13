@@ -3,17 +3,11 @@
 import { abrirModal, fecharModal } from "../../components/modal.js";
 import { toast } from "../../components/toast.js";
 
-import {
-    ouvirProdutos
-} from "../../../js/services/products.js";
+import { ouvirProdutos } from "../../../js/services/products.js";
 
-import {
-    listarAdicionais
-} from "../../../js/services/additionals.js";
+import { listarAdicionais } from "../../../js/services/additionals.js";
 
-import {
-    adicionarItemCarrinho
-} from "./carrinho.js";
+import { adicionarItemCarrinho } from "./carrinho.js";
 
 /* ==========================================
    ELEMENTOS
@@ -44,25 +38,19 @@ let produtoSelecionado = null;
 ========================================== */
 
 export async function initProdutosPDV() {
+  console.log("produtos.js carregado");
 
-    console.log("produtos.js carregado");
+  await carregarAdicionais();
 
-    await carregarAdicionais();
+  ouvirProdutos((produtos) => {
+    produtosCache = produtos.filter((produto) => produto.ativo !== false);
 
-    ouvirProdutos((produtos) => {
+    carregarCategorias();
 
-        produtosCache = produtos.filter(
-            (produto) => produto.ativo !== false
-        );
+    aplicarFiltros();
+  });
 
-        carregarCategorias();
-
-        aplicarFiltros();
-
-    });
-
-    bindEventos();
-
+  bindEventos();
 }
 
 /* ==========================================
@@ -70,17 +58,9 @@ export async function initProdutosPDV() {
 ========================================== */
 
 function bindEventos() {
+  buscarProduto?.addEventListener("input", aplicarFiltros);
 
-    buscarProduto?.addEventListener(
-        "input",
-        aplicarFiltros
-    );
-
-    categoriaProduto?.addEventListener(
-        "change",
-        aplicarFiltros
-    );
-
+  categoriaProduto?.addEventListener("change", aplicarFiltros);
 }
 
 /* ==========================================
@@ -88,21 +68,13 @@ function bindEventos() {
 ========================================== */
 
 async function carregarAdicionais() {
+  try {
+    adicionaisCache = await listarAdicionais();
+  } catch (erro) {
+    console.error(erro);
 
-    try {
-
-        adicionaisCache = await listarAdicionais();
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        toast(
-            "Erro ao carregar adicionais."
-        );
-
-    }
-
+    toast("Erro ao carregar adicionais.");
+  }
 }
 
 /* ==========================================
@@ -110,38 +82,30 @@ async function carregarAdicionais() {
 ========================================== */
 
 function carregarCategorias() {
+  categoriasCache = [
+    ...new Set(
+      produtosCache.map((produto) => produto.categoria).filter(Boolean),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-    categoriasCache = [
-        ...new Set(
-            produtosCache
-                .map(produto => produto.categoria)
-                .filter(Boolean)
-        )
-    ].sort(
-        (a, b) => a.localeCompare(b, "pt-BR")
-    );
+  if (!categoriaProduto) return;
 
-    if (!categoriaProduto) return;
-
-    categoriaProduto.innerHTML = `
+  categoriaProduto.innerHTML = `
         <option value="">
             Todas categorias
         </option>
     `;
 
-    categoriasCache.forEach((categoria) => {
-
-        categoriaProduto.insertAdjacentHTML(
-            "beforeend",
-            `
+  categoriasCache.forEach((categoria) => {
+    categoriaProduto.insertAdjacentHTML(
+      "beforeend",
+      `
             <option value="${categoria}">
                 ${categoria}
             </option>
-            `
-        );
-
-    });
-
+            `,
+    );
+  });
 }
 
 /* ==========================================
@@ -149,46 +113,25 @@ function carregarCategorias() {
 ========================================== */
 
 function aplicarFiltros() {
+  const termo = buscarProduto?.value?.trim().toLowerCase() || "";
 
-    const termo =
-        buscarProduto?.value
-            ?.trim()
-            .toLowerCase() || "";
+  const categoria = categoriaProduto?.value || "";
 
-    const categoria =
-        categoriaProduto?.value || "";
+  produtosFiltrados = produtosCache.filter((produto) => {
+    const nome = (produto.nome || "").toLowerCase();
 
-    produtosFiltrados = produtosCache.filter((produto) => {
+    const descricao = (produto.descricao || "").toLowerCase();
 
-        const nome =
-            (produto.nome || "")
-                .toLowerCase();
+    const categoriaProduto = produto.categoria || "";
 
-        const descricao =
-            (produto.descricao || "")
-                .toLowerCase();
+    const pesquisaOK = nome.includes(termo) || descricao.includes(termo);
 
-        const categoriaProduto =
-            produto.categoria || "";
+    const categoriaOK = !categoria || categoriaProduto === categoria;
 
-        const pesquisaOK =
+    return pesquisaOK && categoriaOK;
+  });
 
-            nome.includes(termo) ||
-
-            descricao.includes(termo);
-
-        const categoriaOK =
-
-            !categoria ||
-
-            categoriaProduto === categoria;
-
-        return pesquisaOK && categoriaOK;
-
-    });
-
-    renderProdutos();
-
+  renderProdutos();
 }
 
 /* ==========================================
@@ -196,12 +139,10 @@ function aplicarFiltros() {
 ========================================== */
 
 function renderProdutos() {
+  if (!listaProdutos) return;
 
-    if (!listaProdutos) return;
-
-    if (!produtosFiltrados.length) {
-
-        listaProdutos.innerHTML = `
+  if (!produtosFiltrados.length) {
+    listaProdutos.innerHTML = `
             <div class="empty-state">
 
                 <h3>
@@ -215,22 +156,16 @@ function renderProdutos() {
             </div>
         `;
 
-        return;
+    return;
+  }
 
-    }
+  listaProdutos.innerHTML = "";
 
-    listaProdutos.innerHTML = "";
+  produtosFiltrados.forEach((produto) => {
+    listaProdutos.appendChild(criarCardProduto(produto));
+  });
 
-    produtosFiltrados.forEach((produto) => {
-
-        listaProdutos.appendChild(
-            criarCardProduto(produto)
-        );
-
-    });
-
-    bindBotoesAdicionar();
-
+  bindBotoesAdicionar();
 }
 
 /* ==========================================
@@ -238,30 +173,24 @@ function renderProdutos() {
 ========================================== */
 
 function criarCardProduto(produto) {
+  const card = document.createElement("div");
 
-    const card = document.createElement("div");
+  card.className = "panel pdv-card";
 
-    card.className = "panel pdv-card";
-
-    card.innerHTML = `
+  card.innerHTML = `
 
         <div class="pdv-card-imagem">
 
             ${
-                produto.imagem
-                ?
-
-                `
+              produto.imagem
+                ? `
                 <img
                     src="${produto.imagem}"
                     alt="${produto.nome}"
                     loading="lazy"
                 >
                 `
-
-                :
-
-                `
+                : `
                 <div class="pdv-sem-imagem">
 
                     🍔
@@ -316,8 +245,7 @@ function criarCardProduto(produto) {
 
     `;
 
-    return card;
-
+  return card;
 }
 
 /* ==========================================
@@ -325,38 +253,21 @@ function criarCardProduto(produto) {
 ========================================== */
 
 function bindBotoesAdicionar() {
+  document.querySelectorAll(".btn-add-produto").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const produto = produtosCache.find(
+        (item) => item.id === botao.dataset.id,
+      );
 
-    document
-        .querySelectorAll(".btn-add-produto")
-        .forEach((botao) => {
+      if (!produto) {
+        toast("Produto não encontrado.");
 
-            botao.addEventListener(
-                "click",
-                () => {
+        return;
+      }
 
-                    const produto = produtosCache.find(
-
-                        item => item.id === botao.dataset.id
-
-                    );
-
-                    if (!produto) {
-
-                        toast(
-                            "Produto não encontrado."
-                        );
-
-                        return;
-
-                    }
-
-                    abrirProduto(produto);
-
-                }
-            );
-
-        });
-
+      abrirProduto(produto);
+    });
+  });
 }
 
 /* ==========================================
@@ -364,21 +275,15 @@ function bindBotoesAdicionar() {
 ========================================== */
 
 function formatarMoeda(valor = 0) {
+  return Number(valor).toLocaleString(
+    "pt-BR",
 
-    return Number(valor).toLocaleString(
+    {
+      style: "currency",
 
-        "pt-BR",
-
-        {
-
-            style: "currency",
-
-            currency: "BRL"
-
-        }
-
-    );
-
+      currency: "BRL",
+    },
+  );
 }
 
 /* ==========================================
@@ -386,23 +291,17 @@ function formatarMoeda(valor = 0) {
 ========================================== */
 
 function abrirProduto(produto) {
+  produtoSelecionado = structuredClone(produto);
 
-    produtoSelecionado = structuredClone(produto);
+  abrirModal(produto.nome, montarModalProduto(produto));
 
-    abrirModal(
-        produto.nome,
-        montarModalProduto(produto)
-    );
+  bindModalProduto();
 
-    bindModalProduto();
-
-    atualizarTotalProduto();
-
+  atualizarTotalProduto();
 }
 
 function montarModalProduto(produto) {
-
-    return `
+  return `
 
         <div class="pdv-modal-produto">
 
@@ -503,14 +402,11 @@ function montarModalProduto(produto) {
         </div>
 
     `;
-
 }
 
-function renderImagemProduto(produto){
-
-    if(!produto.imagem){
-
-        return `
+function renderImagemProduto(produto) {
+  if (!produto.imagem) {
+    return `
 
             <div class="pdv-sem-imagem">
 
@@ -519,10 +415,9 @@ function renderImagemProduto(produto){
             </div>
 
         `;
+  }
 
-    }
-
-    return `
+  return `
 
         <img
             src="${produto.imagem}"
@@ -531,19 +426,60 @@ function renderImagemProduto(produto){
         >
 
     `;
-
 }
 
-function renderGrupos(produto){
+function renderGrupos(produto) {
 
-    if(
-        !produto.gruposPersonalizacao ||
+    if (
+        !Array.isArray(produto.gruposPersonalizacao) ||
         !produto.gruposPersonalizacao.length
-    ){
+    ) {
         return "";
     }
 
-    return produto.gruposPersonalizacao.map((grupo)=>{
+    return produto.gruposPersonalizacao.map((grupo) => {
+
+        // true = seleção única (radio)
+        const selecaoUnica =
+            grupo.tipo === "RADIO" ||
+            grupo.tipo === "UNICO" ||
+            grupo.maximo === 1;
+
+        const tipoInput = selecaoUnica
+            ? "radio"
+            : "checkbox";
+
+        const nomeGrupo = `grupo_${grupo.id}`;
+
+        const opcoes = (grupo.opcoes || grupo.itens || []).map((opcao) => `
+
+            <label class="checkbox">
+
+                <input
+                    type="${tipoInput}"
+                    class="grupo-personalizacao"
+                    name="${nomeGrupo}"
+                    data-grupo="${grupo.nome}"
+                    data-id="${opcao.id || ""}"
+                    data-nome="${opcao.nome}"
+                    data-preco="${Number(opcao.preco || 0)}"
+                >
+
+                <span>
+
+                    ${opcao.nome}
+
+                    ${
+                        Number(opcao.preco || 0) > 0
+                            ? `(+ ${formatarMoeda(opcao.preco)})`
+                            : ""
+                    }
+
+                </span>
+
+            </label>
+
+        `).join("");
 
         return `
 
@@ -555,23 +491,7 @@ function renderGrupos(produto){
 
                 </label>
 
-                ${grupo.opcoes.map((opcao)=>`
-
-                    <label class="checkbox">
-
-                        ${opcao.nome}
-
-                        ${
-                            Number(opcao.preco || 0) > 0
-                            ?
-                            `(+ ${formatarMoeda(opcao.preco)})`
-                            :
-                            ""
-                        }
-
-                    </label>
-
-                `).join("")}
+                ${opcoes}
 
             </div>
 
@@ -581,15 +501,12 @@ function renderGrupos(produto){
 
 }
 
-function renderAdicionais(){
+function renderAdicionais() {
+  if (!adicionaisCache.length) {
+    return "";
+  }
 
-    if(!adicionaisCache.length){
-
-        return "";
-
-    }
-
-    return `
+  return `
 
         <div class="form-group">
 
@@ -599,7 +516,9 @@ function renderAdicionais(){
 
             </label>
 
-            ${adicionaisCache.map((adicional)=>`
+            ${adicionaisCache
+              .map(
+                (adicional) => `
 
                 <label class="checkbox">
 
@@ -614,66 +533,44 @@ function renderAdicionais(){
                     ${adicional.nome}
 
                     ${
-                        Number(adicional.preco || 0) > 0
-                        ?
-                        `(+ ${formatarMoeda(adicional.preco)})`
-                        :
-                        ""
+                      Number(adicional.preco || 0) > 0
+                        ? `(+ ${formatarMoeda(adicional.preco)})`
+                        : ""
                     }
 
                 </label>
 
-            `).join("")}
+            `,
+              )
+              .join("")}
 
         </div>
 
     `;
-
 }
 
-function bindModalProduto(){
+function bindModalProduto() {
+  document
+    .getElementById("cancelarProduto")
+    ?.addEventListener("click", fecharModal);
 
-    document
-        .getElementById("cancelarProduto")
-        ?.addEventListener(
-            "click",
-            fecharModal
-        );
+  document
+    .getElementById("maisQuantidade")
+    ?.addEventListener("click", aumentarQuantidade);
 
-    document
-        .getElementById("maisQuantidade")
-        ?.addEventListener(
-            "click",
-            aumentarQuantidade
-        );
+  document
+    .getElementById("menosQuantidade")
+    ?.addEventListener("click", diminuirQuantidade);
 
-    document
-        .getElementById("menosQuantidade")
-        ?.addEventListener(
-            "click",
-            diminuirQuantidade
-        );
+  document
+    .querySelectorAll(".grupo-personalizacao,.adicional-item")
+    .forEach((input) => {
+      input.addEventListener("change", atualizarTotalProduto);
+    });
 
-    document
-        .querySelectorAll(
-            ".grupo-personalizacao,.adicional-item"
-        )
-        .forEach((input)=>{
-
-            input.addEventListener(
-                "change",
-                atualizarTotalProduto
-            );
-
-        });
-
-    document
-        .getElementById("confirmarProduto")
-        ?.addEventListener(
-            "click",
-            confirmarProduto
-        );
-
+  document
+    .getElementById("confirmarProduto")
+    ?.addEventListener("click", confirmarProduto);
 }
 
 /* ==========================================
@@ -681,43 +578,35 @@ function bindModalProduto(){
 ========================================== */
 
 function obterQuantidadeAtual() {
+  const elemento = document.getElementById("quantidadeProduto");
 
-    const elemento = document.getElementById("quantidadeProduto");
-
-    return Number(elemento?.textContent || 1);
-
+  return Number(elemento?.textContent || 1);
 }
 
 function definirQuantidade(valor) {
+  const elemento = document.getElementById("quantidadeProduto");
 
-    const elemento = document.getElementById("quantidadeProduto");
+  if (!elemento) return;
 
-    if (!elemento) return;
-
-    elemento.textContent = Math.max(1, valor);
-
+  elemento.textContent = Math.max(1, valor);
 }
 
 function aumentarQuantidade() {
+  const quantidade = obterQuantidadeAtual();
 
-    const quantidade = obterQuantidadeAtual();
+  definirQuantidade(quantidade + 1);
 
-    definirQuantidade(quantidade + 1);
-
-    atualizarTotalProduto();
-
+  atualizarTotalProduto();
 }
 
 function diminuirQuantidade() {
+  const quantidade = obterQuantidadeAtual();
 
-    const quantidade = obterQuantidadeAtual();
+  if (quantidade <= 1) return;
 
-    if (quantidade <= 1) return;
+  definirQuantidade(quantidade - 1);
 
-    definirQuantidade(quantidade - 1);
-
-    atualizarTotalProduto();
-
+  atualizarTotalProduto();
 }
 
 /* ==========================================
@@ -725,39 +614,29 @@ function diminuirQuantidade() {
 ========================================== */
 
 function atualizarTotalProduto() {
+  if (!produtoSelecionado) return;
 
-    if (!produtoSelecionado) return;
+  const quantidade = obterQuantidadeAtual();
 
-    const quantidade = obterQuantidadeAtual();
+  let total = Number(produtoSelecionado.preco || 0);
 
-    let total = Number(produtoSelecionado.preco || 0);
+  document
+    .querySelectorAll(".grupo-personalizacao:checked")
+    .forEach((input) => {
+      total += Number(input.dataset.preco || 0);
+    });
 
-    document
-        .querySelectorAll(".grupo-personalizacao:checked")
-        .forEach((input) => {
+  document.querySelectorAll(".adicional-item:checked").forEach((input) => {
+    total += Number(input.dataset.preco || 0);
+  });
 
-            total += Number(input.dataset.preco || 0);
+  total *= quantidade;
 
-        });
+  const valor = document.getElementById("valorProduto");
 
-    document
-        .querySelectorAll(".adicional-item:checked")
-        .forEach((input) => {
-
-            total += Number(input.dataset.preco || 0);
-
-        });
-
-    total *= quantidade;
-
-    const valor = document.getElementById("valorProduto");
-
-    if (valor) {
-
-        valor.textContent = formatarMoeda(total);
-
-    }
-
+  if (valor) {
+    valor.textContent = formatarMoeda(total);
+  }
 }
 
 /* ==========================================
@@ -765,99 +644,82 @@ function atualizarTotalProduto() {
 ========================================== */
 
 function confirmarProduto() {
+  if (!produtoSelecionado) return;
 
-    if (!produtoSelecionado) return;
+  const quantidade = obterQuantidadeAtual();
 
-    const quantidade = obterQuantidadeAtual();
+  const personalizacoes = [];
 
-    const personalizacoes = [];
+  document
+    .querySelectorAll(".grupo-personalizacao:checked")
+    .forEach((input) => {
+      personalizacoes.push({
+        grupo: input.dataset.grupo,
 
-    document
-        .querySelectorAll(".grupo-personalizacao:checked")
-        .forEach((input) => {
+        nome: input.dataset.nome,
 
-            personalizacoes.push({
-
-                grupo: input.dataset.grupo,
-
-                nome: input.dataset.nome,
-
-                preco: Number(input.dataset.preco || 0)
-
-            });
-
-        });
-
-    const adicionais = [];
-
-    document
-        .querySelectorAll(".adicional-item:checked")
-        .forEach((input) => {
-
-            adicionais.push({
-
-                id: input.dataset.id,
-
-                nome: input.dataset.nome,
-
-                preco: Number(input.dataset.preco || 0)
-
-            });
-
-        });
-
-    const observacao = document
-        .getElementById("observacaoProduto")
-        ?.value
-        ?.trim() || "";
-
-    const valorAdicionais = adicionais.reduce(
-
-        (total, item) => total + Number(item.preco || 0),
-
-        0
-
-    );
-
-    const valorPersonalizacao = personalizacoes.reduce(
-
-        (total, item) => total + Number(item.preco || 0),
-
-        0
-
-    );
-
-    const valorUnitario =
-        Number(produtoSelecionado.preco || 0) +
-        valorAdicionais +
-        valorPersonalizacao;
-
-    adicionarItemCarrinho({
-
-        produtoId: produtoSelecionado.id,
-
-        nome: produtoSelecionado.nome,
-
-        imagem: produtoSelecionado.imagem || "",
-
-        categoria: produtoSelecionado.categoria || "",
-
-        quantidade,
-
-        valorUnitario,
-
-        valorTotal: valorUnitario * quantidade,
-
-        adicionais,
-
-        personalizacoes,
-
-        observacao
-
+        preco: Number(input.dataset.preco || 0),
+      });
     });
 
-    toast("Produto adicionado ao carrinho.");
+  const adicionais = [];
 
-    fecharModal();
+  document.querySelectorAll(".adicional-item:checked").forEach((input) => {
+    adicionais.push({
+      id: input.dataset.id,
 
+      nome: input.dataset.nome,
+
+      preco: Number(input.dataset.preco || 0),
+    });
+  });
+
+  const observacao =
+    document.getElementById("observacaoProduto")?.value?.trim() || "";
+
+  const valorAdicionais = adicionais.reduce(
+    (total, item) => total + Number(item.preco || 0),
+
+    0,
+  );
+
+  const valorPersonalizacao = personalizacoes.reduce(
+    (total, item) => total + Number(item.preco || 0),
+
+    0,
+  );
+
+  const valorUnitario =
+    Number(produtoSelecionado.preco || 0) +
+    valorAdicionais +
+    valorPersonalizacao;
+
+  adicionarItemCarrinho({
+    produtoId: produtoSelecionado.id,
+
+    nome: produtoSelecionado.nome,
+
+    imagem: produtoSelecionado.imagem || "",
+
+    categoria: produtoSelecionado.categoria || "",
+
+    quantidade,
+
+    valorUnitario,
+
+    valorTotal: valorUnitario * quantidade,
+
+    personalizados: {
+      adicionais,
+      observacao,
+    },
+
+    personalizacoes,
+
+    observacao,
+  });
+
+  toast("Produto adicionado ao carrinho.");
+
+  fecharModal();
 }

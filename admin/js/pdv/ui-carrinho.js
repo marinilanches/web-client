@@ -111,7 +111,22 @@ function renderItemCarrinho(item) {
 
     console.log("ITEM CARRINHO:", JSON.stringify(item,null,2));
 
-    const adicionais = "";
+    const adicionais = (
+        item.personalizados?.adicionais ||
+        item.adicionais ||
+        []
+    )
+    .map(adicional => `
+        <div class="carrinho-extra">
+            + ${adicional.nome}
+            ${
+                Number(adicional.preco || 0) > 0
+                    ? ` (${formatarMoeda(adicional.preco)})`
+                    : ""
+            }
+        </div>
+    `)
+    .join("");
 
     const personalizacoes = (item.personalizacoes || [])
         .map(p => `${p.grupo}: ${p.nome}`)
@@ -126,37 +141,29 @@ function renderItemCarrinho(item) {
             <div class="carrinho-info">
 
                 <div class="carrinho-nome">
-
                     ${item.nome}
-
                 </div>
+
+                ${adicionais}
 
                 ${
                     personalizacoes
-                    ?
-                    `
+                    ? `
                     <div class="carrinho-extra">
-
                         ${personalizacoes}
-
                     </div>
                     `
-                    :
-                    ""
+                    : ""
                 }
 
                 ${
                     item.observacao
-                    ?
-                    `
+                    ? `
                     <div class="carrinho-observacao">
-
                         📝 ${item.observacao}
-
                     </div>
                     `
-                    :
-                    ""
+                    : ""
                 }
 
                 <div class="carrinho-preco">

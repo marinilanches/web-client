@@ -7,83 +7,292 @@
     <link rel="stylesheet" href="./css/styles.css" />
     <link rel="stylesheet" href="./css/pedido-status.css" />
     <style>
+      /* ==========================================================
+   CHECKOUT
+========================================================== */
+
+      .checkout-container {
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+
       .checkout-form {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        margin-top: 20px;
-        margin-bottom: 24px;
-      }
-
-      .checkout-form label {
-        font-weight: 600;
-        margin-bottom: 4px;
-        display: block;
-      }
-
-      .checkout-form input,
-      .checkout-form select,
-      .checkout-form textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-sizing: border-box;
-        font-size: 14px;
-      }
-
-      .checkout-form textarea {
-        resize: vertical;
-        min-height: 90px;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .campo {
-        margin-bottom: 8px;
+        gap: 18px;
       }
 
       .bloco {
         background: #fff;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--mf-border);
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: var(--mf-shadow-sm);
       }
 
+      .bloco h2,
+      .bloco h3 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin-bottom: 18px;
+        color: var(--mf-text);
+      }
+
+      .campo {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .campo:last-child {
+        margin-bottom: 0;
+      }
+
+      .campo label {
+        font-weight: 700;
+        color: var(--mf-text);
+      }
+
+      .checkout-form input,
+      .checkout-form textarea,
+      .checkout-form select {
+        width: 100%;
+
+        min-height: 52px;
+
+        border: 1px solid var(--mf-border);
+
+        border-radius: 14px;
+
+        padding: 14px 16px;
+
+        font-size: 15px;
+
+        background: #fff;
+
+        transition: 0.2s;
+      }
+
+      .checkout-form textarea {
+        min-height: 110px;
+
+        resize: vertical;
+      }
+
+      .checkout-form input:focus,
+      .checkout-form textarea:focus,
+      .checkout-form select:focus {
+        border-color: var(--mf-primary);
+
+        box-shadow: 0 0 0 4px rgba(234, 29, 44, 0.1);
+
+        outline: none;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ==========================================================
+   RESUMO
+========================================================== */
+
       .item-resumo {
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: flex-start;
+
+        gap: 16px;
+
+        padding: 14px 0;
+
+        border-bottom: 1px solid #ececec;
       }
 
       .item-resumo:last-child {
         border-bottom: none;
       }
 
+      .item-resumo strong {
+        font-size: 15px;
+      }
+
+      .item-resumo small {
+        color: #777;
+      }
+
+      .resumo-box {
+        border: 1px solid var(--mf-border);
+
+        border-radius: 16px;
+
+        padding: 18px;
+
+        background: #fafafa;
+      }
+
+      .resumo-box p {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin: 12px 0;
+
+        font-size: 15px;
+      }
+
       .linha-total {
-        margin-top: 12px;
-        font-size: 16px;
-        font-weight: 600;
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin-top: 20px;
+
+        padding-top: 18px;
+
+        border-top: 2px dashed #ddd;
+
+        font-size: 18px;
+
+        font-weight: 800;
       }
 
       .linha-total strong {
-        font-size: 18px;
+        color: var(--mf-primary);
+
+        font-size: 1.6rem;
+      }
+
+      /* ==========================================================
+   BOTÕES
+========================================================== */
+
+      .btn {
+        border-radius: 14px;
+
+        font-weight: 700;
+
+        transition: 0.2s;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
       }
 
       .btn-finalizar {
         width: 100%;
-        padding: 14px;
+
+        min-height: 60px;
+
         border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
+
+        border-radius: 16px;
+
+        background: linear-gradient(135deg, #ff3344, var(--mf-primary));
+
+        color: #fff;
+
+        font-size: 18px;
+
+        font-weight: 800;
+
+        box-shadow: 0 18px 40px rgba(234, 29, 44, 0.25);
       }
 
-      .resumo-box p {
-        margin: 6px 0;
+      .btn-finalizar:hover {
+        filter: brightness(1.03);
+      }
+
+      .btn-finalizar:disabled {
+        opacity: 0.55;
+
+        cursor: not-allowed;
+      }
+
+      /* ==========================================================
+   BLOCOS DE ENDEREÇO
+========================================================== */
+
+      .endereco-grid {
+        display: grid;
+
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        gap: 16px;
+      }
+
+      .endereco-grid .campo.full {
+        grid-column: 1/-1;
+      }
+
+      /* ==========================================================
+   MOBILE
+========================================================== */
+
+      @media (max-width: 768px) {
+        .checkout-container {
+          margin: 12px auto;
+
+          padding: 0 12px 110px;
+        }
+
+        .bloco {
+          padding: 18px;
+
+          border-radius: 18px;
+        }
+
+        .endereco-grid {
+          grid-template-columns: 1fr;
+
+          gap: 12px;
+        }
+
+        .linha-total {
+          font-size: 16px;
+        }
+
+        .linha-total strong {
+          font-size: 1.4rem;
+        }
+
+        .btn-finalizar {
+          position: fixed;
+
+          left: 12px;
+
+          right: 12px;
+
+          bottom: calc(12px + env(safe-area-inset-bottom));
+
+          z-index: 1050;
+
+          min-height: 58px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .bloco {
+          padding: 16px;
+        }
+
+        .campo label {
+          font-size: 0.95rem;
+        }
+
+        .checkout-form input,
+        .checkout-form textarea,
+        .checkout-form select {
+          font-size: 16px;
+        }
       }
     </style>
   </head>
@@ -94,130 +303,141 @@
     </header>
 
     <section class="menu">
-      <div class="bloco">
-        <h3>Resumo do Carrinho</h3>
-        <div id="resumo"></div>
+      <div class="checkout-container">
+        <!-- RESUMO -->
 
-        <div class="resumo-box">
-          <p>
-            Subtotal: <strong>R$ <span id="subtotal">0.00</span></strong>
-          </p>
-          <p id="linhaTaxa">
-            Taxa de entrega:
-            <strong>R$ <span id="taxaEntrega">0.00</span></strong>
-          </p>
-          <p class="linha-total">
-            Total: <strong>R$ <span id="total">0.00</span></strong>
-          </p>
+        <div class="bloco resumo-card">
+          <h3>Resumo do Carrinho</h3>
+
+          <div id="resumo"></div>
+
+          <div class="resumo-box">
+            <p>
+              Subtotal:
+              <strong> R$ <span id="subtotal">0.00</span> </strong>
+            </p>
+
+            <p id="linhaTaxa">
+              Taxa de entrega:
+              <strong> R$ <span id="taxaEntrega">0.00</span> </strong>
+            </p>
+
+            <p class="linha-total">
+              Total:
+              <strong> R$ <span id="total">0.00</span> </strong>
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div class="bloco">
-        <h3>Seus dados</h3>
+        <!-- FORMULÁRIO -->
 
-        <form id="checkoutForm" class="checkout-form">
-          <div class="campo">
-            <label for="cliente">Nome</label>
-            <input
-              type="text"
-              id="cliente"
-              placeholder="Digite seu nome"
-              required
-            />
-          </div>
+        <div class="bloco dados-card">
+          <h3>Seus dados</h3>
 
-          <div class="campo">
-            <label for="telefone">Telefone</label>
-            <input
-              type="tel"
-              id="telefone"
-              placeholder="(11) 99999-9999"
-              required
-            />
-          </div>
-
-          <div class="campo">
-            <label for="tipoPedido">Tipo do pedido</label>
-            <select id="tipoPedido" required>
-              <option value="Delivery">Delivery</option>
-              <option value="Retirada">Retirada</option>
-            </select>
-          </div>
-
-          <div id="camposDelivery">
+          <form id="checkoutForm" class="checkout-form">
             <div class="campo">
-              <label for="bairro">Bairro</label>
-              <select id="bairro">
-                <option value="">Selecione o bairro</option>
+              <label for="cliente">Nome</label>
+              <input
+                type="text"
+                id="cliente"
+                placeholder="Digite seu nome"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="telefone">Telefone</label>
+              <input
+                type="tel"
+                id="telefone"
+                placeholder="(11) 99999-9999"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="tipoPedido">Tipo do pedido</label>
+              <select id="tipoPedido" required>
+                <option value="Delivery">Delivery</option>
+                <option value="Retirada">Retirada</option>
               </select>
             </div>
 
-            <div class="campo">
-              <label for="endereco">Endereço</label>
+            <div id="camposDelivery">
+              <div class="endereco-grid">
+                <div class="campo">
+                  <label for="bairro">Bairro</label>
+                  <select id="bairro">
+                    <option value="">Selecione o bairro</option>
+                  </select>
+                </div>
 
-              <input type="text" id="endereco" placeholder="Rua, número" />
+                <div class="campo full">
+                  <label for="endereco">Rua e número</label>
 
-              <button
-                type="button"
-                id="btnLocalizacao"
-                style="
-                  margin-top: 8px;
-                  padding: 10px;
-                  border: none;
-                  border-radius: 8px;
-                  cursor: pointer;
-                "
-              >
-                📍 Usar localização atual
-              </button>
+                  <input type="text" id="endereco" placeholder="Rua, número" />
 
-              <small id="statusLocalizacao"></small>
+                  <button
+                    type="button"
+                    id="btnLocalizacao"
+                    class="btn-localizacao"
+                  >
+                    📍 Usar localização atual
+                  </button>
+
+                  <small id="statusLocalizacao"></small>
+                </div>
+
+                <div class="campo full">
+                  <label for="referencia"> Complemento / Referência </label>
+
+                  <input
+                    type="text"
+                    id="referencia"
+                    placeholder="Apartamento, bloco, casa de esquina..."
+                  />
+                </div>
+              </div>
             </div>
 
             <div class="campo">
-              <label for="referencia">Referência</label>
+              <label for="pagamentoMetodo"> Forma de pagamento </label>
+
+              <select id="pagamentoMetodo" required>
+                <option value="">Selecione</option>
+                <option value="PIX">PIX</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="CARTAO_CREDITO">Cartão de crédito</option>
+                <option value="CARTAO_DEBITO">Cartão de débito</option>
+              </select>
+            </div>
+
+            <div class="campo hidden" id="campoTrocoPara">
+              <label for="trocoPara"> Troco para </label>
+
               <input
-                type="text"
-                id="referencia"
-                placeholder="Ex.: portão preto, casa de esquina"
+                type="number"
+                id="trocoPara"
+                min="0"
+                step="0.01"
+                placeholder="Ex.: 50.00"
               />
             </div>
-          </div>
 
-          <div class="campo">
-            <label for="pagamentoMetodo">Forma de pagamento</label>
-            <select id="pagamentoMetodo" required>
-              <option value="">Selecione</option>
-              <option value="PIX">PIX</option>
-              <option value="DINHEIRO">Dinheiro</option>
-              <option value="CARTAO_CREDITO">Cartão de crédito</option>
-              <option value="CARTAO_DEBITO">Cartão de débito</option>
-            </select>
-          </div>
+            <div class="campo full">
+              <label for="observacoes"> Observações </label>
 
-          <div class="campo hidden" id="campoTrocoPara">
-            <label for="trocoPara">Troco para</label>
-            <input
-              type="number"
-              id="trocoPara"
-              min="0"
-              step="0.01"
-              placeholder="Ex.: 50.00"
-            />
-          </div>
+              <textarea
+                id="observacoes"
+                placeholder="Ex.: sem cebola, tocar interfone..."
+              ></textarea>
+            </div>
 
-          <div class="campo">
-            <label for="observacoes">Observações</label>
-            <textarea
-              id="observacoes"
-              placeholder="Ex.: sem cebola, tocar interfone..."
-            ></textarea>
-          </div>
-
-          <button type="submit" id="btnFinalizar" class="btn-finalizar">
-            Confirmar Pedido
-          </button>
-        </form>
+            <button type="submit" id="btnFinalizar" class="btn-finalizar">
+              Confirmar Pedido
+            </button>
+          </form>
+        </div>
       </div>
     </section>
 
