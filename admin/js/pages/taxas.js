@@ -13,7 +13,6 @@ const nomeEl = document.getElementById("nome");
 const taxaEl = document.getElementById("taxa");
 const ordemEl = document.getElementById("ordem");
 const ativoEl = document.getElementById("ativo");
-const ruasEl = document.getElementById("ruas");
 
 const btnSalvar = document.getElementById("btnSalvar");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
@@ -36,7 +35,6 @@ function resetForm() {
   taxaEl.value = "";
   ordemEl.value = "";
   ativoEl.value = "true";
-  ruasEl.value = "";
 
   formTitulo.textContent = "Cadastrar bairro";
   btnSalvar.textContent = "Salvar bairro";
@@ -50,7 +48,6 @@ function preencherFormulario(taxa) {
   taxaEl.value = Number(taxa.taxa || 0);
   ordemEl.value = Number(taxa.ordem || 0);
   ativoEl.value = String(Boolean(taxa.ativo));
-  ruasEl.value = Array.isArray(taxa.ruas) ? taxa.ruas.join("\n") : "";
 
   formTitulo.textContent = "Editar bairro";
   btnSalvar.textContent = "Salvar alterações";
@@ -156,10 +153,7 @@ async function onSubmit(event) {
 
     ativo: ativoEl.value === "true",
 
-    ruas: ruasEl.value
-      .split("\n")
-      .map((rua) => rua.trim())
-      .filter(Boolean),
+    ruas: [],
   };
 
   try {
