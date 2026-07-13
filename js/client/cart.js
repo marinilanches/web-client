@@ -97,6 +97,12 @@ function iniciarEventosCarrinho() {
       removerItem(btnRemover.dataset.key);
       return;
     }
+    const btnEditar = e.target.closest(".btn-cart-edit");
+
+    if (btnEditar) {
+      editarItemCarrinho(btnEditar.dataset.key);
+      return;
+    }
   });
 
   document.addEventListener("change", (e) => {
@@ -184,6 +190,8 @@ function produtoTemPersonalizacao(produto = {}) {
 }
 
 let produtoPersonalizandoAtual = null;
+
+let itemEditandoKey = null;
 
 const adicionaisRenderizados = new Map();
 
@@ -403,7 +411,13 @@ function confirmarPersonalizacaoProduto() {
   const observacao =
     document.getElementById("personalizacaoObservacao")?.value ?? "";
 
-  addItemCustomizado(produtoPersonalizandoAtual, selecionados, observacao);
+  if (itemEditandoKey) {
+    atualizarItemEditado(itemEditandoKey, selecionados, observacao);
+
+    itemEditandoKey = null;
+  } else {
+    addItemCustomizado(produtoPersonalizandoAtual, selecionados, observacao);
+  }
 
   const modalElement = document.getElementById("personalizacaoModal");
 
@@ -431,6 +445,92 @@ function confirmarPersonalizacaoProduto() {
 
   abrirCarrinhoNoMobile();
 }
+function editarItemCarrinho(key) {
+  const item = carrinho.find((produto) => produto.key === key);
+
+  if (!item) {
+    console.error("Item não encontrado:", key);
+    return;
+  }
+
+  itemEditandoKey = key;
+
+  produtoPersonalizandoAtual = {
+    ...item,
+
+    preco: item.precoBase ?? item.valorUnitario,
+
+    gruposPersonalizacao: item.gruposPersonalizacao || [],
+
+    adicionais: item.adicionaisDisponiveis || [],
+  };
+
+  document.getElementById("personalizacaoTitulo").textContent = item.nome;
+
+  document.getElementById("personalizacaoProdutoNome").textContent = item.nome;
+
+  document.getElementById("personalizacaoPrecoBase").textContent =
+    `Valor base: ${formatarMoeda(produtoPersonalizandoAtual.preco)}`;
+
+  document.getElementById("personalizacaoObservacao").value =
+    item.personalizados?.observacao || "";
+
+  montarGruposDoProduto({
+    ...produtoPersonalizandoAtual,
+
+    adicionais: item.adicionaisDisponiveis || [],
+  });
+
+  setTimeout(() => {
+    const adicionaisAtuais = item.personalizados?.adicionais || [];
+
+    document
+      .querySelectorAll("#personalizacaoModal .adicional-checkbox")
+      .forEach((check) => {
+        const adicional = adicionaisRenderizados.get(check.dataset.id);
+
+        if (adicionaisAtuais.some((a) => a.id === adicional?.id)) {
+          check.checked = true;
+        }
+      });
+
+    atualizarResumoModalPersonalizacao();
+  }, 50);
+
+  const modalElement = document.getElementById("personalizacaoModal");
+
+  bootstrap.Modal.getOrCreateInstance(modalElement).show();
+}
+function atualizarItemEditado(key, adicionais = [], observacao = "") {
+  const item = carrinho.find((i) => i.key === key);
+
+  if (!item) return;
+
+  const valorAdicionais = adicionais.reduce(
+    (total, a) => total + Number(a.preco || 0),
+    0,
+  );
+
+  const precoBase = Number(
+    item.precoBase ?? item.valorUnitario - (item.valorAdicionais || 0),
+  );
+
+  item.valorAdicionais = valorAdicionais;
+
+  item.valorUnitario = precoBase + valorAdicionais;
+
+  item.preco = item.valorUnitario;
+
+  item.personalizados = {
+    adicionais,
+
+    observacao: (observacao || "").trim(),
+  };
+
+  salvarCarrinho();
+
+  updateUI();
+}
 
 function addItemCustomizado(produto, adicionais = [], observacao = "") {
   const precoBase = Number(produto.preco || 0);
@@ -454,6 +554,12 @@ function addItemCustomizado(produto, adicionais = [], observacao = "") {
     id: produto.id,
 
     nome: produto.nome,
+
+    descricao: produto.descricao || "",
+
+    gruposPersonalizacao: produto.gruposPersonalizacao || [],
+
+    adicionaisDisponiveis: produto.adicionais || [],
 
     preco: precoBase + valorAdicionais,
 
@@ -585,6 +691,10 @@ function carregarCarrinho() {
 
   carrinho = carrinho.map((item) => ({
     ...item,
+
+    gruposPersonalizacao: item.gruposPersonalizacao || [],
+
+    adicionaisDisponiveis: item.adicionaisDisponiveis || [],
 
     valorUnitario: item.valorUnitario ?? item.preco,
 
@@ -771,12 +881,17 @@ function renderItemCarrinho(item) {
         </button>
 
         <button
+          class="btn btn-sm btn-outline-primary btn-cart-edit"
+          data-key="${item.key}"
+        >
+          Editar
+        </button>
+
+        <button
           class="btn btn-sm btn-outline-danger ms-auto btn-cart-remove"
           data-key="${item.key}"
         >
-
           Remover
-
         </button>
 
       </div>

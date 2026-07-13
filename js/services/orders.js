@@ -87,16 +87,31 @@ function normalizarTelefoneWhatsapp(telefone) {
 
 function extrairBairro(endereco = "") {
   if (!endereco) return "";
-  const partes = endereco
-    .split(",")
-    .map((p) => p.trim())
-    .filter(Boolean);
 
-  // heurística simples:
+  // Novo formato:
+  // {
+  //   rua:"",
+  //   numero:"",
+  //   bairro:"",
+  //   complemento:""
+  // }
+  if (typeof endereco === "object") {
+    return endereco.bairro || "";
+  }
+
+  // Formato antigo:
   // "Rua X, 123, Centro"
-  // tenta usar a 3ª parte como bairro, senão a última
-  if (partes.length >= 3) return partes[2];
-  if (partes.length >= 2) return partes[partes.length - 1];
+  if (typeof endereco === "string") {
+    const partes = endereco
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    if (partes.length >= 3) return partes[2];
+
+    if (partes.length >= 2) return partes[partes.length - 1];
+  }
+
   return "";
 }
 

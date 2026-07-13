@@ -367,7 +367,7 @@
               <div class="endereco-grid">
                 <div class="campo">
                   <label for="bairro">Bairro</label>
-                  <select id="bairro">
+                  <select id="bairro" disabled>
                     <option value="">Selecione o bairro</option>
                   </select>
                 </div>
@@ -376,6 +376,11 @@
                   <label for="endereco">Rua e número</label>
 
                   <input type="text" id="rua" placeholder="Rua" required />
+
+                  <div
+                    id="listaSugestoesEndereco"
+                    class="lista-sugestoes-endereco"
+                  ></div>
 
                   <input
                     type="text"
@@ -500,6 +505,10 @@
       let valorTotal = 0;
       let bairrosEntrega = [];
 
+      let entregaDisponivel = true;
+
+      let bairroDetectado = null;
+
       function normalizarTelefone(telefone) {
         let numero = String(telefone || "").replace(/\D/g, "");
 
@@ -552,6 +561,30 @@
         });
       }
 
+      function bloquearEntrega(mensagem) {
+        entregaDisponivel = false;
+
+        bairroDetectado = null;
+
+        bairroEl.value = "";
+        ruaEl.value = "";
+        numeroEl.value = "";
+
+        taxaEntrega = 0;
+
+        recalcularTotal();
+
+        document.getElementById("btnFinalizar").disabled = true;
+
+        alert(mensagem);
+      }
+
+      function liberarEntrega() {
+        entregaDisponivel = true;
+
+        document.getElementById("btnFinalizar").disabled = false;
+      }
+
       function renderCarrinho() {
         resumo.innerHTML = "";
         valorSubtotal = 0;
@@ -568,58 +601,63 @@
 
         carrinho.forEach((item) => {
           const quantidade = Number(item.quantidade || 1);
-          const valorUnitario = Number(
-            item.valorUnitario ?? item.valor ?? item.preco ?? 0,
-          );
-          const subtotalItem = quantidade * valorUnitario;
 
-          valorSubtotal += subtotalItem;
+          const valorBase = Number(
+            item.precoBase ?? item.preco ?? item.valor ?? 0,
+          );
 
           const adicionais = item.personalizados?.adicionais || [];
 
+          const valorAdicionais = adicionais.reduce(
+            (total, adicional) => total + Number(adicional.preco || 0),
+            0,
+          );
+
+          const valorUnitario = valorBase + valorAdicionais;
+
+          const subtotalItem = quantidade * valorUnitario;
+
+          // IMPORTANTE
+          valorSubtotal += subtotalItem;
+
           const adicionaisHtml = adicionais.length
             ? `
-                <div style="margin-top:6px;">
-                  <strong>Adicionais:</strong>
-                  <ul style="margin:4px 0 0 18px;padding:0;">
-                    ${adicionais
-                      .map(
-                        (adicional) => `
-                      <li>
-                        ${adicional.nome}
-                        ${
-                          Number(adicional.preco || 0) > 0
-                            ? `(+ ${formatarMoeda(adicional.preco)})`
-                            : ""
-                        }
-                      </li>
-                    `,
-                      )
-                      .join("")}
-                  </ul>
-                </div>
-              `
-            : "";
-
-          const observacaoItemHtml = item.personalizados?.observacao
-            ? `
-                  <div style="margin-top:6px;">
-                    <strong>Obs. do item:</strong>
-                    ${item.personalizados.observacao}
-                  </div>
-                `
+              <div style="margin-top:6px;">
+                <strong>Adicionais:</strong>
+                <ul style="margin:4px 0 0 18px;padding:0;">
+                  ${adicionais
+                    .map(
+                      (adicional) => `
+                    <li>
+                      ${adicional.nome}
+                      (+ ${formatarMoeda(adicional.preco)})
+                    </li>
+                  `,
+                    )
+                    .join("")}
+                </ul>
+              </div>
+            `
             : "";
 
           resumo.innerHTML += `
-        <div class="item-resumo">
-          <h4>${item.nome}</h4>
-          <p>Quantidade: ${quantidade}</p>
-          <p>Unitário: ${formatarMoeda(valorUnitario)}</p>
-          <p>Subtotal: ${formatarMoeda(subtotalItem)}</p>
-          ${adicionaisHtml}
-          ${observacaoItemHtml}
-        </div>
-      `;
+            <div class="item-resumo">
+
+              <h4>${item.nome}</h4>
+
+              <p>Quantidade: ${quantidade}</p>
+
+              <p>Preço: ${formatarMoeda(valorBase)}</p>
+
+              ${adicionaisHtml}
+
+              <p>
+                Subtotal:
+                ${formatarMoeda(subtotalItem)}
+              </p>
+
+            </div>
+          `;
         });
 
         recalcularTotal();
@@ -629,7 +667,7 @@
         try {
           bairrosEntrega = await listarTaxasEntregaAtivas();
 
-          bairroEl.innerHTML = `<option value="">Selecione o bairro</option>`;
+          bairroEl.innerHTML = `<option value="">Detectado automaticamente</option>`;
 
           bairrosEntrega.forEach((bairro) => {
             const option = document.createElement("option");
@@ -646,8 +684,13 @@
       }
 
       function obterBairroSelecionado() {
-        const bairroId = bairroEl.value;
-        return bairrosEntrega.find((item) => item.id === bairroId) || null;
+        if (bairroDetectado) {
+          return bairroDetectado;
+        }
+
+        return (
+          bairrosEntrega.find((item) => item.id === bairroEl.value) || null
+        );
       }
 
       function recalcularTotal() {
@@ -679,6 +722,8 @@
           ruaEl.required = true;
           numeroEl.required = true;
         } else {
+          bairroDetectado = null;
+
           camposDelivery.classList.add("hidden");
 
           bairroEl.required = false;
@@ -689,6 +734,8 @@
           ruaEl.value = "";
           numeroEl.value = "";
           referenciaEl.value = "";
+
+          liberarEntrega();
         }
 
         recalcularTotal();
@@ -714,6 +761,12 @@
         const pagamentoMetodo = pagamentoMetodoEl.value;
         const telefoneWhatsapp = normalizarTelefone(telefone);
         const bairroSelecionado = obterBairroSelecionado();
+
+        if (tipo === "Delivery" && !entregaDisponivel) {
+          alert("Ainda não entregamos neste bairro.");
+
+          return false;
+        }
 
         if (carrinho.length === 0) {
           alert("Carrinho vazio!");
@@ -841,6 +894,8 @@
       }
 
       async function usarLocalizacaoAtual() {
+        console.log("Entrou em usarLocalizacaoAtual");
+
         if (!navigator.geolocation) {
           alert("Seu navegador não suporta localização.");
           return;
@@ -883,18 +938,20 @@
               const bairroEncontrado = encontrarBairro(bairroAPI);
 
               if (bairroEncontrado) {
+                bairroDetectado = bairroEncontrado;
+
                 bairroEl.value = bairroEncontrado.id;
+
+                liberarEntrega();
 
                 recalcularTotal();
 
                 statusLocalizacaoEl.innerText = "Localização encontrada!";
-
                 setTimeout(() => {
                   statusLocalizacaoEl.innerText = "";
                 }, 5000);
               } else {
-                statusLocalizacaoEl.innerText =
-                  "Localização encontrada! Bairro precisa ser selecionado manualmente.";
+                bloquearEntrega("Desculpe, ainda não entregamos neste bairro.");
               }
             } catch (erro) {
               console.error("Erro ao converter localização:", erro);
@@ -1112,6 +1169,12 @@
           // 4) carregar bairros antes de recalcular total
           await carregarBairros();
 
+          bairroEl.addEventListener("change", () => {
+            bairroDetectado = null;
+            liberarEntrega();
+            recalcularTotal();
+          });
+
           if (cliente) {
             selecionarBairroCliente(cliente);
           }
@@ -1143,11 +1206,13 @@
             atualizarCamposTipoPedido();
           });
 
-          bairroEl.addEventListener("change", recalcularTotal);
-
           pagamentoMetodoEl.addEventListener("change", atualizarCampoTroco);
 
-          btnLocalizacaoEl.addEventListener("click", usarLocalizacaoAtual);
+          btnLocalizacaoEl.addEventListener("click", () => {
+            console.log("Botão localização clicado");
+
+            usarLocalizacaoAtual();
+          });
 
           form.addEventListener("submit", finalizarPedido);
         } catch (erro) {
