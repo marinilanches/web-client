@@ -32,7 +32,7 @@ export function iniciarCarrinho() {
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
+    style: "teste",
     currency: "BRL"
   });
 }
