@@ -455,6 +455,58 @@
       }
 
       /* ==========================================================
+   CHECKBOX RUA SEM NÚMERO
+========================================================== */
+
+      .checkbox-rua-sem-numero {
+        display: flex;
+
+        flex-direction: row;
+
+        align-items: center;
+
+        justify-content: flex-start;
+
+        gap: 12px;
+
+        margin: 8px 0 18px;
+
+        padding: 14px 16px;
+
+        background: #f7f7f7;
+
+        border-radius: 14px;
+
+        border: 1px solid #eee;
+      }
+
+      .checkbox-rua-sem-numero input {
+        width: 22px;
+
+        height: 22px;
+
+        min-height: unset;
+
+        margin: 0;
+
+        cursor: pointer;
+
+        accent-color: var(--mf-primary);
+      }
+
+      .checkbox-rua-sem-numero label {
+        margin: 0;
+
+        font-size: 15px;
+
+        font-weight: 700;
+
+        color: var(--mf-text);
+
+        cursor: pointer;
+      }
+
+      /* ==========================================================
    TABLET / DESKTOP
 ========================================================== */
 
@@ -561,7 +613,6 @@
                     placeholder="00000-000"
                     maxlength="9"
                     inputmode="numeric"
-                    required
                   />
                 </div>
 
@@ -575,12 +626,13 @@
                     class="lista-sugestoes-endereco"
                   ></div>
 
-                  <input
-                    type="text"
-                    id="numero"
-                    placeholder="Número"
-                    required
-                  />
+                  <input type="text" id="numero" placeholder="Número" />
+
+                  <div class="checkbox-rua-sem-numero">
+                    <input type="checkbox" id="ruaSemNumero" />
+
+                    <label for="ruaSemNumero"> Rua sem número (S/N) </label>
+                  </div>
 
                   <button
                     type="button"
@@ -690,6 +742,7 @@
       });
       const ruaEl = document.getElementById("rua");
       const numeroEl = document.getElementById("numero");
+      const ruaSemNumeroEl = document.getElementById("ruaSemNumero");
       const cepEl = document.getElementById("cep");
       cepEl.addEventListener("input", () => {
         let valor = cepEl.value.replace(/\D/g, "");
@@ -1050,7 +1103,7 @@
 
           bairroEl.required = true;
           ruaEl.required = true;
-          numeroEl.required = true;
+          numeroEl.required = false;
         } else {
           bairroDetectado = null;
 
@@ -1133,9 +1186,21 @@
           return false;
         }
 
-        if (tipo === "Delivery" && !numero) {
-          alert("Informe o número.");
+        if (tipo === "Delivery" && !ruaSemNumeroEl.checked && !numero) {
+          alert("Informe o número ou marque 'Rua sem número'.");
           numeroEl.focus();
+          return false;
+        }
+
+        if (
+          tipo === "Delivery" &&
+          ruaSemNumeroEl.checked &&
+          !referenciaEl.value.trim()
+        ) {
+          alert("Informe uma referência para localizar o endereço sem número.");
+
+          referenciaEl.focus();
+
           return false;
         }
 
@@ -1645,6 +1710,22 @@
           tipoPedidoEl.addEventListener("change", () => {
             localStorage.setItem("tipoPedido", tipoPedidoEl.value);
             atualizarCamposTipoPedido();
+          });
+
+          ruaSemNumeroEl.addEventListener("change", () => {
+            if (ruaSemNumeroEl.checked) {
+              numeroEl.value = "S/N";
+
+              numeroEl.disabled = true;
+
+              referenciaEl.required = true;
+            } else {
+              numeroEl.value = "";
+
+              numeroEl.disabled = false;
+
+              referenciaEl.required = false;
+            }
           });
 
           pagamentoMetodoEl.addEventListener("change", atualizarCampoTroco);
