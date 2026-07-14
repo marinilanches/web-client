@@ -6632,3 +6632,230 @@ position:static;
     font-weight:600;
 
 }
+
+/* ======================================================
+   FERRAMENTAS
+   Dashboard moderno
+====================================================== */
+
+.dashboard > .panel{
+    position:relative;
+    margin-top:22px !important;
+    padding:26px 28px;
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+    transition:.25s ease;
+}
+
+.dashboard > .panel:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 36px rgba(0,0,0,.08);
+}
+
+.dashboard > .panel:first-of-type{
+    margin-top:30px;
+}
+
+/* ======================================================
+   TÍTULOS
+====================================================== */
+
+.dashboard h1{
+    font-size:30px;
+    font-weight:700;
+    margin-bottom:8px;
+    color:var(--text);
+}
+
+.dashboard .subtitle{
+    max-width:760px;
+    font-size:15px;
+    line-height:1.7;
+    color:var(--text-light);
+    margin-bottom:30px;
+}
+
+.panel-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    font-size:20px;
+    font-weight:700;
+    color:var(--text);
+}
+
+.panel > p{
+    margin:0;
+    color:var(--text-light);
+    line-height:1.6;
+    font-size:14px;
+}
+
+/* ======================================================
+   GRID DOS BOTÕES
+====================================================== */
+
+.dashboard .toolbar{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;
+    margin-top:24px;
+}
+
+/* ======================================================
+   BOTÕES
+====================================================== */
+
+.dashboard .toolbar button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    width:100%;
+    min-height:56px;
+    padding:14px 18px;
+
+    border:none;
+    border-radius:14px;
+
+    font-family:"Poppins",sans-serif;
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:
+        transform .18s,
+        box-shadow .18s,
+        background .18s;
+}
+
+.dashboard .toolbar button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 22px rgba(0,0,0,.12);
+}
+
+.dashboard .toolbar button:active{
+    transform:scale(.98);
+}
+
+/* ======================================================
+   AÇÕES DE LIMPEZA
+====================================================== */
+
+.dashboard .toolbar .btn-danger{
+    background:#dc3545;
+    color:#fff;
+}
+
+.dashboard .toolbar .btn-danger:hover{
+    background:#c82333;
+}
+
+/* ======================================================
+   LIMPAR CARRINHO
+====================================================== */
+
+#limparCarrinho{
+    background:#6c757d;
+    color:#fff;
+}
+
+#limparCarrinho:hover{
+    background:#5b636a;
+}
+
+/* ======================================================
+   DADOS DE TESTE
+====================================================== */
+
+#gerarClientesTeste{
+    background:#198754;
+    color:#fff;
+}
+
+#gerarClientesTeste:hover{
+    background:#157347;
+}
+
+#gerarPedidosTeste{
+    background:#0d6efd;
+    color:#fff;
+}
+
+#gerarPedidosTeste:hover{
+    background:#0b5ed7;
+}
+
+/* ======================================================
+   SISTEMA
+====================================================== */
+
+#resetConfiguracoes{
+    background:#f0ad4e;
+    color:#fff;
+}
+
+#resetConfiguracoes:hover{
+    background:#ec971f;
+}
+
+/* ======================================================
+   RESPONSIVO
+====================================================== */
+
+@media (max-width:900px){
+
+    .dashboard{
+        padding:20px;
+    }
+
+    .dashboard>.panel{
+        padding:22px;
+    }
+
+    .dashboard .toolbar{
+        grid-template-columns:1fr;
+    }
+
+    .dashboard .toolbar button{
+        width:100%;
+    }
+
+    .dashboard h1{
+        font-size:26px;
+    }
+
+}
+
+@media (max-width:600px){
+
+    .dashboard{
+        padding:16px;
+    }
+
+    .dashboard>.panel{
+        padding:18px;
+        border-radius:16px;
+    }
+
+    .dashboard h1{
+        font-size:24px;
+    }
+
+    .panel-title{
+        font-size:18px;
+    }
+
+    .dashboard .subtitle{
+        font-size:14px;
+    }
+
+    .dashboard .toolbar{
+        gap:10px;
+    }
+
+}
