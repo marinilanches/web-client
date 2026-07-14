@@ -12,7 +12,7 @@ const serviceAccount = require("./serviceAccountKey.json");
 ========================================================== */
 
 initializeApp({
-  credential: cert(serviceAccount)
+  credential: cert(serviceAccount),
 });
 
 const db = getFirestore();
@@ -34,7 +34,7 @@ const whatsappState = {
   numero: null,
   qrCode: null,
   mensagensHoje: 0,
-  ultimaAtualizacao: null
+  ultimaAtualizacao: null,
 };
 
 /* ==========================================================
@@ -46,7 +46,7 @@ let pedidosListenerIniciado = false;
 
 function atualizarEstado(dados = {}) {
   Object.assign(whatsappState, dados, {
-    ultimaAtualizacao: new Date().toISOString()
+    ultimaAtualizacao: new Date().toISOString(),
   });
 }
 
@@ -78,7 +78,10 @@ function normalizarTelefone(telefone) {
 
   // se ainda não começar com 55, mas já estiver no tamanho BR sem o país,
   // também garante o prefixo
-  if (!numero.startsWith("55") && (numero.length === 10 || numero.length === 11)) {
+  if (
+    !numero.startsWith("55") &&
+    (numero.length === 10 || numero.length === 11)
+  ) {
     numero = `55${numero}`;
   }
 
@@ -118,13 +121,15 @@ async function enviarMensagemPedido(pedidoId, pedido) {
     pedido.telefoneWhatsapp || normalizarTelefone(pedido.telefone);
 
   if (!telefoneNormalizado) {
-    console.log(`[BOT] Pedido ${pedidoId} sem telefone válido. Notificação ignorada.`);
+    console.log(
+      `[BOT] Pedido ${pedidoId} sem telefone válido. Notificação ignorada.`,
+    );
     return;
   }
 
   const mensagem = montarMensagemStatus({
     ...pedido,
-    id: pedidoId
+    id: pedidoId,
   });
 
   if (!mensagem) {
@@ -136,12 +141,14 @@ async function enviarMensagemPedido(pedidoId, pedido) {
 
   await db.collection("pedidos").doc(pedidoId).update({
     ultimoStatusNotificado: pedido.status,
-    notificacaoWhatsappEm: FieldValue.serverTimestamp()
+    notificacaoWhatsappEm: FieldValue.serverTimestamp(),
   });
 
   whatsappState.mensagensHoje += 1;
 
-  console.log(`[BOT] Mensagem enviada para ${telefoneNormalizado} - pedido ${pedidoId} - status ${pedido.status}`);
+  console.log(
+    `[BOT] Mensagem enviada para ${telefoneNormalizado} - pedido ${pedidoId} - status ${pedido.status}`,
+  );
 }
 
 function iniciarListenerPedidos() {
@@ -165,20 +172,25 @@ function iniciarListenerPedidos() {
 
         // só envia se o WhatsApp estiver conectado
         if (whatsappState.status !== "CONECTADO") {
-          console.log(`[BOT] WhatsApp não conectado. Pedido ${pedidoId} aguardando.`);
+          console.log(
+            `[BOT] WhatsApp não conectado. Pedido ${pedidoId} aguardando.`,
+          );
           continue;
         }
 
         try {
           await enviarMensagemPedido(pedidoId, pedido);
         } catch (erro) {
-          console.error(`[BOT] Erro ao enviar mensagem do pedido ${pedidoId}:`, erro);
+          console.error(
+            `[BOT] Erro ao enviar mensagem do pedido ${pedidoId}:`,
+            erro,
+          );
         }
       }
     },
     (erro) => {
       console.error("[BOT] Erro ao ouvir pedidos:", erro);
-    }
+    },
   );
 
   console.log("[BOT] Listener de pedidos iniciado.");
@@ -195,16 +207,19 @@ async function criarClienteWhatsapp() {
 
   client = new Client({
     authStrategy: new LocalAuth({
-      clientId: "mesa-facil"
+      clientId: "mesa-facil",
     }),
     puppeteer: {
-      headless: true,
-      executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      headless: false,
+      executablePath:
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
       args: [
         "--no-sandbox",
-        "--disable-setuid-sandbox"
-      ]
-    }
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+    },
   });
 
   client.on("qr", async (qr) => {
@@ -214,7 +229,7 @@ async function criarClienteWhatsapp() {
       atualizarEstado({
         status: "AGUARDANDO_QR",
         qrCode: qrBase64,
-        numero: null
+        numero: null,
       });
 
       console.log("[BOT] QR Code gerado.");
@@ -225,7 +240,7 @@ async function criarClienteWhatsapp() {
 
   client.on("authenticated", () => {
     atualizarEstado({
-      status: "AUTENTICADO"
+      status: "AUTENTICADO",
     });
 
     console.log("[BOT] WhatsApp autenticado.");
@@ -244,7 +259,7 @@ async function criarClienteWhatsapp() {
     atualizarEstado({
       status: "CONECTADO",
       numero,
-      qrCode: null
+      qrCode: null,
     });
 
     console.log("[BOT] WhatsApp pronto!");
@@ -254,7 +269,7 @@ async function criarClienteWhatsapp() {
   client.on("auth_failure", (msg) => {
     atualizarEstado({
       status: "FALHA_AUTENTICACAO",
-      qrCode: null
+      qrCode: null,
     });
 
     console.error("[BOT] Falha na autenticação:", msg);
@@ -264,7 +279,7 @@ async function criarClienteWhatsapp() {
     atualizarEstado({
       status: "DESCONECTADO",
       numero: null,
-      qrCode: null
+      qrCode: null,
     });
 
     console.warn("[BOT] WhatsApp desconectado:", reason);
@@ -272,7 +287,10 @@ async function criarClienteWhatsapp() {
     try {
       await client.destroy();
     } catch (e) {
-      console.warn("[BOT] Erro ao destruir cliente após desconexão:", e.message);
+      console.warn(
+        "[BOT] Erro ao destruir cliente após desconexão:",
+        e.message,
+      );
     }
   });
 
@@ -286,7 +304,7 @@ async function criarClienteWhatsapp() {
 app.get("/api/whatsapp/status", (req, res) => {
   res.json({
     success: true,
-    ...whatsappState
+    ...whatsappState,
   });
 });
 
@@ -295,21 +313,21 @@ app.post("/api/whatsapp/reconnect", async (req, res) => {
     atualizarEstado({
       status: "RECONECTANDO",
       qrCode: null,
-      numero: null
+      numero: null,
     });
 
     criarClienteWhatsapp();
 
     res.json({
       success: true,
-      message: "Reconexão iniciada."
+      message: "Reconexão iniciada.",
     });
   } catch (erro) {
     console.error("[BOT] Erro ao reconectar:", erro);
 
     res.status(500).json({
       success: false,
-      message: "Erro ao reconectar WhatsApp."
+      message: "Erro ao reconectar WhatsApp.",
     });
   }
 });
