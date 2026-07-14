@@ -357,7 +357,7 @@
             <input
               id="clienteTelefone"
               class="form-control mb-3"
-              placeholder="(19) 99999-9999"
+              placeholder="+55 (19) 99999-9999"
             />
 
             <label class="form-label"> Observações </label>
@@ -368,13 +368,13 @@
               placeholder="Observações sobre o cliente"
             ></textarea>
 
-            <label class="form-label"> Rua </label>
+            <div class="autocomplete-wrapper mb-3">
+              <label class="form-label"> Rua </label>
 
-            <input
-              id="clienteRua"
-              class="form-control mb-3"
-              placeholder="Rua"
-            />
+              <input id="clienteRua" class="form-control" placeholder="Rua" />
+
+              <div id="clienteRuaSugestoes" class="autocomplete-list"></div>
+            </div>
 
             <label class="form-label"> Número </label>
 
@@ -390,6 +390,14 @@
               id="clienteBairro"
               class="form-control mb-3"
               placeholder="Bairro"
+            />
+
+            <label class="form-label"> CEP </label>
+
+            <input
+              id="clienteCep"
+              class="form-control mb-3"
+              placeholder="00000-000"
             />
 
             <label class="form-label"> Complemento </label>

@@ -922,3 +922,87 @@ body.cliente-body {
     }
 
 }
+
+.autocomplete-list {
+  position: absolute;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+  z-index: 9999;
+  display: none;
+}
+
+.autocomplete-item {
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background .15s;
+  border-bottom: 1px solid #eee;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background: #f5f5f5;
+}
+
+.autocomplete-title {
+  font-weight: 600;
+  color: #212529;
+}
+
+.autocomplete-subtitle {
+  font-size: .85rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+  z-index: 9999;
+  display: none;
+}
+
+.autocomplete-item {
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background .15s;
+  border-bottom: 1px solid #eee;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background: #f5f5f5;
+}
+
+.autocomplete-title {
+  font-weight: 600;
+  color: #212529;
+}
+
+.autocomplete-subtitle {
+  margin-top: 2px;
+  font-size: .85rem;
+  color: #6c757d;
+}

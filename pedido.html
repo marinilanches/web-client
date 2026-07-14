@@ -529,6 +529,60 @@
           grid-column: 1/-1;
         }
       }
+
+      .autocomplete-wrapper {
+        position: relative;
+        z-index: 1000;
+      }
+
+      .autocomplete-list {
+        position: absolute;
+
+        top: 100%;
+        left: 0;
+        right: 0;
+
+        background: white;
+
+        border: 1px solid #ddd;
+
+        border-radius: 12px;
+
+        overflow-y: auto;
+
+        max-height: 250px;
+
+        z-index: 9999;
+
+        display: none;
+
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .autocomplete-item {
+        padding: 14px;
+        cursor: pointer;
+
+        border-bottom: 1px solid #eee;
+
+        user-select: none;
+      }
+
+      .autocomplete-item:hover {
+        background: #f5f5f5;
+      }
+
+      .autocomplete-title {
+        font-weight: 700;
+      }
+
+      .autocomplete-subtitle {
+        font-size: 13px;
+
+        color: #666;
+
+        margin-top: 4px;
+      }
     </style>
   </head>
 
@@ -627,7 +681,11 @@
                 <div class="campo full">
                   <label for="endereco">Rua e número</label>
 
-                  <input type="text" id="rua" placeholder="Rua" required />
+                  <div class="autocomplete-wrapper">
+                    <input id="rua" class="form-control" placeholder="Rua" />
+
+                    <div id="ruaSugestoes" class="autocomplete-list"></div>
+                  </div>
 
                   <div
                     id="listaSugestoesEndereco"
@@ -711,6 +769,11 @@
       import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
 
       import {
+        buscarEnderecos,
+        buscarDetalhesEndereco,
+      } from "./js/services/address-search.js";
+
+      import {
         garantirClienteAuth,
         buscarCliente,
         salvarCliente,
@@ -750,6 +813,9 @@
       });
       const ruaEl = document.getElementById("rua");
       const numeroEl = document.getElementById("numero");
+      const ruaSugestoesEl = document.getElementById("ruaSugestoes");
+
+      let timeoutRua = null;
       const ruaSemNumeroEl = document.getElementById("ruaSemNumero");
       const cepEl = document.getElementById("cep");
       cepEl.addEventListener("input", () => {
@@ -860,6 +926,71 @@
         }
 
         return valor;
+      }
+
+      function fecharSugestoesRua() {
+        if (!ruaSugestoesEl) return;
+
+        ruaSugestoesEl.innerHTML = "";
+        ruaSugestoesEl.style.display = "none";
+      }
+
+      function renderizarSugestoesRua(resultados) {
+        if (!ruaSugestoesEl) return;
+
+        ruaSugestoesEl.innerHTML = "";
+
+        if (!resultados.length) {
+          ruaSugestoesEl.style.display = "none";
+          return;
+        }
+
+        resultados.forEach((item) => {
+          const div = document.createElement("div");
+
+          div.className = "autocomplete-item";
+
+          div.innerHTML = `
+      <div class="autocomplete-title">
+        📍 ${item.rua}
+      </div>
+
+      <div class="autocomplete-subtitle">
+        ${item.cidade} - ${item.estado}
+      </div>
+    `;
+
+          div.addEventListener("click", async () => {
+            ruaEl.value = item.rua || "";
+
+            latitudeCliente = item.latitude;
+            longitudeCliente = item.longitude;
+
+            numeroEl.value = "";
+
+            try {
+              const detalhes = await buscarDetalhesEndereco(
+                item.latitude,
+                item.longitude,
+              );
+
+              console.log("Detalhes endereço:", detalhes);
+
+              // não preencher CEP automaticamente
+              cepEl.value = "";
+            } catch (erro) {
+              console.error("Erro detalhes:", erro);
+            }
+
+            fecharSugestoesRua();
+
+            numeroEl.focus();
+          });
+
+          ruaSugestoesEl.appendChild(div);
+        });
+
+        ruaSugestoesEl.style.display = "block";
       }
 
       function formatarMoeda(valor) {
@@ -1084,6 +1215,24 @@
           bairroEl.innerHTML = `
             <option value="">Erro ao carregar bairros</option>
           `;
+        }
+      }
+
+      async function pesquisarRuaCheckout() {
+        const texto = ruaEl.value.trim();
+
+        if (texto.length < 3) {
+          fecharSugestoesRua();
+
+          return;
+        }
+
+        try {
+          const resultados = await buscarEnderecos(texto);
+
+          renderizarSugestoesRua(resultados);
+        } catch (erro) {
+          console.error("Erro buscar ruas:", erro);
         }
       }
 
@@ -1696,6 +1845,12 @@
           // 4) carregar bairros antes de recalcular total
           await carregarBairros();
 
+          ruaEl.addEventListener("input", () => {
+            clearTimeout(timeoutRua);
+
+            timeoutRua = setTimeout(pesquisarRuaCheckout, 300);
+          });
+
           bairroEl.addEventListener("blur", () => {
             buscarBairroDigitado();
           });
@@ -1739,15 +1894,11 @@
           ruaSemNumeroEl.addEventListener("change", () => {
             if (ruaSemNumeroEl.checked) {
               numeroEl.value = "S/N";
-
               numeroEl.disabled = true;
-
               referenciaEl.required = true;
             } else {
               numeroEl.value = "";
-
               numeroEl.disabled = false;
-
               referenciaEl.required = false;
             }
           });
@@ -1758,6 +1909,16 @@
             console.log("Botão localização clicado");
 
             usarLocalizacaoAtual();
+          });
+
+          // FECHAR AUTOCOMPLETE AO CLICAR FORA
+          document.addEventListener("pointerdown", (event) => {
+            if (
+              !event.target.closest("#rua") &&
+              !event.target.closest("#ruaSugestoes")
+            ) {
+              fecharSugestoesRua();
+            }
           });
 
           form.addEventListener("submit", finalizarPedido);

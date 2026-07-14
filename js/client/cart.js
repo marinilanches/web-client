@@ -176,22 +176,51 @@ async function carregarAdicionaisGlobais() {
 }
 
 function produtoTemPersonalizacao(produto = {}) {
+
+  // bebidas nunca abrem adicionais
+  if (produtoEhBebida(produto)) {
+    return false;
+  }
+
   const possuiGrupos =
     Array.isArray(produto.gruposPersonalizacao) &&
     produto.gruposPersonalizacao.length > 0;
 
+
   const possuiAdicionaisProduto =
-    Array.isArray(produto.adicionais) && produto.adicionais.length > 0;
+    Array.isArray(produto.adicionais) &&
+    produto.adicionais.length > 0;
+
 
   const possuiAdicionaisGlobais =
-    Array.isArray(adicionaisGlobaisCache) && adicionaisGlobaisCache.length > 0;
+    Array.isArray(adicionaisGlobaisCache) &&
+    adicionaisGlobaisCache.length > 0;
 
-  return possuiGrupos || possuiAdicionaisProduto || possuiAdicionaisGlobais;
+
+  return (
+    possuiGrupos ||
+    possuiAdicionaisProduto ||
+    possuiAdicionaisGlobais
+  );
 }
 
 let produtoPersonalizandoAtual = null;
 
 let itemEditandoKey = null;
+
+function produtoEhBebida(produto = {}) {
+  const categoria =
+    produto.categoria?.nome ||
+    produto.categoria ||
+    produto.grupo ||
+    "";
+
+  return categoria
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .includes("bebida");
+}
 
 const adicionaisRenderizados = new Map();
 
@@ -236,6 +265,12 @@ function abrirModalPersonalizacao(produto) {
 }
 
 function montarGruposDoProduto(produto = {}) {
+
+  if (produtoEhBebida(produto)) {
+    renderizarGruposNoModal([]);
+    return;
+  }
+
   const grupos = [];
   const ids = new Set();
 
