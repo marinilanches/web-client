@@ -8,13 +8,28 @@
     <link rel="stylesheet" href="./css/pedido-status.css" />
     <style>
       /* ==========================================================
-   CHECKOUT
+   CHECKOUT MODERNO - RESPONSIVO
+========================================================== */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+
+      /* ==========================================================
+   CONTAINER
 ========================================================== */
 
       .checkout-container {
+        width: 100%;
         max-width: 900px;
         margin: 24px auto;
-        padding: 0 16px;
+        padding: 0 16px calc(120px + env(safe-area-inset-bottom));
       }
 
       .checkout-form {
@@ -23,23 +38,34 @@
         gap: 18px;
       }
 
+      /* ==========================================================
+   CARDS
+========================================================== */
+
       .bloco {
+        width: 100%;
         background: #fff;
         border: 1px solid var(--mf-border);
-        border-radius: 20px;
+        border-radius: 22px;
         padding: 22px;
-        box-shadow: var(--mf-shadow-sm);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
       }
 
       .bloco h2,
       .bloco h3 {
-        font-size: 1.15rem;
-        font-weight: 800;
-        margin-bottom: 18px;
+        margin: 0 0 22px;
         color: var(--mf-text);
+        font-size: 1.25rem;
+        font-weight: 800;
       }
 
+      /* ==========================================================
+   CAMPOS
+========================================================== */
+
       .campo {
+        width: 100%;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -52,87 +78,240 @@
 
       .campo label {
         font-weight: 700;
+        font-size: 0.95rem;
         color: var(--mf-text);
       }
 
       .checkout-form input,
-      .checkout-form textarea,
-      .checkout-form select {
+      .checkout-form select,
+      .checkout-form textarea {
         width: 100%;
+        max-width: 100%;
 
-        min-height: 52px;
+        display: block;
 
-        border: 1px solid var(--mf-border);
-
-        border-radius: 14px;
+        min-height: 54px;
 
         padding: 14px 16px;
 
-        font-size: 15px;
+        border-radius: 16px;
+
+        border: 1px solid #ddd;
 
         background: #fff;
 
-        transition: 0.2s;
+        color: #222;
+
+        font-size: 16px;
+
+        outline: none;
+
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
 
       .checkout-form textarea {
-        min-height: 110px;
-
+        min-height: 130px;
         resize: vertical;
+        line-height: 1.5;
       }
 
       .checkout-form input:focus,
-      .checkout-form textarea:focus,
-      .checkout-form select:focus {
+      .checkout-form select:focus,
+      .checkout-form textarea:focus {
         border-color: var(--mf-primary);
 
-        box-shadow: 0 0 0 4px rgba(234, 29, 44, 0.1);
-
-        outline: none;
-      }
-
-      .hidden {
-        display: none !important;
+        box-shadow: 0 0 0 4px rgba(234, 29, 44, 0.12);
       }
 
       /* ==========================================================
-   RESUMO
+   ENDEREÇO
 ========================================================== */
 
+      .endereco-grid {
+        width: 100%;
+
+        display: grid;
+
+        grid-template-columns: 1fr;
+
+        gap: 0;
+      }
+
+      .endereco-grid .full {
+        width: 100%;
+      }
+
+      #rua,
+      #numero {
+        margin-bottom: 12px;
+      }
+
+      /* botão localização */
+
+      .btn-localizacao {
+        width: 100%;
+
+        min-height: 54px;
+
+        margin-top: 8px;
+
+        border: none;
+
+        border-radius: 16px;
+
+        background: #eef5ff;
+
+        color: #2463d8;
+
+        font-size: 16px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+      }
+
+      .btn-localizacao:active {
+        transform: scale(0.98);
+      }
+
+      #statusLocalizacao {
+        display: block;
+
+        width: 100%;
+
+        margin-top: 12px;
+
+        text-align: center;
+
+        font-size: 14px;
+
+        line-height: 1.4;
+
+        color: #555;
+      }
+
+      /* ==========================================================
+   RESUMO DO CARRINHO
+========================================================== */
+
+      .resumo-card {
+        overflow: hidden;
+      }
+
+      #resumo {
+        width: 100%;
+      }
+
       .item-resumo {
-        display: flex;
+        width: 100%;
 
-        justify-content: space-between;
+        padding: 18px 0;
 
-        align-items: flex-start;
-
-        gap: 16px;
-
-        padding: 14px 0;
-
-        border-bottom: 1px solid #ececec;
+        border-bottom: 1px solid #eee;
       }
 
       .item-resumo:last-child {
         border-bottom: none;
       }
 
-      .item-resumo strong {
+      .item-cabecalho {
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 12px;
+      }
+
+      .item-cabecalho h4 {
+        margin: 0;
+
+        font-size: 18px;
+
+        font-weight: 800;
+
+        color: #222;
+      }
+
+      .item-info {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        gap: 10px;
+
+        flex-wrap: wrap;
+
+        color: #555;
+
         font-size: 15px;
       }
 
-      .item-resumo small {
-        color: #777;
+      /* adicionais */
+
+      .item-adicionais {
+        margin-top: 14px;
+
+        padding: 14px;
+
+        border-radius: 14px;
+
+        background: #f7f7f7;
       }
 
-      .resumo-box {
-        border: 1px solid var(--mf-border);
+      .item-adicionais strong {
+        font-size: 14px;
+      }
 
-        border-radius: 16px;
+      .item-adicionais ul {
+        margin: 10px 0 0 18px;
+
+        padding: 0;
+      }
+
+      .item-adicionais li {
+        margin-bottom: 6px;
+
+        line-height: 1.4;
+      }
+
+      /* subtotal item */
+
+      .item-subtotal {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin-top: 15px;
+
+        padding-top: 14px;
+
+        border-top: 1px dashed #ddd;
+
+        font-weight: 700;
+      }
+
+      .item-subtotal strong {
+        font-size: 17px;
+      }
+
+      /* ==========================================================
+   TOTAL
+========================================================== */
+
+      .resumo-box {
+        margin-top: 18px;
 
         padding: 18px;
 
         background: #fafafa;
+
+        border-radius: 16px;
       }
 
       .resumo-box p {
@@ -142,21 +321,15 @@
 
         align-items: center;
 
-        margin: 12px 0;
+        gap: 10px;
 
-        font-size: 15px;
+        margin: 12px 0;
       }
 
       .linha-total {
-        display: flex;
-
-        justify-content: space-between;
-
-        align-items: center;
-
-        margin-top: 20px;
-
         padding-top: 18px;
+
+        margin-top: 18px !important;
 
         border-top: 2px dashed #ddd;
 
@@ -168,24 +341,12 @@
       .linha-total strong {
         color: var(--mf-primary);
 
-        font-size: 1.6rem;
+        font-size: 1.5rem;
       }
 
       /* ==========================================================
-   BOTÕES
+   BOTÃO FINAL
 ========================================================== */
-
-      .btn {
-        border-radius: 14px;
-
-        font-weight: 700;
-
-        transition: 0.2s;
-      }
-
-      .btn:hover {
-        transform: translateY(-1px);
-      }
 
       .btn-finalizar {
         width: 100%;
@@ -194,7 +355,7 @@
 
         border: none;
 
-        border-radius: 16px;
+        border-radius: 18px;
 
         background: linear-gradient(135deg, #ff3344, var(--mf-primary));
 
@@ -204,33 +365,13 @@
 
         font-weight: 800;
 
-        box-shadow: 0 18px 40px rgba(234, 29, 44, 0.25);
-      }
+        cursor: pointer;
 
-      .btn-finalizar:hover {
-        filter: brightness(1.03);
+        box-shadow: 0 12px 30px rgba(234, 29, 44, 0.25);
       }
 
       .btn-finalizar:disabled {
-        opacity: 0.55;
-
-        cursor: not-allowed;
-      }
-
-      /* ==========================================================
-   BLOCOS DE ENDEREÇO
-========================================================== */
-
-      .endereco-grid {
-        display: grid;
-
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-
-        gap: 16px;
-      }
-
-      .endereco-grid .campo.full {
-        grid-column: 1/-1;
+        opacity: 0.5;
       }
 
       /* ==========================================================
@@ -241,7 +382,11 @@
         .checkout-container {
           margin: 12px auto;
 
-          padding: 0 12px 110px;
+          padding-left: 12px;
+
+          padding-right: 12px;
+
+          padding-bottom: calc(110px + env(safe-area-inset-bottom));
         }
 
         .bloco {
@@ -250,21 +395,15 @@
           border-radius: 18px;
         }
 
-        .endereco-grid {
-          grid-template-columns: 1fr;
-
-          gap: 12px;
+        .bloco h3 {
+          font-size: 1.15rem;
         }
 
-        .linha-total {
-          font-size: 16px;
-        }
+        /*
+     botão fixo sem cobrir conteúdo
+  */
 
-        .linha-total strong {
-          font-size: 1.4rem;
-        }
-
-        .btn-finalizar {
+        #btnFinalizar {
           position: fixed;
 
           left: 12px;
@@ -273,25 +412,61 @@
 
           bottom: calc(12px + env(safe-area-inset-bottom));
 
-          z-index: 1050;
+          width: calc(100% - 24px);
 
-          min-height: 58px;
+          z-index: 999;
         }
       }
 
+      /* ==========================================================
+   CELULARES PEQUENOS
+========================================================== */
+
       @media (max-width: 480px) {
-        .bloco {
-          padding: 16px;
+        .checkout-container {
+          padding-left: 10px;
+
+          padding-right: 10px;
         }
 
-        .campo label {
-          font-size: 0.95rem;
+        .bloco {
+          padding: 16px;
+
+          border-radius: 16px;
         }
 
         .checkout-form input,
-        .checkout-form textarea,
-        .checkout-form select {
-          font-size: 16px;
+        .checkout-form select,
+        .checkout-form textarea {
+          border-radius: 14px;
+        }
+
+        .item-info {
+          flex-direction: column;
+
+          align-items: flex-start;
+        }
+
+        #btnFinalizar {
+          left: 10px;
+
+          width: calc(100% - 20px);
+        }
+      }
+
+      /* ==========================================================
+   TABLET / DESKTOP
+========================================================== */
+
+      @media (min-width: 769px) {
+        .endereco-grid {
+          grid-template-columns: 1fr 1fr;
+
+          gap: 16px;
+        }
+
+        .endereco-grid .full {
+          grid-column: 1/-1;
         }
       }
     </style>
@@ -350,7 +525,9 @@
               <input
                 type="tel"
                 id="telefone"
-                placeholder="(11) 99999-9999"
+                placeholder="+55 (11) 99999-9999"
+                maxlength="19"
+                inputmode="numeric"
                 required
               />
             </div>
@@ -367,9 +544,25 @@
               <div class="endereco-grid">
                 <div class="campo">
                   <label for="bairro">Bairro</label>
-                  <select id="bairro" required>
-                    <option value="">Selecione o bairro</option>
-                  </select>
+                  <input
+                    type="text"
+                    id="bairro"
+                    placeholder="Digite seu bairro"
+                    required
+                  />
+                </div>
+
+                <div class="campo full">
+                  <label for="cep">CEP</label>
+
+                  <input
+                    type="tel"
+                    id="cep"
+                    placeholder="00000-000"
+                    maxlength="9"
+                    inputmode="numeric"
+                    required
+                  />
                 </div>
 
                 <div class="campo full">
@@ -441,7 +634,7 @@
 
               <textarea
                 id="observacoes"
-                placeholder="Ex.: sem cebola, tocar interfone..."
+                placeholder="Ex.: tocar interfone..."
               ></textarea>
             </div>
 
@@ -482,11 +675,38 @@
 
       const clienteEl = document.getElementById("cliente");
       const telefoneEl = document.getElementById("telefone");
+      telefoneEl.addEventListener("input", () => {
+        telefoneEl.value = formatarTelefone(telefoneEl.value);
+      });
 
       const camposDelivery = document.getElementById("camposDelivery");
       const bairroEl = document.getElementById("bairro");
+      bairroEl.addEventListener("input", () => {
+        bairroDetectado = null;
+
+        taxaEntrega = 0;
+
+        recalcularTotal();
+      });
       const ruaEl = document.getElementById("rua");
       const numeroEl = document.getElementById("numero");
+      const cepEl = document.getElementById("cep");
+      cepEl.addEventListener("input", () => {
+        let valor = cepEl.value.replace(/\D/g, "");
+
+        valor = valor.substring(0, 8);
+
+        if (valor.length > 5) {
+          valor = valor.substring(0, 5) + "-" + valor.substring(5);
+        }
+
+        cepEl.value = valor;
+      });
+      cepEl.addEventListener("blur", () => {
+        if (cepEl.value.length === 9) {
+          buscarCEP(cepEl.value);
+        }
+      });
       const referenciaEl = document.getElementById("referencia");
       const observacoesEl = document.getElementById("observacoes");
 
@@ -536,22 +756,31 @@
         return /^55\d{10,11}$/.test(numeroNormalizado);
       }
 
-      function formatarTelefone(numeroNormalizado) {
-        let numero = String(numeroNormalizado || "").replace(/\D/g, "");
+      function formatarTelefone(numero) {
+        let valor = String(numero || "").replace(/\D/g, "");
 
-        if (numero.startsWith("55")) {
-          numero = numero.slice(2);
+        // remove código 55 caso já exista
+        if (valor.startsWith("55")) {
+          valor = valor.substring(2);
         }
 
-        if (numero.length === 11) {
-          return `(${numero.slice(0, 2)}) ${numero.slice(2, 7)}-${numero.slice(7)}`;
+        // limita para celular brasileiro:
+        // DDD (2) + número (9) = 11 dígitos
+        valor = valor.substring(0, 11);
+
+        if (valor.length <= 2) {
+          return `+55 (${valor}`;
         }
 
-        if (numero.length === 10) {
-          return `(${numero.slice(0, 2)}) ${numero.slice(2, 6)}-${numero.slice(6)}`;
+        if (valor.length <= 7) {
+          return `+55 (${valor.substring(0, 2)}) ${valor.substring(2)}`;
         }
 
-        return numero;
+        if (valor.length <= 11) {
+          return `+55 (${valor.substring(0, 2)}) ${valor.substring(2, 7)}-${valor.substring(7)}`;
+        }
+
+        return valor;
       }
 
       function formatarMoeda(valor) {
@@ -577,6 +806,58 @@
         document.getElementById("btnFinalizar").disabled = true;
 
         alert(mensagem);
+      }
+
+      function buscarBairroDigitado() {
+        const texto = normalizarTexto(bairroEl.value);
+
+        if (!texto) {
+          bairroDetectado = null;
+          recalcularTotal();
+          return;
+        }
+
+        const encontrados = bairrosEntrega.filter((bairro) => {
+          const nome = normalizarTexto(bairro.nome);
+
+          return nome === texto || nome.includes(texto) || texto.includes(nome);
+        });
+
+        if (encontrados.length === 1) {
+          bairroDetectado = encontrados[0];
+
+          bairroEl.value = encontrados[0].nome;
+
+          liberarEntrega();
+
+          recalcularTotal();
+
+          return;
+        }
+
+        if (encontrados.length > 1) {
+          const escolha = window.prompt(
+            `Encontramos bairros parecidos:\n\n` +
+              encontrados
+                .map((bairro, index) => `${index + 1}. ${bairro.nome}`)
+                .join("\n") +
+              `\n\nDigite o número do bairro:`,
+          );
+
+          const indice = Number(escolha);
+
+          if (!Number.isNaN(indice) && encontrados[indice - 1]) {
+            bairroDetectado = encontrados[indice - 1];
+
+            bairroEl.value = encontrados[indice - 1].nome;
+
+            liberarEntrega();
+          }
+        } else {
+          bairroDetectado = null;
+        }
+
+        recalcularTotal();
       }
 
       function liberarEntrega() {
@@ -641,22 +922,69 @@
             : "";
 
           resumo.innerHTML += `
-            <div class="item-resumo">
+          <div class="item-resumo">
+
+            <div class="item-cabecalho">
 
               <h4>${item.nome}</h4>
 
-              <p>Quantidade: ${quantidade}</p>
+              <div class="item-info">
 
-              <p>Preço: ${formatarMoeda(valorBase)}</p>
+                <span>
+                  Quantidade: ${quantidade}
+                </span>
 
-              ${adicionaisHtml}
+                <span>
+                  Preço: ${formatarMoeda(valorBase)}
+                </span>
 
-              <p>
-                Subtotal:
-                ${formatarMoeda(subtotalItem)}
-              </p>
+              </div>
 
             </div>
+
+
+          ${
+            adicionais.length
+              ? `
+                <div class="item-adicionais">
+
+                  <strong>Adicionais:</strong>
+
+                  <ul>
+
+                    ${adicionais
+                      .map(
+                        (adicional) => `
+                          <li>
+                            ${adicional.nome}
+                            (+ ${formatarMoeda(adicional.preco)})
+                          </li>
+                        `,
+                      )
+                      .join("")}
+
+                  </ul>
+
+                </div>
+                `
+              : ""
+          }
+
+
+            <div class="item-subtotal">
+
+              <span>
+                Subtotal:
+              </span>
+
+              <strong>
+                ${formatarMoeda(subtotalItem)}
+              </strong>
+
+            </div>
+
+
+          </div>
           `;
         });
 
@@ -667,19 +995,8 @@
         try {
           bairrosEntrega = await listarTaxasEntregaAtivas();
 
-          bairroEl.innerHTML = `
-            <option value="">Selecione o bairro</option>
-          `;
-
-          bairrosEntrega.forEach((bairro) => {
-            const option = document.createElement("option");
-
-            option.value = bairro.id;
-
-            option.textContent = `${bairro.nome} — ${formatarMoeda(bairro.taxa)}`;
-
-            bairroEl.appendChild(option);
-          });
+          // mantém os bairros carregados apenas no JavaScript
+          // o cliente irá digitar e a busca será feita no Firebase
 
           recalcularTotal();
         } catch (erro) {
@@ -697,7 +1014,12 @@
         }
 
         return (
-          bairrosEntrega.find((item) => item.id === bairroEl.value) || null
+          bairroDetectado ||
+          bairrosEntrega.find(
+            (item) =>
+              normalizarTexto(item.nome) === normalizarTexto(bairroEl.value),
+          ) ||
+          null
         );
       }
 
@@ -959,6 +1281,60 @@
         return await resposta.json();
       }
 
+      async function buscarCEP(cep) {
+        bairroDetectado = null;
+
+        const numeroCEP = cep.replace(/\D/g, "");
+
+        if (numeroCEP.length !== 8) {
+          return;
+        }
+
+        const resposta = await fetch(
+          `https://viacep.com.br/ws/${numeroCEP}/json/`,
+        );
+
+        const dados = await resposta.json();
+
+        if (dados.erro) {
+          alert("CEP não encontrado.");
+          return;
+        }
+
+        ruaEl.value = dados.logradouro || "";
+
+        const nomeBairroCEP = normalizarTexto(dados.bairro);
+
+        const bairroEncontrado = bairrosEntrega.find((bairro) => {
+          const nomeBanco = normalizarTexto(bairro.nome);
+
+          return (
+            nomeBanco === nomeBairroCEP ||
+            nomeBanco.includes(nomeBairroCEP) ||
+            nomeBairroCEP.includes(nomeBanco)
+          );
+        });
+
+        if (bairroEncontrado) {
+          // CEP tem prioridade: substitui o que o cliente digitou
+          bairroEl.value = bairroEncontrado.nome;
+
+          bairroDetectado = bairroEncontrado;
+
+          liberarEntrega();
+        } else {
+          // CEP encontrado, mas bairro não existe nas taxas
+          bairroDetectado = null;
+
+          console.log(
+            "Bairro encontrado no CEP, mas não cadastrado:",
+            dados.bairro,
+          );
+        }
+
+        recalcularTotal();
+      }
+
       async function usarLocalizacaoAtual() {
         console.log("Entrou em usarLocalizacaoAtual");
 
@@ -995,32 +1371,23 @@
                 }
               }
 
-              const bairroAPI =
-                endereco.suburb ||
-                endereco.neighbourhood ||
-                endereco.city_district ||
-                "";
-
               console.log(dados.address);
 
-              const bairroEncontrado = encontrarBairro(bairroAPI);
+              // NÃO tenta descobrir bairro pelo Nominatim
+              // O cliente escolherá manualmente no campo bairro
 
-              if (bairroEncontrado) {
-                bairroDetectado = bairroEncontrado;
+              bairroDetectado = null;
 
-                bairroEl.value = bairroEncontrado.id;
+              liberarEntrega();
 
-                liberarEntrega();
+              recalcularTotal();
 
-                recalcularTotal();
+              statusLocalizacaoEl.innerText =
+                "Localização encontrada! Confirme o bairro e número.";
 
-                statusLocalizacaoEl.innerText = "Localização encontrada!";
-                setTimeout(() => {
-                  statusLocalizacaoEl.innerText = "";
-                }, 5000);
-              } else {
-                bloquearEntrega("Desculpe, ainda não entregamos neste bairro.");
-              }
+              setTimeout(() => {
+                statusLocalizacaoEl.innerText = "";
+              }, 5000);
             } catch (erro) {
               console.error("Erro ao converter localização:", erro);
 
@@ -1069,6 +1436,7 @@
           endereco:
             tipo === "Delivery"
               ? {
+                  cep: cepEl.value,
                   rua: ruaEl.value.trim(),
                   numero: numeroEl.value.trim(),
                   bairro: bairroSelecionado?.nome || "",
@@ -1226,6 +1594,8 @@
 
             ruaEl.value = cliente.endereco?.rua || "";
 
+            cepEl.value = cliente.endereco?.cep || "";
+
             numeroEl.value = cliente.endereco?.numero || "";
 
             referenciaEl.value = cliente.endereco?.complemento || "";
@@ -1237,10 +1607,8 @@
           // 4) carregar bairros antes de recalcular total
           await carregarBairros();
 
-          bairroEl.addEventListener("change", () => {
-            bairroDetectado = null;
-            liberarEntrega();
-            recalcularTotal();
+          bairroEl.addEventListener("blur", () => {
+            buscarBairroDigitado();
           });
 
           if (cliente) {
@@ -1258,7 +1626,12 @@
             );
 
             if (bairroEncontrado) {
-              bairroEl.value = bairroEncontrado.id;
+              // CEP tem prioridade: substitui o bairro digitado
+              bairroEl.value = bairroEncontrado.nome;
+
+              bairroDetectado = bairroEncontrado;
+
+              liberarEntrega();
 
               recalcularTotal();
             }
