@@ -682,7 +682,6 @@
           });
 
           recalcularTotal();
-
         } catch (erro) {
           console.error("Erro ao carregar bairros:", erro);
 
@@ -690,7 +689,7 @@
             <option value="">Erro ao carregar bairros</option>
           `;
         }
-      }   
+      }
 
       function obterBairroSelecionado() {
         if (bairroDetectado) {
@@ -862,26 +861,84 @@
 
         const busca = normalizarTexto(nomeBairroAPI);
 
-        // 1 - comparação exata
-        let encontrado = bairrosEntrega.find(
+        const semelhantes = bairrosEntrega.filter((bairro) => {
+          const nome = normalizarTexto(bairro.nome);
+
+          return nome === busca || nome.includes(busca) || busca.includes(nome);
+        });
+
+        if (semelhantes.length > 1) {
+          const nomes = semelhantes.map((b) => b.nome);
+
+          const escolha = window.prompt(
+            `Encontramos mais de um bairro:\n\n${nomes
+              .map((nome, i) => `${i + 1}. ${nome}`)
+              .join("\n")}\n\nDigite o número da opção:`,
+          );
+
+          if (!escolha) return null;
+
+          const indice = Number(escolha);
+
+          if (
+            Number.isNaN(indice) ||
+            indice < 1 ||
+            indice > semelhantes.length
+          ) {
+            alert("Opção inválida.");
+            return null;
+          }
+
+          return semelhantes[indice - 1];
+        }
+
+        // correspondência exata
+        let encontrados = bairrosEntrega.filter(
           (b) => normalizarTexto(b.nome) === busca,
         );
 
-        if (encontrado) return encontrado;
+        if (encontrados.length === 1) {
+          return encontrados[0];
+        }
 
-        // 2 - ignorando maiúsculas/minúsculas + acentos
-        encontrado = bairrosEntrega.find((b) =>
+        // contém o texto
+        encontrados = bairrosEntrega.filter((b) =>
           normalizarTexto(b.nome).includes(busca),
         );
 
-        if (encontrado) return encontrado;
+        if (encontrados.length === 1) {
+          return encontrados[0];
+        }
 
-        // 3 - parcial invertido
-        encontrado = bairrosEntrega.find((b) =>
+        // texto contém o nome do banco
+        encontrados = bairrosEntrega.filter((b) =>
           busca.includes(normalizarTexto(b.nome)),
         );
 
-        return encontrado || null;
+        if (encontrados.length === 1) {
+          return encontrados[0];
+        }
+
+        // mais de um bairro encontrado (ex.: Porto Alegre)
+        if (encontrados.length > 1) {
+          const nomes = encontrados.map((b) => b.nome);
+
+          const escolhido = window.prompt(
+            `Encontramos mais de um bairro:\n\n${nomes
+              .map((nome, i) => `${i + 1}. ${nome}`)
+              .join("\n")}\n\nDigite exatamente o nome do seu bairro:`,
+          );
+
+          if (!escolhido) return null;
+
+          return (
+            encontrados.find(
+              (b) => normalizarTexto(b.nome) === normalizarTexto(escolhido),
+            ) || null
+          );
+        }
+
+        return null;
       }
 
       async function buscarEnderecoPorCoordenadas(lat, lon) {
