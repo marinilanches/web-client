@@ -12,6 +12,18 @@ from "../../js/services/orders.js";
 import { listarProdutosMaisVendidos }
 from "../../js/services/products.js";
 
+import {
+
+    atualizarPedidos,
+
+    atualizarFaturamento,
+
+    atualizarRodape
+
+}
+
+from "../components/cards.js";
+
 
 carregarSidebar();
 carregarHeader();
@@ -66,33 +78,59 @@ pedidos
 
 
 
-document.querySelector("#cardFinalizados")
-.innerHTML=
-`📦<h3>${finalizados}</h3>Pedidos Finalizados`;
+atualizarPedidos(
 
+    finalizados,
 
+    preparo,
 
-document.querySelector("#cardPreparo")
-.innerHTML=
-`👨‍🍳<h3>${preparo}</h3>Em Preparo`;
+    prontos,
 
+    entregues
 
+);
 
-document.querySelector("#cardProntos")
-.innerHTML=
-`✅<h3>${prontos}</h3>Prontos`;
+atualizarRodape(
 
+    "cardFinalizados",
 
+    "Hoje"
 
-document.querySelector("#cardEntregues")
-.innerHTML=
-`🚚<h3>${entregues}</h3>Entregues`;
+);
 
+atualizarRodape(
 
+    "cardPreparo",
 
-document.querySelector("#cardFaturamento")
-.innerHTML=
-`💰<h3>${moeda(faturamento)}</h3>Hoje`;
+    preparo > 0
+
+        ? "Pedidos em andamento"
+
+        : "Nenhum pedido"
+
+);
+
+atualizarRodape(
+
+    "cardProntos",
+
+    prontos > 0
+
+        ? "Aguardando retirada"
+
+        : "Nenhum pedido"
+
+);
+
+atualizarRodape(
+
+    "cardEntregues",
+
+    "Hoje"
+
+);
+
+atualizarFaturamento(faturamento);
 
 
 
