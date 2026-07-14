@@ -5,7 +5,8 @@ import {
   ouvirProdutos,
   criarProduto,
   editarProduto,
-  excluirProduto
+  excluirProduto,
+  alterarStatusProduto,
 } from "../../js/services/products.js";
 
 /* ==========================================
@@ -19,7 +20,7 @@ const CATEGORIAS = [
   "Frango",
   "Salames e embutidos",
   "Lanches simples",
-  "Bebidas"
+  "Bebidas",
 ];
 
 /* ==========================================
@@ -52,6 +53,9 @@ function initProdutos() {
 
   buscarProduto?.addEventListener("input", aplicarFiltros);
   categoriaFiltro?.addEventListener("change", aplicarFiltros);
+  document
+    .getElementById("statusFiltro")
+    ?.addEventListener("change", aplicarFiltros);
   btnNovoProduto?.addEventListener("click", abrirModalNovoProduto);
 }
 
@@ -77,16 +81,18 @@ function popularFiltroCategorias() {
 
   categoriaFiltro.innerHTML = `
     <option value="">Todas categorias</option>
-    ${CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join("")}
+    ${CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("")}
   `;
 }
 
 function gerarOptionsCategoria(categoriaAtual = "") {
-  return CATEGORIAS.map((categoria) => `
+  return CATEGORIAS.map(
+    (categoria) => `
     <option value="${categoria}" ${categoria === categoriaAtual ? "selected" : ""}>
       ${categoria}
     </option>
-  `).join("");
+  `,
+  ).join("");
 }
 
 function renderPreviewFile(file, previewEl) {
@@ -121,6 +127,7 @@ function aplicarFiltros() {
 
   const termo = buscarProduto?.value?.trim().toLowerCase() || "";
   const categoria = categoriaFiltro?.value?.trim() || "";
+  const status = document.getElementById("statusFiltro")?.value || "";
 
   if (termo) {
     produtos = produtos.filter((produto) => {
@@ -138,6 +145,14 @@ function aplicarFiltros() {
 
   if (categoria) {
     produtos = produtos.filter((produto) => produto.categoria === categoria);
+  }
+
+  if (status === "ativo") {
+    produtos = produtos.filter((p) => p.ativo !== false);
+  }
+
+  if (status === "inativo") {
+    produtos = produtos.filter((p) => p.ativo === false);
   }
 
   renderProdutos(produtos);
@@ -187,12 +202,31 @@ function renderProdutos(produtos) {
           <p><strong>Categoria:</strong> ${escapeHtml(produto.categoria || "-")}</p>
           <p><strong>Descrição:</strong> ${escapeHtml(produto.descricao || "-")}</p>
           <p><strong>Vendas:</strong> ${produto.vendas ?? 0}</p>
+          <p>
+            <strong>Status:</strong>
+            ${
+              produto.ativo === false
+                ? '<span class="status-inativo">🔴 Inativo</span>'
+                : '<span class="status-ativo">🟢 Ativo</span>'
+            }
+          </p>
         </div>
       </div>
 
       <div class="produto-admin-actions">
-        <button class="btn btn-primary btn-editar-produto">✏️ Editar</button>
-        <button class="btn btn-secondary btn-excluir-produto">🗑 Excluir</button>
+        <button class="btn btn-primary btn-editar-produto">
+            ✏️ Editar
+        </button>
+
+        <button class="btn ${
+          produto.ativo === false ? "btn-success" : "btn-warning"
+        } btn-status-produto">
+            ${produto.ativo === false ? "🟢 Ativar" : "🔴 Inativar"}
+        </button>
+
+        <button class="btn btn-secondary btn-excluir-produto">
+            🗑 Excluir
+        </button>
       </div>
     `;
 
@@ -200,18 +234,35 @@ function renderProdutos(produtos) {
       abrirModalEditarProduto(produto);
     });
 
-    card.querySelector(".btn-excluir-produto")?.addEventListener("click", async () => {
-      const confirmar = confirm(`Excluir o produto "${produto.nome}"?`);
-      if (!confirmar) return;
+    card
+      .querySelector(".btn-status-produto")
+      ?.addEventListener("click", async () => {
+        try {
+          await alterarStatusProduto(produto.id, !(produto.ativo === true));
 
-      try {
-        await excluirProduto(produto.id);
-        toast("Produto excluído com sucesso!");
-      } catch (erro) {
-        console.error(erro);
-        toast("Erro ao excluir produto.");
-      }
-    });
+          toast(
+            produto.ativo === true ? "Produto inativado!" : "Produto ativado!",
+          );
+        } catch (erro) {
+          console.error(erro);
+          toast("Erro ao alterar status.");
+        }
+      });
+
+    card
+      .querySelector(".btn-excluir-produto")
+      ?.addEventListener("click", async () => {
+        const confirmar = confirm(`Excluir o produto "${produto.nome}"?`);
+        if (!confirmar) return;
+
+        try {
+          await excluirProduto(produto.id);
+          toast("Produto excluído com sucesso!");
+        } catch (erro) {
+          console.error(erro);
+          toast("Erro ao excluir produto.");
+        }
+      });
 
     listaProdutos.appendChild(card);
   });
@@ -275,10 +326,12 @@ function abrirModalNovoProduto() {
           </button>
         </div>
       </form>
-    `
+    `,
   );
 
-  document.getElementById("cancelarProduto")?.addEventListener("click", fecharModal);
+  document
+    .getElementById("cancelarProduto")
+    ?.addEventListener("click", fecharModal);
 
   const imagemInput = document.getElementById("imagemProduto");
   const preview = document.getElementById("previewImagemProduto");
@@ -288,29 +341,31 @@ function abrirModalNovoProduto() {
     renderPreviewFile(file, preview);
   });
 
-  document.getElementById("formNovoProduto")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document
+    .getElementById("formNovoProduto")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    try {
-      const imagemFile = imagemInput?.files?.[0] || null;
+      try {
+        const imagemFile = imagemInput?.files?.[0] || null;
 
-      await criarProduto({
-        nome: document.getElementById("nomeProduto").value.trim(),
-        preco: Number(document.getElementById("precoProduto").value || 0),
-        categoria: document.getElementById("categoriaProduto").value.trim(),
-        descricao: document.getElementById("descricaoProduto").value.trim(),
-        imagemFile,
-        vendas: 0,
-        ativo: true
-      });
+        await criarProduto({
+          nome: document.getElementById("nomeProduto").value.trim(),
+          preco: Number(document.getElementById("precoProduto").value || 0),
+          categoria: document.getElementById("categoriaProduto").value.trim(),
+          descricao: document.getElementById("descricaoProduto").value.trim(),
+          imagemFile,
+          vendas: 0,
+          ativo: true,
+        });
 
-      toast("Produto salvo com sucesso!");
-      fecharModal();
-    } catch (erro) {
-      console.error(erro);
-      toast("Erro ao salvar produto.");
-    }
-  });
+        toast("Produto salvo com sucesso!");
+        fecharModal();
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao salvar produto.");
+      }
+    });
 }
 
 /* ==========================================
@@ -386,10 +441,12 @@ function abrirModalEditarProduto(produto) {
           </button>
         </div>
       </form>
-    `
+    `,
   );
 
-  document.getElementById("cancelarEditarProduto")?.addEventListener("click", fecharModal);
+  document
+    .getElementById("cancelarEditarProduto")
+    ?.addEventListener("click", fecharModal);
 
   const editImagemInput = document.getElementById("editImagemProduto");
   const preview = document.getElementById("previewEditImagemProduto");
@@ -399,32 +456,38 @@ function abrirModalEditarProduto(produto) {
     if (file) renderPreviewFile(file, preview);
   });
 
-  document.getElementById("formEditarProduto")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document
+    .getElementById("formEditarProduto")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    try {
-      const imagemFile = editImagemInput?.files?.[0] || null;
+      try {
+        const imagemFile = editImagemInput?.files?.[0] || null;
 
-      const payload = {
-        nome: document.getElementById("editNomeProduto").value.trim(),
-        preco: Number(document.getElementById("editPrecoProduto").value || 0),
-        categoria: document.getElementById("editCategoriaProduto").value.trim(),
-        descricao: document.getElementById("editDescricaoProduto").value.trim()
-      };
+        const payload = {
+          nome: document.getElementById("editNomeProduto").value.trim(),
+          preco: Number(document.getElementById("editPrecoProduto").value || 0),
+          categoria: document
+            .getElementById("editCategoriaProduto")
+            .value.trim(),
+          descricao: document
+            .getElementById("editDescricaoProduto")
+            .value.trim(),
+        };
 
-      if (imagemFile) {
-        payload.imagemFile = imagemFile;
+        if (imagemFile) {
+          payload.imagemFile = imagemFile;
+        }
+
+        await editarProduto(produto.id, payload);
+
+        toast("Produto atualizado com sucesso!");
+        fecharModal();
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao atualizar produto.");
       }
-
-      await editarProduto(produto.id, payload);
-
-      toast("Produto atualizado com sucesso!");
-      fecharModal();
-    } catch (erro) {
-      console.error(erro);
-      toast("Erro ao atualizar produto.");
-    }
-  });
+    });
 }
 
 initProdutos();

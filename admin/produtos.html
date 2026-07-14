@@ -1,72 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Produtos • Mesa Fácil</title>
 
-    <link rel="stylesheet" href="css/admin.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
+    <link rel="stylesheet" href="css/admin.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside id="sidebar"></aside>
 
-<div class="layout">
-
-    <!-- Sidebar -->
-    <aside id="sidebar"></aside>
-
-    <!-- Conteúdo -->
-    <main class="content">
-
+      <!-- Conteúdo -->
+      <main class="content">
         <!-- Header -->
         <header id="header"></header>
 
         <section class="dashboard">
+          <h1>Produtos</h1>
 
-            <h1>Produtos</h1>
+          <p class="subtitle">Gerencie o cardápio da loja.</p>
 
-            <p class="subtitle">
-                Gerencie o cardápio da loja.
-            </p>
+          <!-- Barra superior -->
+          <div class="toolbar">
+            <input
+              type="text"
+              id="buscarProduto"
+              placeholder="Pesquisar produto..."
+            />
 
-            <!-- Barra superior -->
-            <div class="toolbar">
+            <select id="categoriaFiltro">
+              <option value="">Todas categorias</option>
+              <option value="Hambúrgueres">Hambúrgueres</option>
+              <option value="Cachorros-quentes">Cachorros-quentes</option>
+              <option value="Carnes especiais">Carnes especiais</option>
+              <option value="Frango">Frango</option>
+              <option value="Salames e embutidos">Salames e embutidos</option>
+              <option value="Lanches simples">Lanches simples</option>
+              <option value="Bebidas">Bebidas</option>
+            </select>
 
-                <input
-                    type="text"
-                    id="buscarProduto"
-                    placeholder="Pesquisar produto..."
-                >
+            <select id="statusFiltro">
+              <option value="">Todos</option>
+              <option value="ativo">Somente ativos</option>
+              <option value="inativo">Somente inativos</option>
+            </select>
 
-                <select id="categoriaFiltro">
-                    <option value="">Todas categorias</option>
-                    <option value="Hambúrgueres">Hambúrgueres</option>
-                    <option value="Cachorros-quentes">Cachorros-quentes</option>
-                    <option value="Carnes especiais">Carnes especiais</option>
-                    <option value="Frango">Frango</option>
-                    <option value="Salames e embutidos">Salames e embutidos</option>
-                    <option value="Lanches simples">Lanches simples</option>
-                    <option value="Bebidas">Bebidas</option>
-                </select>
+            <button id="novoProduto">➕ Novo Produto</button>
+          </div>
 
-                <button id="novoProduto">
-                    ➕ Novo Produto
-                </button>
-
-            </div>
-
-            <!-- Lista -->
-            <div id="listaProdutos"></div>
-
+          <!-- Lista -->
+          <div id="listaProdutos"></div>
         </section>
+      </main>
+    </div>
 
-    </main>
-
-</div>
-
-<script type="module" src="js/app.js"></script>
-
-</body>
+    <script type="module" src="js/app.js"></script>
+  </body>
 </html>

@@ -199,6 +199,18 @@ export async function excluirProduto(id) {
   }
 }
 
+export async function alterarStatusProduto(id, ativo) {
+  try {
+    await updateDoc(doc(db, "produtos", id), {
+      ativo,
+      updatedAt: serverTimestamp()
+    });
+  } catch (erro) {
+    console.error("Erro ao alterar status do produto:", erro);
+    throw erro;
+  }
+}
+
 /* ==========================================================
    BUSCAR PRODUTO
 ========================================================== */
