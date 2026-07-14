@@ -39,6 +39,14 @@
       }
 
       /* ==========================================================
+   ELEMENTOS OCULTOS
+========================================================== */
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ==========================================================
    CARDS
 ========================================================== */
 
@@ -772,6 +780,24 @@
       const pagamentoMetodoEl = document.getElementById("pagamentoMetodo");
       const campoTrocoParaEl = document.getElementById("campoTrocoPara");
       const trocoParaEl = document.getElementById("trocoPara");
+      const valorTrocoEl = document.createElement("small");
+
+      valorTrocoEl.id = "valorTroco";
+      valorTrocoEl.style.display = "block";
+      valorTrocoEl.style.marginTop = "8px";
+      valorTrocoEl.style.fontWeight = "700";
+
+      campoTrocoParaEl.appendChild(valorTrocoEl);
+
+      function atualizarTroco() {
+        const valorEntregue = Number(trocoParaEl.value || valorTotal);
+
+        const troco = Math.max(valorEntregue - valorTotal, 0);
+
+        valorTrocoEl.innerText = `Troco: R$ ${troco.toFixed(2)}`;
+      }
+
+      trocoParaEl.addEventListener("input", atualizarTroco);
 
       let valorSubtotal = 0;
       let taxaEntrega = 0;
@@ -1093,6 +1119,9 @@
         subtotalEl.innerText = valorSubtotal.toFixed(2);
         taxaEntregaEl.innerText = taxaEntrega.toFixed(2);
         totalEl.innerText = valorTotal.toFixed(2);
+        if (pagamentoMetodoEl.value === "DINHEIRO") {
+          atualizarTroco();
+        }
       }
 
       function atualizarCamposTipoPedido() {
@@ -1211,17 +1240,11 @@
         }
 
         if (pagamentoMetodo === "DINHEIRO") {
-          const trocoPara = Number(trocoParaEl.value || 0);
-
-          if (!trocoPara || trocoPara <= 0) {
-            alert("Informe o valor para troco.");
-            trocoParaEl.focus();
-            return false;
-          }
+          const trocoPara = Number(trocoParaEl.value || valorTotal);
 
           if (trocoPara < valorTotal) {
             alert(
-              "O troco para não pode ser menor que o valor total do pedido.",
+              "O valor informado não pode ser menor que o total do pedido.",
             );
             trocoParaEl.focus();
             return false;
@@ -1597,6 +1620,7 @@
           bairroLabel,
           taxaEntrega: taxaFinal,
           endereco: {
+            cep: tipo === "Delivery" ? cepEl.value.trim() : "",
             rua: tipo === "Delivery" ? ruaEl.value.trim() : "",
             numero: tipo === "Delivery" ? numeroEl.value.trim() : "",
             bairro: bairroNome,
