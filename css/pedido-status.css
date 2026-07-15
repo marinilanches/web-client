@@ -488,3 +488,38 @@ MOBILE
     }
 
 }
+
+.pix-whatsapp-link {
+  color: #25d366;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pix-whatsapp-link:hover {
+  text-decoration: underline;
+}
+
+.comprovante-box {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.comprovante-box h4 {
+  margin-bottom: .75rem;
+  font-weight: 900;
+}
+
+.comprovante-whatsapp {
+  display: inline-block;
+  margin-top: .5rem;
+  color: #25d366;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.comprovante-whatsapp:hover {
+  text-decoration: underline;
+}

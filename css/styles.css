@@ -1078,3 +1078,7 @@ body.cliente-body {
     border-radius: 16px;
     display: block;
 }
+
+.hidden {
+    display: none !important;
+}
