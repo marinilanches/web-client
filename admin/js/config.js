@@ -54,47 +54,47 @@ function validarElementos(el) {
 }
 
 function coletarDados(el) {
-return {
-loja: {
-nome: el.nomeLoja.value.trim(),
-telefone: el.telefone.value.trim(),
-whatsapp: el.whatsapp.value.trim(),
-email: el.email.value.trim(),
-endereco: el.endereco.value.trim(),
-},
+  return {
+    loja: {
+      nome: el.nomeLoja.value.trim(),
+      telefone: el.telefone.value.trim(),
+      whatsapp: el.whatsapp.value.trim(),
+      email: el.email.value.trim(),
+      endereco: el.endereco.value.trim(),
+    },
 
-funcionamento: {
-abertura: el.abertura.value || "",
-fechamento: el.fechamento.value || "",
-statusManual: el.statusLoja.value || "AUTO",
-},
+    funcionamento: {
+      abertura: el.abertura.value || "",
+      fechamento: el.fechamento.value || "",
+      statusManual: el.statusLoja.value || "AUTO",
+    },
 
-delivery: {
-ativo: el.delivery.checked,
-retirada: el.retirada.checked,
-taxaPorDistancia: el.distancia.checked,
-taxaPorBairro: el.bairro.checked,
-},
+    delivery: {
+      ativo: el.delivery.checked,
+      retirada: el.retirada.checked,
+      taxaPorDistancia: el.distancia.checked,
+      taxaPorBairro: el.bairro.checked,
+    },
 
-pagamentos: {
-pix: el.pix.checked,
-dinheiro: el.dinheiro.checked,
-cartao: el.cartao.checked,
-pagbank: el.pagbank.checked,
-},
+    pagamentos: {
+      pix: el.pix.checked,
+      dinheiro: el.dinheiro.checked,
+      cartao: el.cartao.checked,
+      pagbank: el.pagbank.checked,
+    },
 
-seguranca: {
-registrarLogs: el.registrarLogs.checked,
-backupAutomatico: el.backupAutomatico.checked,
-},
+    seguranca: {
+      registrarLogs: el.registrarLogs.checked,
+      backupAutomatico: el.backupAutomatico.checked,
+    },
 
-localizacao: {
-  latitude: -23.000761054962886,
-  longitude: -47.51735362883598,
-},
+    localizacao: {
+      latitude: -23.000761054962886,
+      longitude: -47.51735362883598,
+    },
 
-updatedAt: serverTimestamp(),
-};
+    updatedAt: serverTimestamp(),
+  };
 }
 
 function preencherFormulario(el, dados = {}) {
@@ -117,8 +117,13 @@ function preencherFormulario(el, dados = {}) {
 
   el.delivery.checked = delivery.ativo ?? true;
   el.retirada.checked = delivery.retirada ?? true;
-  el.distancia.checked = delivery.taxaPorDistancia ?? false;
-  el.bairro.checked = delivery.taxaPorBairro ?? true;
+  if (delivery.taxaPorDistancia) {
+    el.distancia.checked = true;
+    el.bairro.checked = false;
+  } else {
+    el.distancia.checked = false;
+    el.bairro.checked = true;
+  }
 
   el.pix.checked = pagamentos.pix ?? true;
   el.dinheiro.checked = pagamentos.dinheiro ?? true;
@@ -190,6 +195,18 @@ function restaurarPadrao(el) {
 }
 
 function registrarEventos(el) {
+  el.distancia.addEventListener("change", () => {
+    if (el.distancia.checked) {
+      el.bairro.checked = false;
+    }
+  });
+
+  el.bairro.addEventListener("change", () => {
+    if (el.bairro.checked) {
+      el.distancia.checked = false;
+    }
+  });
+
   el.form.addEventListener("submit", async (event) => {
     event.preventDefault();
 

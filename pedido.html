@@ -768,9 +768,6 @@
       import { criarPedido } from "./js/services/orders.js";
       import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
       import { buscarConfiguracoes } from "./js/services/config.js";
-      const config = await buscarConfiguracoes();
-
-      console.log("CONFIGURAÇÃO LOJA:", config);
 
       import {
         buscarEnderecos,
@@ -782,6 +779,10 @@
         buscarCliente,
         salvarCliente,
       } from "./js/services/customers.js";
+
+      const config = await buscarConfiguracoes();
+
+      console.log("CONFIG CHECKOUT:", config);
 
       const carrinho = (() => {
         try {
@@ -968,8 +969,18 @@
           div.addEventListener("click", async () => {
             ruaEl.value = item.rua || "";
 
-            latitudeCliente = item.latitude;
-            longitudeCliente = item.longitude;
+            const lat = item.latitude ?? item.lat;
+            const lon = item.longitude ?? item.lon;
+
+            if (lat && lon) {
+              latitudeCliente = Number(lat);
+              longitudeCliente = Number(lon);
+
+              console.log("Coordenadas rua selecionada:", {
+                latitudeCliente,
+                longitudeCliente,
+              });
+            }
 
             numeroEl.value = "";
 
@@ -1278,18 +1289,54 @@
         const tipo = tipoPedidoEl.value;
         const bairroSelecionado = obterBairroSelecionado();
 
+        console.log("DEBUG DISTÂNCIA:", {
+          taxaPorDistancia: configuracoesLoja?.delivery?.taxaPorDistancia,
+          latitudeCliente,
+          longitudeCliente,
+          localizacaoLoja: configuracoesLoja?.localizacao,
+        });
+
         if (tipo === "Delivery") {
-          taxaEntrega = Number(bairroSelecionado?.taxa || 0);
+          if (
+            configuracoesLoja?.delivery?.taxaPorDistancia &&
+            latitudeCliente !== null &&
+            longitudeCliente !== null &&
+            configuracoesLoja?.localizacao?.latitude &&
+            configuracoesLoja?.localizacao?.longitude
+          ) {
+            const distancia = calcularDistancia(
+              latitudeCliente,
+              longitudeCliente,
+              configuracoesLoja.localizacao.latitude,
+              configuracoesLoja.localizacao.longitude,
+            );
+
+            console.log(
+              "Distância cliente até loja:",
+              distancia.toFixed(2),
+              "KM",
+            );
+
+            const novaTaxa = calcularTaxaPorDistancia(distancia);
+
+            if (novaTaxa === null) {
+              bloquearEntrega("Não realizamos entrega para essa distância.");
+
+              return;
+            }
+
+            taxaEntrega = novaTaxa;
+          } else {
+            taxaEntrega = Number(bairroSelecionado?.taxa || 0);
+          }
+
           linhaTaxa.style.display = "block";
-        } else {
-          taxaEntrega = 0;
-          linhaTaxa.style.display = "none";
         }
 
         valorTotal = valorSubtotal + taxaEntrega;
 
         subtotalEl.innerText = valorSubtotal.toFixed(2);
-        taxaEntregaEl.innerText = taxaEntrega.toFixed(2);
+        taxaEntregaEl.innerText = taxaEntrega.toFixed(2).replace(".", ",");
         totalEl.innerText = valorTotal.toFixed(2);
         if (pagamentoMetodoEl.value === "DINHEIRO") {
           atualizarTroco();
@@ -1359,6 +1406,40 @@
 
         if (!deliveryAtivo) {
           tipoPedidoEl.value = "Retirada";
+        }
+      }
+
+      function aplicarPagamentos() {
+        const select = pagamentoMetodoEl;
+
+        select.innerHTML = `
+          <option value="">Selecione</option>
+        `;
+
+        const pagamentos = configuracoesLoja?.pagamentos || {};
+
+        if (pagamentos.pix) {
+          select.innerHTML += `
+            <option value="PIX">PIX</option>
+          `;
+        }
+
+        if (pagamentos.dinheiro) {
+          select.innerHTML += `
+            <option value="DINHEIRO">Dinheiro</option>
+          `;
+        }
+
+        if (pagamentos.cartao) {
+          select.innerHTML += `
+            <option value="CARTAO">Cartão</option>
+          `;
+        }
+
+        if (pagamentos.pagbank) {
+          select.innerHTML += `
+            <option value="PAGBANK">PagBank</option>
+          `;
         }
       }
 
@@ -1452,6 +1533,22 @@
         return true;
       }
 
+      function validarHorarioCheckout() {
+        const funcionamento = configuracoesLoja?.funcionamento || {};
+
+        const aberto = isStoreOpen(funcionamento);
+
+        if (!aberto) {
+          alert(
+            `A loja está fechada.\nHorário: ${funcionamento.abertura} às ${funcionamento.fechamento}`,
+          );
+
+          return false;
+        }
+
+        return true;
+      }
+
       // ======================================================
       // LOCALIZAÇÃO ATUAL + GEOCODIFICAÇÃO REVERSA
       // ======================================================
@@ -1462,6 +1559,43 @@
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase()
           .trim();
+      }
+
+      function calcularDistancia(lat1, lon1, lat2, lon2) {
+        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
+          return null;
+        }
+
+        const R = 6371; // raio da Terra em km
+
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) ** 2;
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+      }
+
+      function calcularTaxaPorDistancia(distanciaKm) {
+        if (distanciaKm == null) return 0;
+
+        if (distanciaKm <= 1.9) return 9;
+        if (distanciaKm <= 3.1) return 10;
+        if (distanciaKm <= 4.9) return 11;
+        if (distanciaKm <= 5.1) return 12;
+        if (distanciaKm <= 5.3) return 13;
+        if (distanciaKm <= 5.5) return 14;
+        if (distanciaKm <= 5.7) return 15;
+        if (distanciaKm <= 5.8) return 16;
+        if (distanciaKm <= 7) return 17;
+
+        return 0;
       }
 
       function encontrarBairro(nomeBairroAPI) {
@@ -1567,8 +1701,55 @@
         return await resposta.json();
       }
 
+      async function buscarCoordenadasEndereco(
+        rua,
+        bairro,
+        cidade,
+        estado,
+        cep,
+      ) {
+        try {
+          const consultas = [
+            `${cep}, Brasil`,
+            `${rua}, ${cidade}, ${estado}, Brasil`,
+            `${rua}, ${bairro}, ${cidade}, ${estado}, Brasil`,
+          ];
+
+          for (const consulta of consultas) {
+            const endereco = encodeURIComponent(consulta);
+
+            const resposta = await fetch(
+              `https://nominatim.openstreetmap.org/search?` +
+                `format=json&q=${endereco}&limit=1`,
+            );
+
+            const dados = await resposta.json();
+
+            if (dados.length) {
+              latitudeCliente = Number(dados[0].lat);
+              longitudeCliente = Number(dados[0].lon);
+
+              console.log("Coordenadas encontradas:", {
+                consulta,
+                latitudeCliente,
+                longitudeCliente,
+              });
+
+              return;
+            }
+          }
+
+          console.warn("Não foi possível encontrar coordenadas do endereço");
+        } catch (erro) {
+          console.error("Erro ao buscar coordenadas:", erro);
+        }
+      }
+
       async function buscarCEP(cep) {
         bairroDetectado = null;
+
+        latitudeCliente = null;
+        longitudeCliente = null;
 
         const numeroCEP = cep.replace(/\D/g, "");
 
@@ -1588,6 +1769,14 @@
         }
 
         ruaEl.value = dados.logradouro || "";
+
+        await buscarCoordenadasEndereco(
+          dados.logradouro,
+          dados.bairro,
+          dados.localidade,
+          dados.uf,
+          numeroCEP,
+        );
 
         const nomeBairroCEP = normalizarTexto(dados.bairro);
 
@@ -1700,6 +1889,8 @@
       async function finalizarPedido(event) {
         event.preventDefault();
 
+        if (!validarHorarioCheckout()) return;
+
         if (!validarFormulario()) return;
 
         const clienteAuth = await garantirClienteAuth();
@@ -1783,8 +1974,7 @@
           tipo === "Delivery" ? bairroSelecionado?.nome || "" : "";
         const bairroId =
           tipo === "Delivery" ? bairroSelecionado?.id || null : null;
-        const taxaFinal =
-          tipo === "Delivery" ? Number(bairroSelecionado?.taxa || 0) : 0;
+        const taxaFinal = tipo === "Delivery" ? Number(taxaEntrega || 0) : 0;
         const bairroLabel =
           tipo === "Delivery" && bairroSelecionado
             ? `${bairroSelecionado.nome} (${formatarMoeda(taxaFinal)})`
@@ -1867,9 +2057,12 @@
 
           configuracoesLoja = await buscarConfiguracoes();
 
+          aplicarPagamentos();
           aplicarConfiguracoesLoja();
 
           console.log("Configurações da loja:", configuracoesLoja);
+
+          document.title = `${configuracoesLoja?.loja?.nome || "Mesa Fácil"} - Pedido`;
 
           // 1) recuperar tipo escolhido no index
           const tipoSalvo = localStorage.getItem("tipoPedido");

@@ -1,179 +1,184 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configurações • Mesa Fácil</title>
 
     <link rel="stylesheet" href="css/admin.css" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
     />
-</head>
-<body>
+  </head>
+  <body>
     <div class="layout">
-        <!-- Sidebar -->
-        <aside id="sidebar"></aside>
+      <!-- Sidebar -->
+      <aside id="sidebar"></aside>
 
-        <!-- Conteúdo -->
-        <main class="content">
-            <!-- Header -->
-            <header id="header"></header>
+      <!-- Conteúdo -->
+      <main class="content">
+        <!-- Header -->
+        <header id="header"></header>
 
-            <section class="dashboard">
-                <h1>Configurações</h1>
-                <p class="subtitle">Configurações gerais do sistema.</p>
+        <section class="dashboard">
+          <h1>Configurações</h1>
+          <p class="subtitle">Configurações gerais do sistema.</p>
 
-                <form id="formConfiguracoes">
-                    <!-- Dados da Loja -->
-                    <div class="panel">
-                        <div class="panel-title">🏪 Dados da Loja</div>
+          <form id="formConfiguracoes">
+            <!-- Dados da Loja -->
+            <div class="panel">
+              <div class="panel-title">🏪 Dados da Loja</div>
 
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="nomeLoja">Nome da Loja</label>
-                                <input type="text" id="nomeLoja" />
-                            </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="nomeLoja">Nome da Loja</label>
+                  <input type="text" id="nomeLoja" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="telefone">Telefone</label>
-                                <input type="text" id="telefone" />
-                            </div>
+                <div class="form-group">
+                  <label for="telefone">Telefone</label>
+                  <input type="text" id="telefone" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="whatsapp">WhatsApp</label>
-                                <input type="text" id="whatsapp" />
-                            </div>
+                <div class="form-group">
+                  <label for="whatsapp">WhatsApp</label>
+                  <input type="text" id="whatsapp" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="email">E-mail</label>
-                                <input type="email" id="email" />
-                            </div>
+                <div class="form-group">
+                  <label for="email">E-mail</label>
+                  <input type="email" id="email" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="endereco">Endereço</label>
-                                <input type="text" id="endereco" />
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                  <label for="endereco">Endereço</label>
+                  <input type="text" id="endereco" />
+                </div>
+              </div>
+            </div>
 
-                    <!-- Funcionamento -->
-                    <div class="panel">
-                        <div class="panel-title">🕒 Funcionamento</div>
+            <!-- Funcionamento -->
+            <div class="panel">
+              <div class="panel-title">🕒 Funcionamento</div>
 
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="abertura">Horário de Abertura</label>
-                                <input type="time" id="abertura" />
-                            </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="abertura">Horário de Abertura</label>
+                  <input type="time" id="abertura" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="fechamento">Horário de Fechamento</label>
-                                <input type="time" id="fechamento" />
-                            </div>
+                <div class="form-group">
+                  <label for="fechamento">Horário de Fechamento</label>
+                  <input type="time" id="fechamento" />
+                </div>
 
-                            <div class="form-group">
-                                <label for="statusLoja">Status Manual</label>
-                                <select id="statusLoja">
-                                    <option value="AUTO">Automático</option>
-                                    <option value="ABERTA">Aberta</option>
-                                    <option value="FECHADA">Fechada</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                  <label for="statusLoja">Status Manual</label>
+                  <select id="statusLoja">
+                    <option value="AUTO">Automático</option>
+                    <option value="ABERTA">Aberta</option>
+                    <option value="FECHADA">Fechada</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-                    <!-- Delivery -->
-                    <div class="panel">
-                        <div class="panel-title">🚚 Delivery</div>
+            <!-- Delivery -->
+            <div class="panel">
+              <div class="panel-title">🚚 Delivery</div>
 
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <td>Aceita Delivery</td>
-                                    <td><input type="checkbox" id="delivery" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>Aceita Retirada</td>
-                                    <td><input type="checkbox" id="retirada" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>Calcular Taxa por Distância</td>
-                                    <td><input type="checkbox" id="distancia" /></td>
-                                </tr>
-                                <tr>
-                                    <td>Usar Taxa por Bairro</td>
-                                    <td><input type="checkbox" id="bairro" checked /></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+              <table class="table">
+                <tbody>
+                  <tr>
+                    <td>Aceita Delivery</td>
+                    <td><input type="checkbox" id="delivery" checked /></td>
+                  </tr>
+                  <tr>
+                    <td>Aceita Retirada</td>
+                    <td><input type="checkbox" id="retirada" checked /></td>
+                  </tr>
+                  <tr>
+                    <td>Calcular Taxa por Distância</td>
+                    <td><input type="checkbox" id="distancia" /></td>
+                  </tr>
 
-                    <!-- Pagamentos -->
-                    <div class="panel">
-                        <div class="panel-title">💳 Pagamentos</div>
+                  <tr>
+                    <td>Usar Taxa por Bairro</td>
+                    <td><input type="checkbox" id="bairro" checked /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <td>PIX</td>
-                                    <td><input type="checkbox" id="pix" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>Dinheiro</td>
-                                    <td><input type="checkbox" id="dinheiro" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>Cartão</td>
-                                    <td><input type="checkbox" id="cartao" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>PagBank</td>
-                                    <td><input type="checkbox" id="pagbank" checked /></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- Pagamentos -->
+            <div class="panel">
+              <div class="panel-title">💳 Pagamentos</div>
 
-                    <!-- Segurança -->
-                    <div class="panel">
-                        <div class="panel-title">🔒 Segurança</div>
+              <table class="table">
+                <tbody>
+                  <tr>
+                    <td>PIX</td>
+                    <td><input type="checkbox" id="pix" checked /></td>
+                  </tr>
+                  <tr>
+                    <td>Dinheiro</td>
+                    <td><input type="checkbox" id="dinheiro" checked /></td>
+                  </tr>
+                  <tr>
+                    <td>Cartão</td>
+                    <td><input type="checkbox" id="cartao" checked /></td>
+                  </tr>
+                  <tr>
+                    <td>PagBank</td>
+                    <td><input type="checkbox" id="pagbank" checked /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <td>Exigir Login do Admin</td>
-                                    <td><input type="checkbox" checked disabled /></td>
-                                </tr>
-                                <tr>
-                                    <td>Registrar Logs</td>
-                                    <td><input type="checkbox" id="registrarLogs" checked /></td>
-                                </tr>
-                                <tr>
-                                    <td>Backup Automático</td>
-                                    <td><input type="checkbox" id="backupAutomatico" checked /></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- Segurança -->
+            <div class="panel">
+              <div class="panel-title">🔒 Segurança</div>
 
-                    <!-- Botões -->
-                    <div class="toolbar">
-                        <button type="submit" id="btnSalvar">
-                            💾 Salvar Configurações
-                        </button>
+              <table class="table">
+                <tbody>
+                  <tr>
+                    <td>Exigir Login do Admin</td>
+                    <td><input type="checkbox" checked disabled /></td>
+                  </tr>
+                  <tr>
+                    <td>Registrar Logs</td>
+                    <td>
+                      <input type="checkbox" id="registrarLogs" checked />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Backup Automático</td>
+                    <td>
+                      <input type="checkbox" id="backupAutomatico" checked />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                        <button type="button" id="btnRestaurar">
-                            🔄 Restaurar Padrão
-                        </button>
-                    </div>
-                </form>
-            </section>
-        </main>
+            <!-- Botões -->
+            <div class="toolbar">
+              <button type="submit" id="btnSalvar">
+                💾 Salvar Configurações
+              </button>
+
+              <button type="button" id="btnRestaurar">
+                🔄 Restaurar Padrão
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
     </div>
 
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/config.js"></script>
-</body>
+  </body>
 </html>
