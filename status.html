@@ -344,6 +344,18 @@
         `;
       }
 
+      function abrirWhatsappPedido(pedido, pedidoId) {
+        const mensagem = encodeURIComponent(
+          gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
+        );
+
+        const telefone = "5519992522781";
+
+        const url = `https://wa.me/${telefone}?text=${mensagem}`;
+
+        window.location.href = url;
+      }
+
       function renderPedido(pedido, pedidoId) {
         const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
 
@@ -584,6 +596,10 @@
             pedidoId,
             (pedido) => {
               renderPedido(pedido, pedidoId);
+
+              if (pedido.status === "RECEBIDO") {
+                abrirWhatsappPedido(pedido, pedidoId);
+              }
             },
             () => {
               renderMensagem("Pedido não encontrado.");
