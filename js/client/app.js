@@ -8,6 +8,7 @@ import { carregarMaisPedidos } from "./best-sellers.js";
 import { iniciarPedidosCliente } from "./orders-client.js";
 import { iniciarCliente } from "./customer.js";
 import { garantirClienteAuth } from "../services/customers.js";
+import { isStoreOpen } from "../services/store-hours.js";
 
 /* ==========================================================
    CONFIG
