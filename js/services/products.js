@@ -425,7 +425,10 @@ export async function loadProducts() {
         <div class="row g-3">
           ${produtosDaCategoria.map((p) => {
             const nome = escaparHtml(p.nome || "");
-            const descricao = escaparHtml(p.descricao || "Sem descrição no momento.");
+            const descricao =
+  categoria === "Bebidas"
+    ? ""
+    : escaparHtml(p.descricao || "Sem descrição no momento.");
             const preco = Number(p.preco || 0);
             const imagem = escaparHtml(p.imagem || "");
             const produtoPayload = encodeURIComponent(JSON.stringify({
@@ -466,7 +469,7 @@ export async function loadProducts() {
                         </div>
 
                         <h4 class="product-title">${nome}</h4>
-                        <p class="product-description">${descricao}</p>
+                        ${descricao ? `<p class="product-description">${descricao}</p>` : ""}
                       </div>
                     </div>
 
