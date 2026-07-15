@@ -976,10 +976,28 @@
 
               console.log("Detalhes endereço:", detalhes);
 
-              // não preencher CEP automaticamente
+              // preenche somente bairro
+              bairroEl.value = detalhes.bairro || item.bairro || "";
+
+              // mantém CEP manual
               cepEl.value = "";
+
+              // tenta encontrar a taxa do bairro automaticamente
+              const bairroEncontrado = bairrosEntrega.find(
+                (bairro) =>
+                  normalizarTexto(bairro.nome) ===
+                  normalizarTexto(bairroEl.value),
+              );
+
+              if (bairroEncontrado) {
+                bairroDetectado = bairroEncontrado;
+
+                liberarEntrega();
+
+                recalcularTotal();
+              }
             } catch (erro) {
-              console.error("Erro detalhes:", erro);
+              console.error("Erro detalhes endereço:", erro);
             }
 
             fecharSugestoesRua();
