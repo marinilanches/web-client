@@ -21,47 +21,6 @@ const CONFIG_DOC_ID = "geral";
    HELPERS
 ========================================================== */
 
-function timeToMinutes(timeString) {
-  if (!timeString || typeof timeString !== "string") return null;
-
-  const [hour, minute] = timeString.split(":").map(Number);
-
-  if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-
-  return hour * 60 + minute;
-}
-
-function isStoreOpen(funcionamento = {}) {
-  const statusManual = funcionamento.statusManual || "AUTO";
-
-  if (statusManual === "ABERTA") return true;
-  if (statusManual === "FECHADA") return false;
-
-  const abertura = timeToMinutes(funcionamento.abertura);
-  const fechamento = timeToMinutes(funcionamento.fechamento);
-
-  // sem horário configurado = aberto
-  if (abertura === null || fechamento === null) {
-    return true;
-  }
-
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  // ex.: 19:00 até 23:00
-  if (abertura < fechamento) {
-    return currentMinutes >= abertura && currentMinutes < fechamento;
-  }
-
-  // ex.: 18:00 até 02:00
-  if (abertura > fechamento) {
-    return currentMinutes >= abertura || currentMinutes < fechamento;
-  }
-
-  // abertura == fechamento => 24h
-  return true;
-}
-
 function verificarCarrinhoAntesCheckout() {
   let carrinho = [];
 
