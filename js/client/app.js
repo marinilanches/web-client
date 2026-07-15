@@ -48,7 +48,7 @@ function atualizarInterfaceLoja(config = {}) {
   const finalizarBtnMobile = document.getElementById("finalizarBtnMobile");
   const tituloLoja = document.querySelector(".topbar h2");
 
-  const nomeLoja = config?.loja?.nome?.trim() || "Restaurante Digital";
+  const nomeLoja = config?.loja?.nome?.trim() || "Lanches Marini";
   const funcionamento = config?.funcionamento || {};
   const aberta = isStoreOpen(funcionamento);
 
