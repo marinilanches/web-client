@@ -1,6 +1,7 @@
 import { carregarSidebar } from "../components/sidebar.js";
 import { carregarHeader } from "../components/header.js";
 import { protegerPaginaAdmin } from "../../js/services/auth.js";
+import "./notificadorPedidos.js";
 
 /* ==========================================================
    MESA FÁCIL

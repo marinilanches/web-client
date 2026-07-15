@@ -19,19 +19,10 @@ const filtroStatus = document.getElementById("filtroStatus");
 const buscarPedido = document.getElementById("buscarPedido");
 
 /* ==========================================
-   ESTADO
+ESTADO
 ========================================== */
 
 let pedidosCache = [];
-
-let primeiraLeitura = true;
-
-const pedidosRecebidos = new Set();
-
-const audioNovoPedido = new Audio("../../assets/sounds/novo-pedido.mp3");
-
-audioNovoPedido.loop = true;
-audioNovoPedido.volume = 1;
 
 /* ==========================================
    INIT
@@ -40,26 +31,9 @@ audioNovoPedido.volume = 1;
 console.log("pedidos.js carregado");
 
 ouvirPedidos((pedidos) => {
-  pedidosCache = pedidos;
+    pedidosCache = pedidos;
 
-  if (primeiraLeitura) {
-    pedidos
-      .filter((p) => p.status === "RECEBIDO")
-      .forEach((p) => pedidosRecebidos.add(p.id));
-
-    primeiraLeitura = false;
-  } else {
-    pedidos.forEach((pedido) => {
-      if (pedido.status === "RECEBIDO" && !pedidosRecebidos.has(pedido.id)) {
-        pedidosRecebidos.add(pedido.id);
-
-        audioNovoPedido.currentTime = 0;
-        audioNovoPedido.play().catch(() => {});
-      }
-    });
-  }
-
-  aplicarFiltros();
+    aplicarFiltros();
 });
 
 /* ==========================================
@@ -435,8 +409,6 @@ function bindAcoesPedidos() {
           await marcarComoImpresso(pedido.id);
         }
 
-        pararSomNovoPedido();
-
         toast("Pedido marcado como PREPARANDO");
       } catch (erro) {
         console.error(erro);
@@ -450,7 +422,6 @@ function bindAcoesPedidos() {
     btn.addEventListener("click", async () => {
       try {
         await alterarStatus(btn.dataset.id, "PRONTO");
-        pararSomNovoPedido();
         toast("Pedido marcado como PRONTO");
       } catch (erro) {
         console.error(erro);
@@ -463,7 +434,6 @@ function bindAcoesPedidos() {
     btn.addEventListener("click", async () => {
       try {
         await alterarStatus(btn.dataset.id, "ENTREGUE");
-        pararSomNovoPedido();
         toast("Pedido marcado como ENTREGUE");
       } catch (erro) {
         console.error(erro);
@@ -476,7 +446,6 @@ function bindAcoesPedidos() {
     btn.addEventListener("click", async () => {
       try {
         await cancelarPedido(btn.dataset.id);
-        pararSomNovoPedido();
         toast("Pedido cancelado.");
       } catch (erro) {
         console.error(erro);
@@ -567,12 +536,6 @@ btnNovoPedido?.addEventListener("click", () => {
       }
     });
 });
-
-function pararSomNovoPedido() {
-  audioNovoPedido.pause();
-
-  audioNovoPedido.currentTime = 0;
-}
 
 async function enviarParaImpressora(pedido) {
   console.log("========== PEDIDO FIREBASE REAL ==========");
