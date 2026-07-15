@@ -399,7 +399,7 @@ async function imprimirPedido(pedido){
 
     cupom += CMD.DOUBLE;
 
-    cupom += "MESA FACIL\n";
+    cupom += "LANCHES MARINI\n";
 
 cupom += CMD.NORMAL;
 
