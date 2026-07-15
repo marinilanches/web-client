@@ -767,6 +767,10 @@
     <script type="module">
       import { criarPedido } from "./js/services/orders.js";
       import { listarTaxasEntregaAtivas } from "./js/services/delivery-fees.js";
+      import { buscarConfiguracoes } from "./js/services/config.js";
+      const config = await buscarConfiguracoes();
+
+      console.log("CONFIGURAÇÃO LOJA:", config);
 
       import {
         buscarEnderecos,
@@ -816,6 +820,7 @@
       const ruaSugestoesEl = document.getElementById("ruaSugestoes");
 
       let timeoutRua = null;
+      let configuracoesLoja = null;
       const ruaSemNumeroEl = document.getElementById("ruaSemNumero");
       const cepEl = document.getElementById("cep");
       cepEl.addEventListener("input", () => {
@@ -1331,6 +1336,32 @@
         }
       }
 
+      function aplicarConfiguracoesLoja() {
+        const deliveryAtivo = configuracoesLoja?.delivery?.ativo ?? true;
+
+        const retiradaAtiva = configuracoesLoja?.delivery?.retirada ?? true;
+
+        const optionDelivery = tipoPedidoEl.querySelector(
+          'option[value="Delivery"]',
+        );
+
+        const optionRetirada = tipoPedidoEl.querySelector(
+          'option[value="Retirada"]',
+        );
+
+        if (optionDelivery) {
+          optionDelivery.disabled = !deliveryAtivo;
+        }
+
+        if (optionRetirada) {
+          optionRetirada.disabled = !retiradaAtiva;
+        }
+
+        if (!deliveryAtivo) {
+          tipoPedidoEl.value = "Retirada";
+        }
+      }
+
       function validarFormulario() {
         const cliente = clienteEl.value.trim();
         const telefone = telefoneEl.value.trim();
@@ -1833,6 +1864,12 @@
       async function init() {
         try {
           await garantirClienteAuth();
+
+          configuracoesLoja = await buscarConfiguracoes();
+
+          aplicarConfiguracoesLoja();
+
+          console.log("Configurações da loja:", configuracoesLoja);
 
           // 1) recuperar tipo escolhido no index
           const tipoSalvo = localStorage.getItem("tipoPedido");
