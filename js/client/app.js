@@ -1,10 +1,14 @@
 import { db } from "../services/firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  doc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { loadProducts } from "../services/products.js";
 import { iniciarCarrinho } from "./cart.js";
 import { iniciarCheckout } from "./checkout.js";
 import { carregarMaisPedidos } from "./best-sellers.js";
+import { carregarPromocoes } from "./promocoes.js";
 import { iniciarPedidosCliente } from "./orders-client.js";
 import { iniciarCliente } from "./customer.js";
 import { garantirClienteAuth } from "../services/customers.js";
@@ -31,7 +35,9 @@ function verificarCarrinhoAntesCheckout() {
   }
 
   if (!Array.isArray(carrinho) || carrinho.length === 0) {
-    alert("Seu carrinho está vazio.\nAdicione itens do cardápio para continuar.");
+    alert(
+      "Seu carrinho está vazio.\nAdicione itens do cardápio para continuar.",
+    );
     return false;
   }
 
@@ -91,7 +97,7 @@ function atualizarInterfaceLoja(config = {}) {
         alert(
           funcionamento.abertura && funcionamento.fechamento
             ? `A loja está fechada no momento.\nAbre às ${funcionamento.abertura}.`
-            : "A loja está fechada no momento."
+            : "A loja está fechada no momento.",
         );
         return;
       }
@@ -121,7 +127,7 @@ function atualizarInterfaceLoja(config = {}) {
         alert(
           funcionamento.abertura && funcionamento.fechamento
             ? `A loja está fechada no momento.\nAbre às ${funcionamento.abertura}.`
-            : "A loja está fechada no momento."
+            : "A loja está fechada no momento.",
         );
         return;
       }
@@ -177,8 +183,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     await carregarMaisPedidos();
 
-    await iniciarPedidosCliente();
+    await carregarPromocoes();
 
+    await iniciarPedidosCliente();
   } catch (error) {
     console.error("Erro ao iniciar app do cliente:", error);
   }

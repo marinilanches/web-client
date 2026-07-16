@@ -24,6 +24,10 @@ export function iniciarCarrinho() {
   updateUI();
 }
 
+export function atualizarCarrinho() {
+  updateUI();
+}
+
 /* ==========================================================
    EVENTOS
 ========================================================== */
@@ -66,6 +70,9 @@ function iniciarEventosCarrinho() {
             produto.nome,
             Number(produto.preco || 0),
             produto.imagem || "",
+            produto.promocao || false,
+            produto.regrasPromocao || {},
+            Number(produto.precoOriginal || 0),
           );
 
           abrirCarrinhoNoMobile();
@@ -176,7 +183,6 @@ async function carregarAdicionaisGlobais() {
 }
 
 function produtoTemPersonalizacao(produto = {}) {
-
   // bebidas nunca abrem adicionais
   if (produtoEhBebida(produto)) {
     return false;
@@ -186,22 +192,13 @@ function produtoTemPersonalizacao(produto = {}) {
     Array.isArray(produto.gruposPersonalizacao) &&
     produto.gruposPersonalizacao.length > 0;
 
-
   const possuiAdicionaisProduto =
-    Array.isArray(produto.adicionais) &&
-    produto.adicionais.length > 0;
-
+    Array.isArray(produto.adicionais) && produto.adicionais.length > 0;
 
   const possuiAdicionaisGlobais =
-    Array.isArray(adicionaisGlobaisCache) &&
-    adicionaisGlobaisCache.length > 0;
+    Array.isArray(adicionaisGlobaisCache) && adicionaisGlobaisCache.length > 0;
 
-
-  return (
-    possuiGrupos ||
-    possuiAdicionaisProduto ||
-    possuiAdicionaisGlobais
-  );
+  return possuiGrupos || possuiAdicionaisProduto || possuiAdicionaisGlobais;
 }
 
 let produtoPersonalizandoAtual = null;
@@ -210,10 +207,7 @@ let itemEditandoKey = null;
 
 function produtoEhBebida(produto = {}) {
   const categoria =
-    produto.categoria?.nome ||
-    produto.categoria ||
-    produto.grupo ||
-    "";
+    produto.categoria?.nome || produto.categoria || produto.grupo || "";
 
   return categoria
     .toLowerCase()
@@ -265,7 +259,6 @@ function abrirModalPersonalizacao(produto) {
 }
 
 function montarGruposDoProduto(produto = {}) {
-
   if (produtoEhBebida(produto)) {
     renderizarGruposNoModal([]);
     return;
@@ -584,35 +577,22 @@ function addItemCustomizado(produto, adicionais = [], observacao = "") {
   );
 
   const item = {
-    key,
+    ...produto,
 
     id: produto.id,
-
     nome: produto.nome,
 
-    descricao: produto.descricao || "",
+    preco: produto.precoPromocional ?? produto.precoBase ?? produto.preco,
 
-    gruposPersonalizacao: produto.gruposPersonalizacao || [],
-
-    adicionaisDisponiveis: produto.adicionais || [],
-
-    preco: precoBase + valorAdicionais,
-
-    valorUnitario: precoBase + valorAdicionais,
-
-    precoBase,
-
-    valorAdicionais,
-
-    imagem: produto.imagem || "",
+    precoBase: produto.precoPromocional ?? produto.precoBase ?? produto.preco,
 
     quantidade: 1,
 
-    personalizados: {
-      adicionais,
+    promocao: produto.promocao ?? false,
 
-      observacao: observacaoNormalizada,
-    },
+    precoOriginal: produto.precoOriginal ?? null,
+
+    precoPromocional: produto.precoPromocional ?? null,
   };
 
   const existente = carrinho.find(
@@ -645,7 +625,15 @@ function gerarChaveItemPersonalizado(produto, adicionais, observacao) {
    CARRINHO
 ========================================================== */
 
-function addItem(id, nome, preco, imagem = "") {
+function addItem(
+  id,
+  nome,
+  preco,
+  imagem = "",
+  promocao = false,
+  regrasPromocao = {},
+  precoOriginal = 0,
+) {
   const key = String(id);
 
   const existente = carrinho.find((item) => item.key === key);
@@ -662,15 +650,22 @@ function addItem(id, nome, preco, imagem = "") {
 
       preco,
 
+      precoOriginal,
+
+      precoPromocional: preco,
+
       valorUnitario: preco,
 
       imagem,
+
+      promocao,
+
+      regrasPromocao,
 
       quantidade: 1,
 
       personalizados: {
         adicionais: [],
-
         observacao: "",
       },
     });
@@ -752,7 +747,7 @@ function updateUI() {
   carrinho.forEach((item) => {
     quantidade += item.quantidade;
 
-    total += Number(item.valorUnitario ?? item.preco) * item.quantidade;
+    total += obterPrecoAtual(item) * item.quantidade;
   });
 
   atualizarResumo();
@@ -760,6 +755,26 @@ function updateUI() {
   renderCarrinhoDesktop();
 
   renderCarrinhoMobile();
+}
+
+function obterPrecoAtual(item) {
+  if (!item.promocao) {
+    return Number(item.valorUnitario ?? item.preco);
+  }
+
+  const formaPagamento =
+    document.querySelector('input[name="pagamento"]:checked')?.value || "";
+
+  const pagamentosPermitidos = item.regrasPromocao?.pagamentos || [];
+
+  if (
+    pagamentosPermitidos.length &&
+    !pagamentosPermitidos.includes(formaPagamento)
+  ) {
+    return Number(item.precoOriginal || item.preco);
+  }
+
+  return Number(item.preco);
 }
 
 function atualizarResumo() {

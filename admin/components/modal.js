@@ -11,9 +11,9 @@ export function abrirModal(titulo, conteudo) {
     overlay.className = "modal-overlay";
 
    overlay.innerHTML = `
-        <div class="mf-modal">
+        <div class="app-modal-content">
 
-            <div class="modal-header">
+            <div class="app-modal-header">
 
                 <h2>${titulo}</h2>
 
@@ -21,7 +21,7 @@ export function abrirModal(titulo, conteudo) {
 
             </div>
 
-            <div class="modal-body">
+            <div class="app-modal-body">
 
                 ${conteudo}
 

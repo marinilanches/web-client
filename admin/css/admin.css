@@ -60,11 +60,8 @@ body{
 /* ============================= */
 
 .layout{
-
     display:flex;
-
     min-height:100vh;
-
 }
 
 /* ============================= */
@@ -73,18 +70,20 @@ body{
 
 aside{
     width:260px;
+    height:100vh;
+
+    position:fixed;
+    left:0;
+    top:0;
+
+    z-index:1000;
+
+    overflow-y:auto;
+
     background:var(--sidebar);
     color:#fff;
-    display:flex;
-    flex-direction:column;
-    position:fixed;
-    top:0;
-    left:0;
-    bottom:0;
-    overflow-y:auto;
-    box-shadow:var(--shadow);
-    transition:width .25s ease;
-    z-index:1000;
+
+    transition:.25s ease;
 }
 
 .sidebar-shell{
@@ -106,13 +105,17 @@ aside{
 .logo{
     display:flex;
     align-items:center;
+
     gap:12px;
+
     font-size:24px;
     font-weight:700;
+
+    flex:1;
+
     min-width:0;
-    padding:0;
-    border-bottom:none;
-    text-align:left;
+
+    overflow:hidden;
 }
 
 .logo-icon{
@@ -122,21 +125,30 @@ aside{
 }
 
 .logo-text{
+
+    flex:1;
+
+    min-width:0;
+
     white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+
+    overflow:visible;
+
+    text-overflow:clip;
+
     transition:opacity .2s ease;
+
 }
 
 .sidebar-toggle{
-    width:40px;
-    height:40px;
+    width:32x;
+    height:32px;
     border:none;
     border-radius:12px;
     background:rgba(255,255,255,.08);
     color:#fff;
     cursor:pointer;
-    font-size:18px;
+    font-size:15px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -179,7 +191,15 @@ aside{
 }
 
 .menu-text{
-    transition:opacity .2s ease;
+
+    color:inherit;
+
+    opacity:1;
+
+    width:auto;
+
+    transition:.25s;
+
 }
 
 .menu a:hover{
@@ -226,19 +246,26 @@ aside.collapsed .menu-text{
     pointer-events:none;
 }
 
-aside.collapsed + .content{
-    margin-left:88px;
-}
-
 /* ============================= */
 /* CONTEÚDO */
 /* ============================= */
 
 .content{
+
     margin-left:260px;
-    width:100%;
+
+    width:calc(100% - 260px);
+
     min-height:100vh;
-    transition:margin-left .25s ease;
+
+    position:relative;
+
+    z-index:1;
+
+    transition:
+        margin-left .25s ease,
+        width .25s ease;
+
 }
 
 /* ============================= */
@@ -2159,7 +2186,7 @@ button{
    MODAIS
    ========================================================== */
 
-.modal{
+.app-modal{
 
     position:fixed;
 
@@ -2181,7 +2208,7 @@ button{
 
 }
 
-.modal.active{
+.app-modal.active{
 
     display:flex;
 
@@ -2189,7 +2216,7 @@ button{
 
 /* ========================================================== */
 
-.modal-box{
+.app-modal-box{
 
     width:100%;
 
@@ -2209,19 +2236,19 @@ button{
 
 /* ========================================================== */
 
-.modal-lg{
+.app-modal-lg{
 
     max-width:900px;
 
 }
 
-.modal-xl{
+.app-modal-xl{
 
     max-width:1200px;
 
 }
 
-.modal-sm{
+.app-modal-sm{
 
     max-width:420px;
 
@@ -2231,7 +2258,7 @@ button{
    HEADER
    ========================================================== */
 
-.modal-header{
+.app-modal-header{
 
     display:flex;
 
@@ -2245,7 +2272,7 @@ button{
 
 }
 
-.modal-title{
+.app-modal-title{
 
     font-size:22px;
 
@@ -2253,7 +2280,7 @@ button{
 
 }
 
-.modal-close{
+.app-modal-close{
 
     width:42px;
 
@@ -2273,7 +2300,7 @@ button{
 
 }
 
-.modal-close:hover{
+.app-modal-close:hover{
 
     background:var(--danger);
 
@@ -2285,7 +2312,7 @@ button{
    BODY
    ========================================================== */
 
-.modal-body{
+.app-modal-body{
 
     padding:25px;
 
@@ -2299,7 +2326,7 @@ button{
    FOOTER
    ========================================================== */
 
-.modal-footer{
+.app-modal-footer{
 
     display:flex;
 
@@ -2319,19 +2346,19 @@ button{
    TAMANHOS
    ========================================================== */
 
-.modal-body-sm{
+.app-modal-body-sm{
 
     min-height:180px;
 
 }
 
-.modal-body-md{
+.app-modal-body-md{
 
     min-height:300px;
 
 }
 
-.modal-body-lg{
+.app-modal-body-lg{
 
     min-height:500px;
 
@@ -2383,13 +2410,13 @@ button{
 
 @media(max-width:700px){
 
-.modal{
+.app-modal{
 
     padding:15px;
 
 }
 
-.modal-box{
+.app-modal-box{
 
     max-width:100%;
 
@@ -2397,19 +2424,19 @@ button{
 
 }
 
-.modal-header{
+.app-modal-header{
 
     padding:18px;
 
 }
 
-.modal-body{
+.app-modal-body{
 
     padding:18px;
 
 }
 
-.modal-footer{
+.app-modal-footer{
 
     flex-direction:column;
 
@@ -2417,7 +2444,7 @@ button{
 
 }
 
-.modal-footer .btn{
+.app-modal-footer .btn{
 
     width:100%;
 
@@ -4741,7 +4768,7 @@ button{
 /* MODAL */
 /* ========================= */
 
-.modal-overlay{
+.app-modal-overlay{
 
     position:fixed;
 
@@ -4779,7 +4806,7 @@ button{
 
 }
 
-.modal-header{
+.app-modal-header{
 
     display:flex;
 
@@ -4795,7 +4822,7 @@ button{
 
 }
 
-.modal-header button{
+.app-modal-header button{
 
     background:none;
 
@@ -4809,13 +4836,13 @@ button{
 
 }
 
-.modal-body{
+.app-modal-body{
 
     padding:25px;
 
 }
 
-.modal-body input{
+.app-modal-body input{
 
     width:100%;
 
@@ -5417,13 +5444,17 @@ position:static;
 .pdv-layout *,
 .pdv-carrinho,
 .pdv-carrinho *,
-.modal,
-.modal *,
-.modal-content,
-.modal-content * {
+.app-modal,
+.app-modal-content {
 
     box-sizing:border-box;
-    opacity:1 !important;
+
+}
+
+.app-modal *,
+.app-modal-content * {
+
+    box-sizing:border-box;
 
 }
 
@@ -5906,8 +5937,8 @@ position:static;
 
 .pdv-carrinho input,
 .pdv-carrinho select,
-.modal input,
-.modal textarea {
+.app-modal input,
+.app-modal textarea {
 
     width:100%;
 
@@ -5930,8 +5961,8 @@ position:static;
 
 
 .pdv-carrinho input::placeholder,
-.modal input::placeholder,
-.modal textarea::placeholder {
+.app-modal input::placeholder,
+.app-modal textarea::placeholder {
 
     color:#999 !important;
 
@@ -5954,7 +5985,7 @@ position:static;
 ====================================================== */
 
 
-.modal {
+.app-modal {
 
     color:#222 !important;
 
@@ -5962,15 +5993,14 @@ position:static;
 
 
 
-.modal-content {
+.app-modal-content {
 
-    width:420px !important;
-
+    width:420px;
     max-width:95vw;
 
-    background:#fff !important;
+    background:#fff;
 
-    color:#222 !important;
+    color:#222;
 
     border-radius:18px;
 
@@ -5983,7 +6013,7 @@ position:static;
 
 
 
-.modal-content * {
+.app-modal-content * {
 
     color:#222 !important;
 
@@ -5993,11 +6023,11 @@ position:static;
 
 /* HEADER */
 
-.modal-header {
+.app-modal-header {
 
-    background:#ff6b00 !important;
+    background:#ff6b00;
 
-    color:#fff !important;
+    color:#fff;
 
     padding:18px;
 
@@ -6005,8 +6035,8 @@ position:static;
 
 
 
-.modal-header h2,
-.modal-header h3 {
+.app-modal-header h2,
+.app-modal-header h3 {
 
     color:#fff !important;
 
@@ -6016,7 +6046,7 @@ position:static;
 
 /* BODY */
 
-.modal-body {
+.app-modal-body {
 
     padding:18px;
 
@@ -6024,7 +6054,7 @@ position:static;
 
 
 
-.modal-body p {
+.app-modal-body p {
 
     color:#666 !important;
 
@@ -6032,7 +6062,7 @@ position:static;
 
 
 
-.modal-body label {
+.app-modal-body label {
 
     color:#333 !important;
 
@@ -6044,7 +6074,7 @@ position:static;
 
 /* FOOTER */
 
-.modal-footer {
+.app-modal-footer {
 
     padding:16px;
 
@@ -6058,7 +6088,7 @@ position:static;
 
 
 
-.modal-footer button {
+.app-modal-footer button {
 
     height:44px;
 
@@ -6122,7 +6152,7 @@ position:static;
 
 
 
-    .modal-content {
+    .app-modal-content {
 
         width:95vw !important;
 
@@ -6141,8 +6171,8 @@ position:static;
 
 .pdv-layout,
 .pdv-layout *,
-.modal,
-.modal * {
+.app-modal,
+.app-modal * {
 
     transform:none;
 
@@ -6154,8 +6184,8 @@ position:static;
 ====================================================== */
 
 
-.modal,
-.modal-overlay {
+.app-modal,
+.app-modal-overlay {
 
     display:flex;
 
@@ -6167,9 +6197,9 @@ position:static;
 
 
 
-.modal-content,
-.modal-box,
-.modal-container,
+.app-modal-content,
+.app-modal-box,
+.app-modal-container,
 .pdv-modal {
 
     width:420px !important;
@@ -6197,10 +6227,10 @@ position:static;
 
 /* TEXTO */
 
-.modal-content h2,
-.modal-content h3,
-.modal-box h2,
-.modal-box h3 {
+.app-modal-content h2,
+.app-modal-content h3,
+.app-modal-box h2,
+.app-modal-box h3 {
 
     font-size:18px !important;
 
@@ -6210,8 +6240,8 @@ position:static;
 
 
 
-.modal-content p,
-.modal-box p {
+.app-modal-content p,
+.app-modal-box p {
 
     font-size:14px !important;
 
@@ -6223,10 +6253,10 @@ position:static;
 
 /* CAMPOS */
 
-.modal-content input,
-.modal-content textarea,
-.modal-box input,
-.modal-box textarea {
+.app-modal-content input,
+.app-modal-content textarea,
+.app-modal-box input,
+.app-modal-box textarea {
 
     height:42px !important;
 
@@ -6242,8 +6272,8 @@ position:static;
 
 /* BOTÕES */
 
-.modal-content button,
-.modal-box button {
+.app-modal-content button,
+.app-modal-box button {
 
     min-height:42px;
 
@@ -6325,10 +6355,10 @@ position:static;
 
 
 /* Impede regras genéricas de imagem do modal */
-.modal img,
-.modal-content img,
-.modal-body img,
-.modal-box img,
+.app-modal img,
+.app-modal-content img,
+.app-modal-body img,
+.app-modal-box img,
 .pdv-modal img {
 
     width:auto !important;
@@ -6350,8 +6380,8 @@ position:static;
 
 /* Área da imagem não pode crescer o modal */
 
-.modal-content,
-.modal-box,
+.app-modal-content,
+.app-modal-box,
 .pdv-modal {
 
     overflow:hidden !important;
@@ -6361,7 +6391,7 @@ position:static;
 
 /* Mantém conteúdo interno respirando */
 
-.modal-body {
+.app-modal-body {
 
     overflow-y:auto;
 
@@ -6372,9 +6402,9 @@ position:static;
 
 /* Remove possíveis conflitos globais */
 
-.modal img,
-.modal-content img,
-.modal-body img {
+.app-modal img,
+.app-modal-content img,
+.app-modal-body img {
 
     flex-shrink:0 !important;
 
@@ -6383,9 +6413,9 @@ position:static;
 
 /* Garante que textos fiquem abaixo da imagem */
 
-.modal-body h2,
-.modal-body h3,
-.modal-body p {
+.app-modal-body h2,
+.app-modal-body h3,
+.app-modal-body p {
 
     position:relative;
 
@@ -6397,10 +6427,10 @@ position:static;
    AJUSTE FINAL IMAGEM MODAL PDV
 ====================================================== */
 
-.modal-content img,
-.modal-box img,
+.app-modal-content img,
+.app-modal-box img,
 .pdv-modal img,
-.modal-body img {
+.app-modal-body img {
 
     width:320px !important;
 
@@ -6425,7 +6455,7 @@ position:static;
    ESPAÇAMENTO DO CONTEÚDO
 ====================================================== */
 
-.modal-body {
+.app-modal-body {
 
     padding:14px !important;
 
@@ -6434,7 +6464,7 @@ position:static;
 
 /* descrição */
 
-.modal-body p {
+.app-modal-body p {
 
     margin:6px 0 10px;
 
@@ -6447,7 +6477,7 @@ position:static;
    ADICIONAIS
 ====================================================== */
 
-.modal-body label {
+.app-modal-body label {
 
     display:flex !important;
 
@@ -6462,7 +6492,7 @@ position:static;
 }
 
 
-.modal-body input[type="checkbox"] {
+.app-modal-body input[type="checkbox"] {
 
     width:16px;
 
@@ -6477,7 +6507,7 @@ position:static;
    OBSERVAÇÃO
 ====================================================== */
 
-.modal-body textarea {
+.app-modal-body textarea {
 
     width:100% !important;
 
@@ -6497,7 +6527,7 @@ position:static;
    RODAPÉ FIXO DO MODAL
 ====================================================== */
 
-.modal-footer {
+.app-modal-footer {
 
     background:#fff;
 
@@ -6510,7 +6540,7 @@ position:static;
 }
 
 
-.modal-footer button {
+.app-modal-footer button {
 
     flex:1;
 
@@ -6857,5 +6887,104 @@ position:static;
     .dashboard .toolbar{
         gap:10px;
     }
+
+}
+
+.promocoes-toolbar{
+    display:flex !important;
+    justify-content:flex-end;
+    align-items:center;
+    margin-top:20px;
+    height:auto;
+}
+
+/* ======================================================
+   TOOLBAR PROMOÇÕES
+====================================================== */
+
+.dashboard .promocoes-toolbar{
+    display:flex !important;
+    justify-content:flex-end;
+    align-items:center;
+    width:100%;
+    height:auto;
+    margin-top:20px;
+}
+
+.dashboard .promocoes-toolbar button{
+    width:auto !important;
+    min-width:auto;
+    max-width:max-content;
+}
+
+.promocoes-toolbar button{
+    width:auto !important;
+}
+
+#header,
+.header{
+    position:relative;
+    z-index:10;
+}
+
+aside.collapsed ~ .content{
+    margin-left:88px;
+    width:calc(100% - 88px);
+}
+
+/* RESET TEMPORÁRIO DO MODAL BOOTSTRAP */
+
+#modalPromocao.modal {
+    color: inherit !important;
+}
+
+
+#modalPromocao .modal-content {
+
+    width:auto !important;
+
+    max-width:none;
+
+    overflow:visible;
+
+}
+
+
+#modalPromocao .modal-header {
+
+    background:var(--bs-modal-header-bg);
+
+    color:var(--bs-modal-header-color);
+
+    padding:var(--bs-modal-header-padding);
+
+}
+
+
+#modalPromocao .modal-body {
+
+    padding:var(--bs-modal-padding);
+
+    overflow:visible;
+
+    max-height:none;
+
+}
+
+
+#modalPromocao .modal-footer {
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    padding:var(--bs-modal-footer-padding);
+
+}
+
+
+#modalPromocao .modal-footer button {
+
+    flex:none;
 
 }

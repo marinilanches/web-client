@@ -1082,3 +1082,22 @@ body.cliente-body {
 .hidden {
     display: none !important;
 }
+
+.promocao-card {
+border-radius:1.35rem;
+background:#fff;
+box-shadow:var(--mf-shadow-sm);
+overflow:hidden;
+border:1px solid rgba(17,24,39,.06);
+}
+
+.preco-antigo {
+text-decoration:line-through;
+color:#9ca3af;
+}
+
+.preco-promocao {
+color:var(--mf-primary);
+font-size:1.3rem;
+font-weight:900;
+}

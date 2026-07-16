@@ -13,7 +13,7 @@ import {
   onSnapshot,
   serverTimestamp,
   increment,
-  limit
+  limit,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ==========================================================
@@ -29,8 +29,7 @@ const produtosRef = collection(db, "produtos");
 
 const CLOUDINARY_CLOUD_NAME = "mikxwjs6";
 const CLOUDINARY_UPLOAD_PRESET = "jyen9l3f";
-const CLOUDINARY_UPLOAD_URL =
-  `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
 /* ==========================================================
    HELPERS
@@ -68,7 +67,7 @@ export async function uploadImagemProduto(arquivo, nomeProduto = "produto") {
     if (!arquivo) {
       return {
         url: "",
-        publicId: ""
+        publicId: "",
       };
     }
 
@@ -77,23 +76,28 @@ export async function uploadImagemProduto(arquivo, nomeProduto = "produto") {
     formData.append("file", arquivo);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
     formData.append("folder", "mesa-facil/produtos");
-    formData.append("public_id", `${gerarNomeSeguroArquivo(nomeProduto)}-${Date.now()}`);
+    formData.append(
+      "public_id",
+      `${gerarNomeSeguroArquivo(nomeProduto)}-${Date.now()}`,
+    );
 
     const response = await fetch(CLOUDINARY_UPLOAD_URL, {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
     const data = await response.json();
 
     if (!response.ok) {
       console.error("Erro Cloudinary:", data);
-      throw new Error(data?.error?.message || "Falha ao enviar imagem para o Cloudinary.");
+      throw new Error(
+        data?.error?.message || "Falha ao enviar imagem para o Cloudinary.",
+      );
     }
 
     return {
       url: data.secure_url || "",
-      publicId: data.public_id || ""
+      publicId: data.public_id || "",
     };
   } catch (erro) {
     console.error("Erro ao fazer upload da imagem do produto:", erro);
@@ -113,7 +117,7 @@ export async function criarProduto(dados) {
     if (dados.imagemFile instanceof File) {
       const upload = await uploadImagemProduto(
         dados.imagemFile,
-        dados.nome || "produto"
+        dados.nome || "produto",
       );
 
       imagem = upload.url;
@@ -136,7 +140,7 @@ export async function criarProduto(dados) {
         ? dados.gruposPersonalizacao
         : [],
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
 
     return await addDoc(produtosRef, produto);
@@ -165,14 +169,14 @@ export async function editarProduto(id, dados) {
       categoria: dados.categoria ?? produtoAtual.categoria ?? "",
       gruposPersonalizacao: Array.isArray(dados.gruposPersonalizacao)
         ? dados.gruposPersonalizacao
-        : (produtoAtual.gruposPersonalizacao || []),
-      updatedAt: serverTimestamp()
+        : produtoAtual.gruposPersonalizacao || [],
+      updatedAt: serverTimestamp(),
     };
 
     if (dados.imagemFile instanceof File) {
       const upload = await uploadImagemProduto(
         dados.imagemFile,
-        dados.nome || produtoAtual.nome || "produto"
+        dados.nome || produtoAtual.nome || "produto",
       );
 
       updatePayload.imagem = upload.url;
@@ -203,7 +207,7 @@ export async function alterarStatusProduto(id, ativo) {
   try {
     await updateDoc(doc(db, "produtos", id), {
       ativo,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
   } catch (erro) {
     console.error("Erro ao alterar status do produto:", erro);
@@ -225,7 +229,7 @@ export async function buscarProduto(id) {
 
     return {
       id: produto.id,
-      ...produto.data()
+      ...produto.data(),
     };
   } catch (erro) {
     console.error("Erro ao buscar produto:", erro);
@@ -251,7 +255,7 @@ export async function listarProdutos() {
 
       produtos.push({
         id: docItem.id,
-        ...data
+        ...data,
       });
     });
 
@@ -277,7 +281,7 @@ export function ouvirProdutos(callback) {
       snapshot.forEach((docItem) => {
         produtos.push({
           id: docItem.id,
-          ...docItem.data()
+          ...docItem.data(),
         });
       });
 
@@ -285,7 +289,7 @@ export function ouvirProdutos(callback) {
     },
     (erro) => {
       console.error("Erro ao ouvir produtos:", erro);
-    }
+    },
   );
 }
 
@@ -304,7 +308,7 @@ export async function incrementarVendasProdutos(itens = []) {
 
         return updateDoc(doc(db, "produtos", item.produtoId), {
           vendas: increment(quantidade),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
         });
       });
 
@@ -325,7 +329,7 @@ export async function listarProdutosMaisVendidos(limite = 3) {
       produtosRef,
       orderBy("vendas", "desc"),
       orderBy("nome", "asc"),
-      limit(limite)
+      limit(limite),
     );
 
     const snap = await getDocs(q);
@@ -339,7 +343,7 @@ export async function listarProdutosMaisVendidos(limite = 3) {
 
       produtos.push({
         id: docItem.id,
-        ...data
+        ...data,
       });
     });
 
@@ -384,7 +388,7 @@ export async function loadProducts() {
     "Frango",
     "Salames e embutidos",
     "Lanches simples",
-    "Bebidas"
+    "Bebidas",
   ];
 
   const grupos = {};
@@ -405,13 +409,14 @@ export async function loadProducts() {
     ...ordemCategorias.filter((cat) => categoriasExistentes.includes(cat)),
     ...categoriasExistentes
       .filter((cat) => !ordemCategorias.includes(cat))
-      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+      .sort((a, b) => a.localeCompare(b, "pt-BR")),
   ];
 
-  container.innerHTML = categoriasOrdenadas.map((categoria) => {
-    const produtosDaCategoria = grupos[categoria];
+  container.innerHTML = categoriasOrdenadas
+    .map((categoria) => {
+      const produtosDaCategoria = grupos[categoria];
 
-    return `
+      return `
       <section class="menu-category-section col-12">
         <div class="section-heading d-flex align-items-center justify-content-between mb-3 mt-2">
           <div>
@@ -423,33 +428,36 @@ export async function loadProducts() {
         </div>
 
         <div class="row g-3">
-          ${produtosDaCategoria.map((p) => {
-            const nome = escaparHtml(p.nome || "");
-            const descricao =
-  categoria === "Bebidas"
-    ? ""
-    : escaparHtml(p.descricao || "Sem descrição no momento.");
-            const preco = Number(p.preco || 0);
-            const imagem = escaparHtml(p.imagem || "");
-            const produtoPayload = encodeURIComponent(JSON.stringify({
-              id: p.id,
-              nome: p.nome || "",
-              descricao: p.descricao || "",
-              preco: Number(p.preco || 0),
-              categoria: p.categoria || "",
-              imagem: p.imagem || "",
-              gruposPersonalizacao: Array.isArray(p.gruposPersonalizacao)
-                ? p.gruposPersonalizacao
-                : [],
-              adicionais: Array.isArray(p.adicionais)
-                ? p.adicionais
-                : []
-            }));
+          ${produtosDaCategoria
+            .map((p) => {
+              const nome = escaparHtml(p.nome || "");
+              const descricao =
+                categoria === "Bebidas"
+                  ? ""
+                  : escaparHtml(p.descricao || "Sem descrição no momento.");
+              const preco = Number(p.preco || 0);
+              const imagem = escaparHtml(p.imagem || "");
+              const produtoPayload = encodeURIComponent(
+                JSON.stringify({
+                  id: p.id,
+                  nome: p.nome || "",
+                  descricao: p.descricao || "",
+                  preco: Number(p.preco || 0),
+                  categoria: p.categoria || "",
+                  imagem: p.imagem || "",
+                  gruposPersonalizacao: Array.isArray(p.gruposPersonalizacao)
+                    ? p.gruposPersonalizacao
+                    : [],
+                  adicionais: Array.isArray(p.adicionais) ? p.adicionais : [],
+                }),
+              );
 
-            return `
+              return `
               <div class="col-12 col-md-6 product-col">
                 <article class="product-card card border-0">
-                  ${imagem ? `
+                  ${
+                    imagem
+                      ? `
                     <div class="product-thumb-wrap">
                       <img
                         src="${imagem}"
@@ -458,7 +466,9 @@ export async function loadProducts() {
                         loading="lazy"
                       >
                     </div>
-                  ` : ""}
+                  `
+                      : ""
+                  }
 
                   <div class="card-body">
                     <div class="product-top">
@@ -492,11 +502,13 @@ export async function loadProducts() {
                 </article>
               </div>
             `;
-          }).join("")}
+            })
+            .join("")}
         </div>
       </section>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 /* ==========================================================
@@ -510,6 +522,14 @@ export async function loadMaisPedidos() {
   const produtos = await listarProdutos();
 
   const maisPedidos = produtos
+    .filter((produto) => {
+      const categoria = (produto.categoria || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      return !categoria.includes("bebida");
+    })
     .sort((a, b) => Number(b.vendas || 0) - Number(a.vendas || 0))
     .slice(0, 3);
 
@@ -522,11 +542,13 @@ export async function loadMaisPedidos() {
     return;
   }
 
-  container.innerHTML = maisPedidos.map((produto) => {
-    return `
+  container.innerHTML = maisPedidos
+    .map((produto) => {
+      return `
       <div class="small mb-1">
         🔥 ${escaparHtml(produto.nome)}
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 }
