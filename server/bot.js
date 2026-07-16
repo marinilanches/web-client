@@ -95,22 +95,85 @@ function normalizarTelefone(telefone) {
   return numero;
 }
 
+const URL_PUBLICA = "https://marinilanches.vercel.app";
+
+function gerarLinkPedido(pedidoId) {
+  return `${URL_PUBLICA}/status.html?id=${pedidoId}`;
+}
+
+function formatarMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 function montarMensagemStatus(pedido) {
-  const cliente = pedido.cliente || "cliente";
-  const numeroPedido = pedido.numeroPedido || pedido.id || "";
-  const total = Number(pedido.valorTotal || 0).toFixed(2);
+  const cliente = pedido.cliente || "Cliente";
+  const numeroPedido = pedido.numeroPedido || pedido.id;
+  const total = formatarMoeda(pedido.valorTotal);
+  const linkPedido = gerarLinkPedido(pedido.id);
 
   switch (pedido.status) {
     case "RECEBIDO":
-      return `🍔 Olá, ${cliente}! Seu pedido #${numeroPedido} foi recebido com sucesso.\n💰 Total: R$ ${total}`;
+      return `Olá *${cliente}*!
+
+🛍️ Recebemos seu pedido *#${numeroPedido}*
+
+Total: *${total}*
+
+Em breve seu pedido será confirmado.
+
+Veja os detalhes do seu pedido no link:
+
+${linkPedido}
+
+Agradecemos pela sua escolha.
+
+Qualquer dúvida, estamos à disposição.
+
+Atenciosamente,
+
+*Equipe Lanches Marini*`;
+
     case "PREPARANDO":
-      return `👨‍🍳 Olá, ${cliente}! Seu pedido #${numeroPedido} já está em preparo.`;
+      return `Olá *${cliente}*!
+
+👨‍🍳 Seu pedido *#${numeroPedido}* já está sendo preparado.
+
+Você pode acompanhar o andamento em tempo real:
+
+${linkPedido}
+
+Obrigado pela preferência!`;
+
     case "PRONTO":
-      return `✅ Olá, ${cliente}! Seu pedido #${numeroPedido} está pronto.`;
+      return `Olá *${cliente}*!
+
+✅ Seu pedido *#${numeroPedido}* está pronto.
+
+Confira os detalhes:
+
+${linkPedido}
+
+Obrigado pela preferência!`;
+
     case "ENTREGUE":
-      return `🚚 Olá, ${cliente}! Seu pedido #${numeroPedido} foi finalizado como entregue. Obrigado pela preferência!`;
+      return `Olá *${cliente}*!
+
+🚚 Seu pedido *#${numeroPedido}* foi finalizado.
+
+Muito obrigado pela preferência!
+
+Esperamos atendê-lo novamente em breve.`;
+
     case "CANCELADO":
-      return `❌ Olá, ${cliente}. Seu pedido #${numeroPedido} foi cancelado. Se precisar, fale com a loja.`;
+      return `Olá *${cliente}*!
+
+❌ Infelizmente seu pedido *#${numeroPedido}* foi cancelado.
+
+Caso tenha dúvidas, entre em contato conosco.`;
+
     default:
       return null;
   }
@@ -128,9 +191,9 @@ async function enviarMensagemPedido(pedidoId, pedido) {
   }
 
   const mensagem = montarMensagemStatus({
-    ...pedido,
-    id: pedidoId,
-  });
+  ...pedido,
+  id: pedidoId,
+});
 
   if (!mensagem) {
     console.log(`[BOT] Status ${pedido.status} sem mensagem configurada.`);
