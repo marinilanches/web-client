@@ -3,14 +3,78 @@ import { buscarProduto } from "../services/products.js";
 
 const container = document.getElementById("promocoes");
 
+function promocaoEstaValida(promo) {
+  if (promo.ativo === false) {
+    return false;
+  }
+
+  const regras = promo.regras || {};
+
+  const diasPermitidos = regras.diasSemana || [];
+
+  const mesesPermitidos = regras.meses || [];
+
+  const hoje = new Date();
+
+  const diaAtual = hoje
+    .toLocaleDateString("pt-BR", {
+      weekday: "long",
+    })
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace("-feira", "");
+
+  const mesAtual = hoje.getMonth() + 1;
+
+  // valida dia da semana
+  if (diasPermitidos.length && !diasPermitidos.includes(diaAtual)) {
+    return false;
+  }
+
+  // valida mês
+  if (mesesPermitidos.length && !mesesPermitidos.includes(mesAtual)) {
+    return false;
+  }
+
+  return true;
+}
+
 export async function carregarPromocoes() {
   if (!container) return;
 
   try {
-    const promocoesBase = await buscarPromocoes();
+    const promocoesBase = (await buscarPromocoes()).filter(promocaoEstaValida);
+
+    const hoje = new Date();
+
+    const diasSemana = [
+      "domingo",
+      "segunda",
+      "terça",
+      "quarta",
+      "quinta",
+      "sexta",
+      "sábado",
+    ];
+
+    const diaAtual = diasSemana[hoje.getDay()];
+
+    const promocoesValidas = promocoesBase.filter((promo) => {
+      if (!promo.ativo) return false;
+
+      const regras = promo.regras || {};
+
+      // Se não existir regra de dia, mantém a promoção
+      if (!regras.diasSemana || !regras.diasSemana.length) {
+        return true;
+      }
+
+      return regras.diasSemana.includes(diaAtual);
+    });
 
     const promocoes = await Promise.all(
-      promocoesBase.map(async (promo) => {
+      promocoesValidas.map(async (promo) => {
         const produto = await buscarProduto(promo.produtoId);
 
         return {
@@ -23,7 +87,15 @@ export async function carregarPromocoes() {
     window.promocoesTeste = promocoes;
 
     if (!promocoes.length) {
-      container.innerHTML = "";
+      container.innerHTML = `
+        <div class="col-12">
+          <div class="alert alert-light text-center">
+            🔥 Nenhuma promoção disponível hoje.<br>
+            As promoções funcionam de segunda a quinta.
+          </div>
+        </div>
+      `;
+
       return;
     }
 
