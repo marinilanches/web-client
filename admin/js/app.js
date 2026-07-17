@@ -104,6 +104,11 @@ async function iniciarAdmin() {
       await import("./promocoes.js");
       break;
 
+    case "integracoes.html":
+      console.log("Carregando integracoes.js");
+      await import("./integracoes.js");
+      break;
+
     default:
       console.warn("Nenhum módulo encontrado para a página:", pagina);
       break;

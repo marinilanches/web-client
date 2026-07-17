@@ -252,6 +252,38 @@ export async function alterarStatus(id, status) {
 }
 
 /* ==========================================================
+   ATUALIZAR ENTREGADOR DO PEDIDO
+========================================================== */
+
+export async function atualizarEntregadorPedido(id, entregador) {
+
+  try {
+
+    await updateDoc(
+      doc(db, "pedidos", id),
+      {
+        entregador,
+
+        atualizadoEm:
+          serverTimestamp(),
+      }
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao atualizar entregador:",
+      erro
+    );
+
+    throw erro;
+
+  }
+
+}
+
+/* ==========================================================
    CANCELAR PEDIDO
 ========================================================== */
 

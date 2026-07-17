@@ -7,7 +7,10 @@ import {
   alterarStatus,
   cancelarPedido,
   marcarComoImpresso,
+  atualizarEntregadorPedido,
 } from "../../js/services/orders.js";
+
+import { solicitarEntregador } from "../../js/services/bee-delivery.js";
 
 /* ==========================================
    ELEMENTOS
@@ -299,6 +302,24 @@ function abrirDetalhesPedido(id) {
                 ? `
                 <h3>🚚 Entrega</h3>
 
+                ${
+                  pedido.entregador
+                    ? `
+                <h3>🛵 Entregador</h3>
+
+                <p>
+                <strong>Status:</strong>
+                ${pedido.entregador.status || "-"}
+                </p>
+
+                <p>
+                <strong>Nome:</strong>
+                ${pedido.entregador.nome || "-"}
+                </p>
+                `
+                    : ""
+                }
+
                 <p>
                     <strong>Bairro:</strong><br>
                     ${pedido.bairro || "-"}
@@ -349,14 +370,34 @@ function abrirDetalhesPedido(id) {
 
             <div class="modal-actions mt-3">
 
+
+              ${
+                pedido.tipo === "Delivery" &&
+                (!pedido.entregador || pedido.entregador.status === "offline")
+                  ? `
                 <button
                     type="button"
-                    class="btn btn-primary"
-                    id="btnImprimirComanda">
+                    class="btn btn-secondary"
+                    id="btnSolicitarEntregador">
 
-                    🖨️ Imprimir comanda
+                    🚚 Solicitar entregador
 
                 </button>
+                `
+                  : ""
+              }
+
+
+
+              <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="btnImprimirComanda">
+
+                  🖨️ Imprimir comanda
+
+              </button>
+
 
             </div>
 
@@ -379,6 +420,38 @@ function abrirDetalhesPedido(id) {
     .getElementById("btnImprimirComanda")
     ?.addEventListener("click", async () => {
       await enviarParaImpressora(pedido);
+    });
+
+  document
+    .getElementById("btnSolicitarEntregador")
+    ?.addEventListener("click", async () => {
+      try {
+        const resposta = await solicitarEntregador(pedido);
+
+        if (resposta.success) {
+          await atualizarEntregadorPedido(
+            pedido.id,
+
+            {
+              status: resposta.entregador.status,
+
+              id: "",
+
+              nome: "",
+
+              telefone: "",
+            },
+          );
+
+          toast("🚚 Entregador solicitado!");
+
+          fecharModal();
+        }
+      } catch (error) {
+        console.error(error);
+
+        toast("Erro ao solicitar entregador.");
+      }
     });
 } // <-- FECHA abrirDetalhesPedido AQUI
 

@@ -694,3 +694,10 @@ app.listen(PORT, () => {
 });
 
 criarClienteWhatsapp();
+
+const {
+ iniciarBeeListener
+}=require("./bee/listener");
+
+
+iniciarBeeListener();
