@@ -9,6 +9,7 @@ export function carregarSidebar() {
     { href: "pedidos.html", emoji: "📦", texto: "Pedidos" },
     { href: "pdv.html", emoji: "🛒", texto: "PDV" },
     { href: "produtos.html", emoji: "🍔", texto: "Produtos" },
+    { href: "promocoes.html", emoji: "🔥", texto: "Promoções" },
     { href: "clientes.html", emoji: "👥", texto: "Clientes" },
     { href: "mesas.html", emoji: "🪑", texto: "Mesas" },
     { href: "taxas.html", emoji: "🚚", texto: "Taxas de Entrega" },
