@@ -254,8 +254,6 @@ async function gerarPedidosTeste(){
 
     const pedidos = [
         {
-            id: "TESTE-001",
-
             numeroPedido: "271385",
 
             cliente: "João José da Silva Ávila",
