@@ -255,25 +255,29 @@ export async function alterarStatus(id, status) {
    ATUALIZAR ENTREGADOR DO PEDIDO
 ========================================================== */
 
-export async function atualizarEntregadorPedido(id, entregador) {
+export async function atualizarEntregadorPedido(id, entrega) {
 
   try {
 
     await updateDoc(
+
       doc(db, "pedidos", id),
+
       {
-        entregador,
+
+        entrega,
 
         atualizadoEm:
-          serverTimestamp(),
-      }
-    );
+        serverTimestamp()
 
+      }
+
+    );
 
   } catch (erro) {
 
     console.error(
-      "Erro ao atualizar entregador:",
+      "Erro ao atualizar entrega:",
       erro
     );
 

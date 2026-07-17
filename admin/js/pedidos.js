@@ -303,19 +303,75 @@ function abrirDetalhesPedido(id) {
                 <h3>🚚 Entrega</h3>
 
                 ${
-                  pedido.entregador
+                  pedido.entrega
                     ? `
-                <h3>🛵 Entregador</h3>
+
+                <h3>🚚 Bee Delivery</h3>
 
                 <p>
-                <strong>Status:</strong>
-                ${pedido.entregador.status || "-"}
+
+                <strong>Status:</strong><br>
+
+                ${pedido.entrega.statusDescricao || pedido.entrega.status || "-"}
+
                 </p>
 
                 <p>
-                <strong>Nome:</strong>
-                ${pedido.entregador.nome || "-"}
+
+                <strong>Código:</strong><br>
+
+                ${pedido.entrega.id || "-"}
+
                 </p>
+
+                <p>
+
+                <strong>Previsão:</strong><br>
+
+                ${
+                  pedido.entrega.previsaoMinutos
+                    ? `${pedido.entrega.previsaoMinutos} min`
+                    : "-"
+                }
+
+                </p>
+
+                <p>
+
+                <strong>Entregador:</strong><br>
+
+                ${pedido.entrega.entregador?.nome || "-"}
+
+                </p>
+
+                <p>
+
+                <strong>Telefone:</strong><br>
+
+                ${pedido.entrega.entregador?.telefone || "-"}
+
+                </p>
+
+                ${
+                  pedido.entrega.trackingUrl
+                    ? `
+
+                <p>
+
+                <a
+                href="${pedido.entrega.trackingUrl}"
+                target="_blank">
+
+                📍 Acompanhar entrega
+
+                </a>
+
+                </p>
+
+                `
+                    : ""
+                }
+
                 `
                     : ""
                 }
@@ -372,8 +428,7 @@ function abrirDetalhesPedido(id) {
 
 
               ${
-                pedido.tipo === "Delivery" &&
-                (!pedido.entregador || pedido.entregador.status === "offline")
+                pedido.tipo === "Delivery" && !pedido.entrega
                   ? `
                 <button
                     type="button"
@@ -432,15 +487,7 @@ function abrirDetalhesPedido(id) {
           await atualizarEntregadorPedido(
             pedido.id,
 
-            {
-              status: resposta.entregador.status,
-
-              id: "",
-
-              nome: "",
-
-              telefone: "",
-            },
+            resposta.entrega,
           );
 
           toast("🚚 Entregador solicitado!");

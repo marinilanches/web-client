@@ -1,22 +1,14 @@
 import { db } from "./firebase.js";
 
 import {
-    doc,
-    getDoc,
-    setDoc,
-    updateDoc,
-    serverTimestamp
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
-
-const beeRef = doc(
-    db,
-    "integracoes",
-    "beeDelivery"
-);
-
-
+const beeRef = doc(db, "integracoes", "beeDelivery");
 
 /*
 ==========================================
@@ -24,45 +16,31 @@ const beeRef = doc(
 ==========================================
 */
 
-export async function buscarConfiguracaoBee(){
+export async function buscarConfiguracaoBee() {
+  const snap = await getDoc(beeRef);
 
-    const snap = await getDoc(
-        beeRef
-    );
+  if (!snap.exists()) {
+    return {
+      ativo: false,
 
+      ambiente: "teste",
 
-    if(!snap.exists()){
+      token: "",
 
-        return {
+      entregador: {
+        status: "offline",
 
-            ativo:false,
+        nome: "",
 
-            ambiente:"teste",
+        telefone: "",
 
-            token:"",
+        id: "",
+      },
+    };
+  }
 
-            entregador:{
-
-                status:"offline",
-
-                nome:"",
-
-                telefone:"",
-
-                id:""
-
-            }
-
-        };
-
-    }
-
-
-    return snap.data();
-
+  return snap.data();
 }
-
-
 
 /*
 ==========================================
@@ -70,50 +48,31 @@ export async function buscarConfiguracaoBee(){
 ==========================================
 */
 
-export async function salvarConfiguracaoBee(dados){
+export async function salvarConfiguracaoBee(dados) {
+  const atual = await buscarConfiguracaoBee();
 
-    const atual = await buscarConfiguracaoBee();
+  await setDoc(
+    beeRef,
 
+    {
+      ativo: dados.ativo ?? atual.ativo,
 
-    await setDoc(
+      ambiente: dados.ambiente ?? atual.ambiente,
 
-        beeRef,
+      token: dados.token ?? atual.token,
 
-        {
+      entregador: dados.entregador ?? atual.entregador,
 
-            ativo:
-            dados.ativo ?? atual.ativo,
+      atualizadoEm: serverTimestamp(),
+    },
 
+    {
+      merge: true,
+    },
+  );
 
-            ambiente:
-            dados.ambiente ?? atual.ambiente,
-
-
-            token:
-            dados.token ?? atual.token,
-
-
-            entregador:
-            dados.entregador ?? atual.entregador,
-
-
-            atualizadoEm:
-            serverTimestamp()
-
-        },
-
-        {
-            merge:true
-        }
-
-    );
-
-
-    return true;
-
+  return true;
 }
-
-
 
 /*
 ==========================================
@@ -121,105 +80,44 @@ export async function salvarConfiguracaoBee(dados){
 ==========================================
 */
 
-export async function solicitarEntregador(pedido){
+export async function solicitarEntregador(pedido) {
+  const configuracao = await buscarConfiguracaoBee();
 
+  if (!configuracao.ativo) {
+    throw new Error("Bee Delivery desativado");
+  }
 
-    const configuracao =
-    await buscarConfiguracaoBee();
+  const payload = {
+    pedidoId: pedido.id,
 
+    cliente: {
+      nome: pedido.cliente || "",
 
+      telefone: pedido.telefoneWhatsapp || pedido.telefone || "",
+    },
 
-    if(!configuracao.ativo){
+    endereco: {
+      rua: pedido.endereco?.rua || "",
 
-        throw new Error(
-            "Bee Delivery desativado"
-        );
+      numero: pedido.endereco?.numero || "",
 
-    }
+      bairro: pedido.endereco?.bairro || pedido.bairro || "",
 
+      complemento: pedido.endereco?.complemento || "",
+    },
 
+    itens: (pedido.itens || []).map((item) => ({
+      nome: item.nome,
 
-    const payload = {
+      quantidade: item.quantidade,
 
+      valor: Number(item.valorUnitario || 0),
+    })),
 
-        pedidoId:
-        pedido.id,
+    valor: Number(pedido.valorTotal || 0),
+  };
 
-
-
-        cliente:{
-
-            nome:
-            pedido.cliente || "",
-
-
-            telefone:
-            pedido.telefoneWhatsapp ||
-            pedido.telefone ||
-            ""
-
-        },
-
-
-
-        endereco:{
-
-
-            rua:
-            pedido.endereco?.rua || "",
-
-
-            numero:
-            pedido.endereco?.numero || "",
-
-
-            bairro:
-            pedido.endereco?.bairro ||
-            pedido.bairro ||
-            "",
-
-
-            complemento:
-            pedido.endereco?.complemento ||
-            ""
-
-        },
-
-
-
-        itens:
-
-        (pedido.itens || [])
-        .map(item => ({
-
-            nome:
-            item.nome,
-
-
-            quantidade:
-            item.quantidade,
-
-
-            valor:
-            Number(
-                item.valorUnitario || 0
-            )
-
-        })),
-
-
-
-        valor:
-
-        Number(
-            pedido.valorTotal || 0
-        )
-
-    };
-
-
-
-    /*
+  /*
         FUTURA API BEE DELIVERY
 
         POST
@@ -236,59 +134,44 @@ export async function solicitarEntregador(pedido){
 
     */
 
+  console.log("[BEE] Payload entrega:", payload);
 
-    console.log(
-        "[BEE] Payload entrega:",
-        payload
-    );
-
-
-
-    /*
+  /*
         MOCK TEMPORÁRIO
     */
 
+  return {
+    success: true,
 
-    return {
+    message: "Solicitação enviada para Bee Delivery",
 
+    entrega: {
+      plataforma: "Bee Delivery",
 
-        success:true,
+      id: "BD-48382",
 
+      status: "SEARCHING_DRIVER",
 
-        message:
-        "Solicitação enviada para Bee Delivery",
+      statusDescricao: "🟡 Procurando entregador",
 
+      previsaoMinutos: 18,
 
+      trackingUrl: "",
 
-        entregador:{
+      atualizadoEm: new Date().toISOString(),
 
+      entregador: {
+        id: "",
 
-            status:
-            "procurando",
+        nome: "",
 
+        telefone: "",
+      },
+    },
 
-            id:
-            "",
-
-
-            nome:
-            "",
-
-
-            telefone:
-            ""
-
-        },
-
-
-        payload
-
-    };
-
-
+    payload,
+  };
 }
-
-
 
 /*
 ==========================================
@@ -296,10 +179,8 @@ export async function solicitarEntregador(pedido){
 ==========================================
 */
 
-export async function consultarStatusEntregador(pedidoId){
-
-
-    /*
+export async function consultarStatusEntregador(pedidoId) {
+  /*
         FUTURA API BEE DELIVERY
 
         endpoint:
@@ -307,42 +188,23 @@ export async function consultarStatusEntregador(pedidoId){
 
     */
 
+  console.log("[BEE MOCK] Consultar status", pedidoId);
 
-    console.log(
-        "[BEE MOCK] Consultar status",
-        pedidoId
-    );
+  return {
+    success: true,
 
+    integracao: {
+      status: "conectado",
+    },
 
-    return {
+    entregador: {
+      status: "procurando",
 
-        success:true,
+      nome: "",
 
+      telefone: "",
 
-        integracao:
-
-        {
-
-            status:
-            "conectado"
-
-        },
-
-
-        entregador:{
-
-            status:
-            "procurando",
-
-            nome:"",
-
-            telefone:"",
-
-            id:""
-
-        }
-
-    };
-
-
+      id: "",
+    },
+  };
 }
