@@ -254,45 +254,139 @@ async function gerarPedidosTeste(){
 
     const pedidos = [
         {
-            numeroPedido:"TEST001",
-            cliente:"Cliente Teste 1",
-            telefone:"(19)99999-9991",
-            tipo:"Retirada",
-            pagamentoMetodo:"PIX",
-            status:"RECEBIDO",
-            valorSubtotal:30,
-            taxaEntrega:0,
-            valorTotal:30,
-            itens:[
+            id: "TESTE-001",
+
+            numeroPedido: "271385",
+
+            cliente: "João José da Silva Ávila",
+
+            telefone: "(19) 99999-9999",
+
+            telefoneWhatsapp: "5519999999999",
+
+            tipo: "Delivery",
+
+            status: "RECEBIDO",
+
+            bairro: "Centro",
+
+            // ENDEREÇO ALTERADO
+            endereco: {
+                rua: "Rua XV de Novembro",
+                numero: "150",
+                bairro: "Centro",
+                cep: "13360-000",
+                complemento: "Casa"
+            },
+
+            referencia: "Portão preto",
+
+            observacoes: "Sem cebola, sem pimentão, atenção à entrega rápida",
+
+            pagamentoMetodo: "PIX",
+
+            pagamentoStatus: "PENDENTE",
+
+            trocoPara: 100,
+
+            taxaEntrega: 8,
+
+            valorSubtotal: 39.90,
+
+            valorTotal: 47.90,
+
+            itens: [
                 {
-                    nome:"X-Bacon",
-                    quantidade:1,
-                    valorUnitario:30,
-                    adicionais:[]
+                    nome: "X-Búrguer Especial com Queijo",
+
+                    quantidade: 2,
+
+                    valorUnitario: 19.95,
+
+                    subtotal: 39.90,
+
+                    adicionais: [
+                        {
+                            nome: "Hambúrguer Grande",
+                            valor: 5
+                        },
+                        {
+                            nome: "Queijo Muçarela",
+                            valor: 3
+                        },
+                        {
+                            nome: "Coração de Frango à Milanesa",
+                            valor: 7
+                        },
+                        {
+                            nome: "Pimentão Vermelho",
+                            valor: 2
+                        }
+                    ],
+
+                    observacaoItem:
+                        "Sem tomate, sem cebola, adicionar molho especial"
+                },
+
+                {
+                    nome: "Coca-Cola 2L Gelada",
+
+                    quantidade: 1,
+
+                    valorUnitario: 5.90,
+
+                    subtotal: 5.90,
+
+                    adicionais: [],
+
+                    observacaoItem: "Entregar bem gelada"
+                },
+
+                {
+                    nome: "Açaí com Banana e Morango",
+
+                    quantidade: 1,
+
+                    valorUnitario: 12.50,
+
+                    subtotal: 12.50,
+
+                    adicionais: [
+                        {
+                            nome: "Leite Condensado",
+                            valor: 2
+                        },
+                        {
+                            nome: "Granola Crocante",
+                            valor: 1.50
+                        }
+                    ],
+
+                    observacaoItem: "Pouco açúcar"
                 }
             ]
         }
     ];
 
-
     for(const pedido of pedidos){
 
         await setDoc(
-
             doc(
                 db,
                 "pedidos",
                 pedido.numeroPedido
             ),
-
             {
                 ...pedido,
-                origem:"TESTE",
-                criadoEm:serverTimestamp(),
-                atualizadoEm:serverTimestamp(),
-                impresso:false
-            }
 
+                origem: "TESTE",
+
+                criadoEm: serverTimestamp(),
+
+                atualizadoEm: serverTimestamp(),
+
+                impresso: false
+            }
         );
 
     }
