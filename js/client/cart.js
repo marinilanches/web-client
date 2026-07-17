@@ -87,6 +87,9 @@ function iniciarEventosCarrinho() {
     const btnMais = e.target.closest(".btn-cart-plus");
 
     if (btnMais) {
+      console.log("BOTÃO +:", btnMais);
+      console.log("DATASET DO BOTÃO +:", btnMais.dataset);
+
       aumentarQuantidade(btnMais.dataset.key);
       return;
     }
@@ -107,10 +110,13 @@ function iniciarEventosCarrinho() {
     const btnEditar = e.target.closest(".btn-cart-edit");
 
     if (btnEditar) {
+      console.log("BOTÃO EDITAR:", btnEditar);
+      console.log("DATASET DO EDITAR:", btnEditar.dataset);
+
       editarItemCarrinho(btnEditar.dataset.key);
       return;
     }
-  });
+  }); // fecha document.addEventListener("click")
 
   document.addEventListener("change", (e) => {
     if (e.target.closest("#personalizacaoModal")) {
@@ -474,6 +480,9 @@ function confirmarPersonalizacaoProduto() {
   abrirCarrinhoNoMobile();
 }
 function editarItemCarrinho(key) {
+  console.log("EDITAR KEY:", key);
+  console.log("CARRINHO:", carrinho);
+
   const item = carrinho.find((produto) => produto.key === key);
 
   if (!item) {
@@ -579,6 +588,8 @@ function addItemCustomizado(produto, adicionais = [], observacao = "") {
   const item = {
     ...produto,
 
+    key,
+
     id: produto.id,
     nome: produto.nome,
 
@@ -676,9 +687,15 @@ function addItem(
 }
 
 function aumentarQuantidade(key) {
+  console.log("AUMENTAR KEY:", key);
+  console.log("CARRINHO:", carrinho);
+
   const item = carrinho.find((item) => item.key === key);
 
-  if (!item) return;
+  if (!item) {
+    console.error("Item não encontrado:", key);
+    return;
+  }
 
   item.quantidade++;
 
@@ -722,6 +739,8 @@ function carregarCarrinho() {
   carrinho = carrinho.map((item) => ({
     ...item,
 
+    key: item.key || String(item.id),
+
     gruposPersonalizacao: item.gruposPersonalizacao || [],
 
     adicionaisDisponiveis: item.adicionaisDisponiveis || [],
@@ -730,7 +749,6 @@ function carregarCarrinho() {
 
     personalizados: {
       adicionais: item.personalizados?.adicionais || [],
-
       observacao: item.personalizados?.observacao || "",
     },
   }));
@@ -855,6 +873,9 @@ function renderCarrinho(container) {
 }
 
 function renderItemCarrinho(item) {
+  console.log("ITEM SENDO RENDERIZADO:", item);
+  console.log("KEY DO ITEM:", item.key);
+
   const adicionais = item.personalizados?.adicionais || [];
 
   const htmlAdicionais = adicionais.length
