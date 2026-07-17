@@ -1,4 +1,4 @@
- const iconv = require("iconv-lite");
+const iconv = require("iconv-lite");
 
 const express = require("express");
 const cors = require("cors");
@@ -23,9 +23,9 @@ const PRINTER_NAME = "ELGIN i9(COM3)";
 |
 */
 
-function imprimirRAW(){
+function imprimirRAW() {
 
-    return new Promise((resolve,reject)=>{
+    return new Promise((resolve, reject) => {
 
         const arquivo = path.join(
             __dirname,
@@ -40,9 +40,9 @@ function imprimirRAW(){
                 "-File",
                 arquivo
             ],
-            (erro, stdout, stderr)=>{
+            (erro, stdout, stderr) => {
 
-                if(erro){
+                if (erro) {
                     console.error(stderr);
                     reject(erro);
                     return;
@@ -60,41 +60,41 @@ function imprimirRAW(){
 const LARGURA = 48;
 
 
-const ESC="\x1B";
-const GS="\x1D";
+const ESC = "\x1B";
+const GS = "\x1D";
 
 
-const CMD={
+const CMD = {
 
-RESET:
-ESC+"@",
+    RESET:
+        ESC + "@",
 
-BOLD_ON:
-ESC+"E\x01",
+    BOLD_ON:
+        ESC + "E\x01",
 
-BOLD_OFF:
-ESC+"E\x00",
+    BOLD_OFF:
+        ESC + "E\x00",
 
-UNDERLINE:
-ESC+"-\x01",
+    UNDERLINE:
+        ESC + "-\x01",
 
-UNDERLINE_OFF:
-ESC+"-\x00",
+    UNDERLINE_OFF:
+        ESC + "-\x00",
 
-CENTER:
-ESC+"a\x01",
+    CENTER:
+        ESC + "a\x01",
 
-LEFT:
-ESC+"a\x00",
+    LEFT:
+        ESC + "a\x00",
 
-DOUBLE:
-ESC+"!\x30",
+    DOUBLE:
+        ESC + "!\x30",
 
-NORMAL:
-ESC+"!\x00",
+    NORMAL:
+        ESC + "!\x00",
 
-CUT:
-GS+"V\x01"
+    CUT:
+        GS + "V\x01"
 
 };
 
@@ -155,29 +155,29 @@ function formatarMoeda(valor) {
 
 }
 
-function moeda(valor){
+function moeda(valor) {
 
     return Number(valor || 0)
         .toFixed(2)
-        .replace(".",",");
+        .replace(".", ",");
 
 }
 
 
-function linhaDupla(){
+function linhaDupla() {
 
     return "=".repeat(48);
 
 }
 
-function campo(nome, valor){
+function campo(nome, valor) {
 
     return `${nome}: ${texto(valor)}\n`;
 
 }
 
 
-function coluna(nome,valor){
+function coluna(nome, valor) {
 
     const espaco =
         48 -
@@ -187,7 +187,7 @@ function coluna(nome,valor){
 
     return nome +
         " ".repeat(
-            Math.max(1,espaco)
+            Math.max(1, espaco)
         )
         +
         valor;
@@ -297,7 +297,7 @@ function quebrarLinha(valor, largura = LARGURA) {
 }
 
 
-async function enviarRAW(texto){
+async function enviarRAW(texto) {
 
     const arquivoRaw = path.join(
         __dirname,
@@ -317,7 +317,7 @@ async function enviarRAW(texto){
     );
 
 
-    return new Promise((resolve,reject)=>{
+    return new Promise((resolve, reject) => {
 
         execFile(
             "powershell.exe",
@@ -330,12 +330,12 @@ async function enviarRAW(texto){
                 arquivoRaw
             ],
             {
-                windowsHide:true
+                windowsHide: true
             },
-            (erro, stdout, stderr)=>{
+            (erro, stdout, stderr) => {
 
 
-                if(erro){
+                if (erro) {
 
                     console.error(stderr);
 
@@ -380,9 +380,9 @@ async function iniciarImpressao() {
 
 }
 
-async function imprimirPedido(pedido){
+async function imprimirPedido(pedido) {
 
-    let cupom="";
+    let cupom = "";
 
     cupom += CMD.RESET;
 
@@ -401,259 +401,287 @@ async function imprimirPedido(pedido){
 
     cupom += "LANCHES MARINI\n";
 
-cupom += CMD.NORMAL;
+    cupom += CMD.NORMAL;
 
-cupom += CMD.BOLD_OFF;
+    cupom += CMD.BOLD_OFF;
 
-cupom += linhaDupla()+"\n";
-
-
-
-// PEDIDO
-
-cupom += CMD.LEFT;
-
-cupom += CMD.BOLD_ON;
-
-cupom += campo(
-    "PEDIDO",
-    "#" + pedido.numeroPedido
-);
-
-cupom += campo(
-    "DATA",
-    pedido.dataHora || dataAtual()
-);
-
-
-cupom += linha()+"\n";
+    cupom += linhaDupla() + "\n";
 
 
 
-// CLIENTE
+    // PEDIDO
+
+    cupom += CMD.LEFT;
+
+    cupom += CMD.BOLD_ON;
+
+    cupom += campo(
+        "PEDIDO",
+        "#" + pedido.numeroPedido
+    );
+
+    cupom += campo(
+        "DATA",
+        pedido.dataHora || dataAtual()
+    );
 
 
-cupom += CMD.BOLD_ON;
-
-cupom += `CLIENTE ${pedido.cliente}\n`;
-
-cupom += CMD.BOLD_OFF;
-
-cupom += `Telefone: ${pedido.telefone}\n`;
-
-
-
-cupom += linha()+"\n";
-
-
-
-// ITENS
-
-
-cupom += CMD.BOLD_ON;
-
-cupom += "ITENS DO PEDIDO\n";
-
-cupom += CMD.BOLD_OFF;
+    cupom += linha() + "\n";
 
 
 
-for(const item of pedido.itens || []){
+    // CLIENTE
 
 
-cupom += duasColunas(
-`${item.quantidade}x ${item.nome}`,
-"R$ " + moeda(item.valorUnitario)
-);
+    cupom += CMD.BOLD_ON;
 
-cupom += "\n";
+    cupom += `CLIENTE ${pedido.cliente}\n`;
+
+    cupom += CMD.BOLD_OFF;
+
+    cupom += `Telefone: ${pedido.telefone}\n`;
 
 
 
-if(item.adicionais?.length){
+    cupom += linha() + "\n";
+
+
+
+    // ITENS
+
+
+    cupom += CMD.BOLD_ON;
+
+    cupom += "ITENS DO PEDIDO\n";
+
+    cupom += CMD.BOLD_OFF;
+
+
+
+    for (const item of pedido.itens || []) {
+
+
+        cupom += duasColunas(
+            `${item.quantidade}x ${item.nome}`,
+            "R$ " + moeda(item.valorUnitario)
+        );
+
+        cupom += "\n";
+
+
+
+        if (item.adicionais?.length) {
+
+            cupom += "\n";
+            cupom += "COMPLEMENTOS:\n";
+
+            for (const adicional of item.adicionais) {
+
+                cupom += `${adicional.nome} R$ ${moeda(
+                    adicional.preco || adicional.valor
+                )}\n`;
+
+            }
+
+        }
+
+
+
+        if (item.observacaoItem) {
+
+
+            cupom += "\n";
+
+
+            cupom += CMD.BOLD_ON;
+
+            cupom +=
+                "[ OBSERVACAO ]\n";
+
+
+            cupom += CMD.BOLD_OFF;
+
+
+            cupom +=
+                item.observacaoItem.toUpperCase()
+                + "\n";
+
+
+        }
+
+
+        cupom += "\n";
+
+    }
+
+
+
+    cupom += linha() + "\n";
+
+
+
+    // ENTREGA / RETIRADA
+
+    if (
+        pedido.tipo &&
+        pedido.tipo.toUpperCase() === "DELIVERY"
+    ) {
+
+        cupom += CMD.BOLD_ON;
+
+        cupom += "ENTREGA\n";
+
+        cupom += CMD.BOLD_OFF;
+
+
+        if (pedido.bairro) {
+            cupom += `BAIRRO: ${pedido.bairro}\n`;
+        }
+
+
+        if (pedido.endereco) {
+
+            cupom += CMD.DOUBLE;
+
+            cupom += "ENDEREÇO:\n";
+
+            if (typeof pedido.endereco === "object") {
+
+                const e = pedido.endereco;
+
+                cupom += `${e.rua || ""}`;
+
+                if (e.numero) {
+                    cupom += `, ${e.numero}`;
+                }
+
+                cupom += "\n";
+
+                if (e.bairro) {
+                    cupom += `${e.bairro}\n`;
+                }
+
+                if (e.cep) {
+                    cupom += `CEP: ${e.cep}\n`;
+                }
+
+                if (e.complemento) {
+                    cupom += `Complemento: ${e.complemento}\n`;
+                }
+
+            } else {
+
+                cupom += `${pedido.endereco}\n`;
+
+            }
+
+            cupom += CMD.NORMAL;
+
+        }
+
+
+        if (pedido.referencia) {
+
+            cupom += `REFERENCIA: ${pedido.referencia}\n`;
+
+        }
+
+    }
+    else {
+
+        cupom += CMD.BOLD_ON;
+
+        cupom += `TIPO: ${pedido.tipo || "-"}\n`;
+
+        cupom += CMD.BOLD_OFF;
+
+    }
+
+
+    cupom += linha() + "\n";
+
+
+
+    // PAGAMENTO
+
+    cupom += CMD.BOLD_ON;
+
+    cupom += `PAGAMENTO ${pedido.pagamentoMetodo}\n`;
+
+    cupom += CMD.BOLD_OFF;
+
+
+    // TROCO SOMENTE PARA DINHEIRO
+
+    if (
+        pedido.pagamentoMetodo &&
+        pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO"
+    ) {
+
+        const pago = Number(pedido.trocoPara || 0);
+
+        const total = Number(pedido.valorTotal || 0);
+
+        const troco = pago - total;
+
+
+        cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
+
+        cupom += `TROCO: R$ ${moeda(troco)}\n`;
+
+    }
+
+
+    cupom += linha() + "\n";
+
+
+
+    // VALORES
+
+
+    cupom += `Subtotal: R$ ${moeda(pedido.valorSubtotal)}\n`;
+
+    cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
 
     cupom += "\n";
-    cupom += "COMPLEMENTOS:\n";
 
-    for(const adicional of item.adicionais){
-
-        cupom += `${adicional.nome} R$ ${moeda(
-            adicional.preco || adicional.valor
-        )}\n`;
-
-    }
-
-}
-
-
-
-if(item.observacaoItem){
-
-
-cupom += "\n";
-
-
-cupom += CMD.BOLD_ON;
-
-cupom +=
-"[ OBSERVACAO ]\n";
-
-
-cupom += CMD.BOLD_OFF;
-
-
-cupom +=
-item.observacaoItem.toUpperCase()
-+"\n";
-
-
-}
-
-
-cupom+="\n";
-
-}
-
-
-
-cupom += linha()+"\n";
-
-
-
-// ENTREGA / RETIRADA
-
-if (
-    pedido.tipo &&
-    pedido.tipo.toUpperCase() === "DELIVERY"
-) {
+    cupom += CMD.CENTER;
 
     cupom += CMD.BOLD_ON;
 
-    cupom += "ENTREGA\n";
+    cupom += CMD.DOUBLE;
+
+    cupom += `TOTAL R$ ${moeda(pedido.valorTotal)}\n`;
+
+    cupom += CMD.NORMAL;
 
     cupom += CMD.BOLD_OFF;
 
 
-    if (pedido.bairro) {
-        cupom += `BAIRRO: ${pedido.bairro}\n`;
-    }
-
-
-    if (pedido.endereco) {
-
-        cupom += CMD.DOUBLE;
-
-        cupom += "ENDEREÇO:\n";
-
-        cupom += pedido.endereco + "\n";
-
-        cupom += CMD.NORMAL;
-
-    }
-
-
-    if (pedido.referencia) {
-
-        cupom += `REFERENCIA: ${pedido.referencia}\n`;
-
-    }
-
-}
-else {
-
-    cupom += CMD.BOLD_ON;
-
-    cupom += `TIPO: ${pedido.tipo || "-"}\n`;
+    cupom += CMD.NORMAL;
 
     cupom += CMD.BOLD_OFF;
 
-}
 
 
-cupom += linha()+"\n";
+    cupom += "\n";
+
+    cupom += "Obrigado pela preferencia!\n";
 
 
+    cupom += "\n\n\n";
 
-// PAGAMENTO
-
-cupom += CMD.BOLD_ON;
-
-cupom += `PAGAMENTO ${pedido.pagamentoMetodo}\n`;
-
-cupom += CMD.BOLD_OFF;
-
-
-// TROCO SOMENTE PARA DINHEIRO
-
-if(
-    pedido.pagamentoMetodo &&
-    pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO"
-){
-
-    const pago = Number(pedido.trocoPara || 0);
-
-    const total = Number(pedido.valorTotal || 0);
-
-    const troco = pago - total;
-
-
-    cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
-
-    cupom += `TROCO: R$ ${moeda(troco)}\n`;
-
-}
-
-
-cupom+=linha()+"\n";
+    cupom += CMD.CUT;
 
 
 
-// VALORES
+    await enviarRAW(cupom);
 
 
-cupom += `Subtotal: R$ ${moeda(pedido.valorSubtotal)}\n`;
+    estado.impressosHoje++;
 
-cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
-
-cupom += "\n";
-
-cupom += CMD.CENTER;
-
-cupom += CMD.BOLD_ON;
-
-cupom += CMD.DOUBLE;
-
-cupom += `TOTAL R$ ${moeda(pedido.valorTotal)}\n`;
-
-cupom += CMD.NORMAL;
-
-cupom += CMD.BOLD_OFF;
-
-
-cupom+=CMD.NORMAL;
-
-cupom+=CMD.BOLD_OFF;
-
-
-
-cupom+="\n";
-
-cupom+="Obrigado pela preferencia!\n";
-
-
-cupom+="\n\n\n";
-
-cupom+=CMD.CUT;
-
-
-
-await enviarRAW(cupom);
-
-
-estado.impressosHoje++;
-
-estado.ultimaImpressao =
-new Date().toISOString();
+    estado.ultimaImpressao =
+        new Date().toISOString();
 
 }
 
@@ -663,24 +691,24 @@ new Date().toISOString();
 |--------------------------------------------------------------------------
 */
 
-app.post("/print/raw-test", async (req,res)=>{
+app.post("/print/raw-test", async (req, res) => {
 
     try {
 
         await imprimirRAW();
 
         res.json({
-            success:true,
-            message:"RAW enviado"
+            success: true,
+            message: "RAW enviado"
         });
 
-    } catch(erro){
+    } catch (erro) {
 
         console.error(erro);
 
         res.status(500).json({
-            success:false,
-            message:erro.message
+            success: false,
+            message: erro.message
         });
 
     }
@@ -689,7 +717,8 @@ app.post("/print/raw-test", async (req,res)=>{
 
 
 
-app.get("/status", async (req, res) => {    const online = await verificarImpressora();
+app.get("/status", async (req, res) => {
+    const online = await verificarImpressora();
 
     estado.online = online;
 
@@ -910,6 +939,10 @@ app.post("/print/order", async (req, res) => {
     console.log("==============================");
     console.log("JSON RECEBIDO:");
     console.log(JSON.stringify(req.body, null, 2));
+
+    console.log("typeof endereco:", typeof req.body.endereco);
+    console.log("endereco:", req.body.endereco);
+
     console.log("==============================");
 
 
