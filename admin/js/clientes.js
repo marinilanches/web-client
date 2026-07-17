@@ -71,6 +71,64 @@ function aplicarFiltros() {
   renderClientes(clientes);
 }
 
+function aplicarMascaraTelefone(input) {
+  if (!input) return;
+
+  input.addEventListener("focus", () => {
+    if (!input.value.trim()) {
+      input.value = "+55 ";
+    }
+  });
+
+  input.addEventListener("input", () => {
+    input.value = formatarTelefone(input.value);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (
+      input.selectionStart <= 4 &&
+      (e.key === "Backspace" || e.key === "Delete")
+    ) {
+      e.preventDefault();
+    }
+  });
+}
+
+function formatarTelefone(valor = "") {
+  let numeros = valor.replace(/\D/g, "");
+
+  if (numeros.startsWith("55")) {
+    numeros = numeros.substring(2);
+  }
+
+  numeros = numeros.substring(0, 11);
+
+  let resultado = "+55 ";
+
+  if (numeros.length > 0) {
+    resultado += "(" + numeros.substring(0, 2);
+
+    if (numeros.length >= 2) {
+      resultado += ")";
+    }
+  }
+
+  if (numeros.length > 2) {
+    resultado += " ";
+
+    if (numeros.length <= 7) {
+      resultado += numeros.substring(2);
+    } else {
+      resultado +=
+        numeros.substring(2, 7) +
+        "-" +
+        numeros.substring(7);
+    }
+  }
+
+  return resultado;
+}
+
 /* ==========================================
    RENDER
 ========================================== */
@@ -239,9 +297,12 @@ function abrirEditarCliente(cliente) {
         <div class="form-group">
             <label>Telefone</label>
             <input
-                id="editarTelefone"
-                type="text"
-                value="${cliente.telefone || ""}">
+              id="editarTelefone"
+              type="text"
+              inputmode="numeric"
+              maxlength="20"
+              placeholder="+55 (19) 99999-9999"
+              value="${formatarTelefone(cliente.telefone || "")}">
         </div>
 
         <div class="form-group">
@@ -306,6 +367,8 @@ function abrirEditarCliente(cliente) {
     .getElementById("cancelarEditar")
     ?.addEventListener("click", fecharModal);
 
+  aplicarMascaraTelefone(document.getElementById("editarTelefone"));
+
   document
     .getElementById("formEditarCliente")
     ?.addEventListener("submit", async (e) => {
@@ -315,7 +378,9 @@ function abrirEditarCliente(cliente) {
         await editarCliente(cliente.id, {
           nome: document.getElementById("editarNome").value.trim(),
 
-          telefone: document.getElementById("editarTelefone").value.trim(),
+          telefone: formatarTelefone(
+            document.getElementById("editarTelefone").value,
+          ),
 
           telefoneWhatsapp: document
             .getElementById("editarTelefone")
@@ -366,7 +431,12 @@ btnNovoCliente?.addEventListener("click", () => {
 
             <div class="form-group">
                 <label>Telefone</label>
-                <input type="text" id="telefoneCliente">
+                <input
+                  type="text"
+                  id="telefoneCliente"
+                  inputmode="numeric"
+                  maxlength="20"
+                  placeholder="+55 (19) 99999-9999">
             </div>
 
             <div class="form-group">
@@ -418,6 +488,8 @@ btnNovoCliente?.addEventListener("click", () => {
     .getElementById("cancelarCliente")
     ?.addEventListener("click", fecharModal);
 
+  aplicarMascaraTelefone(document.getElementById("telefoneCliente"));
+
   document
     .getElementById("formNovoCliente")
     ?.addEventListener("submit", async (e) => {
@@ -437,7 +509,9 @@ btnNovoCliente?.addEventListener("click", () => {
               .value.trim(),
           },
           nome: document.getElementById("nomeCliente").value.trim(),
-          telefone: document.getElementById("telefoneCliente").value.trim(),
+          telefone: formatarTelefone(
+            document.getElementById("telefoneCliente").value,
+          ),
           observacoes: document
             .getElementById("observacoesCliente")
             .value.trim(),
