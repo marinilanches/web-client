@@ -1,23 +1,14 @@
-import {
-    ouvirClientes,
-    criarCliente
-} from "../../../js/services/clients.js";
+import { ouvirClientes, criarCliente } from "../../../js/services/clients.js";
 
-import {
-    abrirModal,
-    fecharModal
-} from "../../components/modal.js";
+import { abrirModal, fecharModal } from "../../components/modal.js";
 
-import {
-    toast
-} from "../../components/toast.js";
+import { toast } from "../../components/toast.js";
 
 /* ==========================================================
    ELEMENTOS
 ========================================================== */
 
-const selectCliente =
-    document.getElementById("clientePDV");
+const selectCliente = document.getElementById("clientePDV");
 
 /* ==========================================================
    ESTADO
@@ -32,103 +23,52 @@ let clienteSelecionado = null;
 ========================================================== */
 
 export function initCliente() {
+  bindEventos();
 
-    bindEventos();
-
-    carregarClientes();
-
+  carregarClientes();
 }
 
 /* ==========================================================
    CARREGAR CLIENTES
 ========================================================== */
 
-
 export function carregarClientes() {
+  try {
+    ouvirClientes(
+      (clientes) => {
+        clientesCache = ordenarClientes(clientes);
 
+        atualizarSelectClientes();
+      },
 
-    try {
-
-
-        ouvirClientes(
-
-            (clientes) => {
-
-
-                clientesCache =
-                    ordenarClientes(clientes);
-
-
-                atualizarSelectClientes();
-
-
-            },
-
-
-            (erro) => {
-
-
-                console.error(erro);
-
-
-                toast(
-                    "Erro ao sincronizar clientes."
-                );
-
-
-            }
-
-        );
-
-
-    } catch (erro) {
-
-
+      (erro) => {
         console.error(erro);
 
+        toast("Erro ao sincronizar clientes.");
+      },
+    );
+  } catch (erro) {
+    console.error(erro);
 
-        toast(
-            "Erro ao carregar clientes."
-        );
-
-
-    }
-
-
+    toast("Erro ao carregar clientes.");
+  }
 }
 
 /* ==========================================================
    ATUALIZAR SELECT
 ========================================================== */
 
-
 function atualizarSelectClientes() {
+  const clienteAtual = clienteSelecionado?.id || "";
 
+  renderClientes();
 
-    const clienteAtual =
-        clienteSelecionado?.id || "";
-
-
-    renderClientes();
-
-
-    if (
-        clienteAtual &&
-        [...selectCliente.options]
-            .some(
-                option =>
-                    option.value === clienteAtual
-            )
-    ) {
-
-
-        selectCliente.value =
-            clienteAtual;
-
-
-    }
-
-
+  if (
+    clienteAtual &&
+    [...selectCliente.options].some((option) => option.value === clienteAtual)
+  ) {
+    selectCliente.value = clienteAtual;
+  }
 }
 
 /* ==========================================================
@@ -136,36 +76,26 @@ function atualizarSelectClientes() {
 ========================================================== */
 
 function renderClientes() {
+  if (!selectCliente) return;
 
-    if (!selectCliente) return;
+  const valorAtual = selectCliente.value;
 
-    const valorAtual =
-        selectCliente.value;
+  selectCliente.innerHTML = "";
 
-    selectCliente.innerHTML = "";
+  adicionarOpcaoConsumidorFinal();
 
-    adicionarOpcaoConsumidorFinal();
+  clientesCache.forEach((cliente) => {
+    selectCliente.appendChild(criarOptionCliente(cliente));
+  });
 
-    clientesCache.forEach((cliente) => {
+  adicionarOpcaoNovoCliente();
 
-        selectCliente.appendChild(
-            criarOptionCliente(cliente)
-        );
-
-    });
-
-    adicionarOpcaoNovoCliente();
-
-    if (
-        valorAtual &&
-        [...selectCliente.options]
-            .some(option => option.value === valorAtual)
-    ) {
-
-        selectCliente.value = valorAtual;
-
-    }
-
+  if (
+    valorAtual &&
+    [...selectCliente.options].some((option) => option.value === valorAtual)
+  ) {
+    selectCliente.value = valorAtual;
+  }
 }
 
 /* ==========================================================
@@ -173,47 +103,35 @@ function renderClientes() {
 ========================================================== */
 
 function adicionarOpcaoConsumidorFinal() {
+  const option = document.createElement("option");
 
-    const option =
-        document.createElement("option");
+  option.value = "";
 
-    option.value = "";
+  option.textContent = "Consumidor Final";
 
-    option.textContent =
-        "Consumidor Final";
-
-    selectCliente.appendChild(option);
-
+  selectCliente.appendChild(option);
 }
 
 function adicionarOpcaoNovoCliente() {
+  const option = document.createElement("option");
 
-    const option =
-        document.createElement("option");
+  option.value = "__NOVO__";
 
-    option.value = "__NOVO__";
+  option.textContent = "➕ Novo Cliente";
 
-    option.textContent =
-        "➕ Novo Cliente";
-
-    selectCliente.appendChild(option);
-
+  selectCliente.appendChild(option);
 }
 
 function criarOptionCliente(cliente) {
+  const option = document.createElement("option");
 
-    const option =
-        document.createElement("option");
+  option.value = cliente.id;
 
-    option.value = cliente.id;
+  option.textContent = cliente.telefone
+    ? `${cliente.nome} • ${cliente.telefone}`
+    : cliente.nome;
 
-    option.textContent =
-        cliente.telefone
-            ? `${cliente.nome} • ${cliente.telefone}`
-            : cliente.nome;
-
-    return option;
-
+  return option;
 }
 
 /* ==========================================================
@@ -221,40 +139,29 @@ function criarOptionCliente(cliente) {
 ========================================================== */
 
 function bindEventos() {
+  selectCliente?.addEventListener(
+    "change",
 
-    selectCliente?.addEventListener(
-
-        "change",
-
-        onChangeCliente
-
-    );
-
+    onChangeCliente,
+  );
 }
 
 function onChangeCliente() {
+  const id = selectCliente.value;
 
-    const id =
-        selectCliente.value;
+  if (id === "") {
+    selecionarConsumidorFinal();
 
-    if (id === "") {
+    return;
+  }
 
-        selecionarConsumidorFinal();
+  if (id === "__NOVO__") {
+    abrirModalNovoCliente();
 
-        return;
+    return;
+  }
 
-    }
-
-    if (id === "__NOVO__") {
-
-        abrirModalNovoCliente();
-
-        return;
-
-    }
-
-    selecionarCliente(id);
-
+  selecionarCliente(id);
 }
 
 /* ==========================================================
@@ -262,86 +169,51 @@ function onChangeCliente() {
 ========================================================== */
 
 function selecionarCliente(id) {
+  const cliente = buscarClientePorId(id);
 
-    const cliente = buscarClientePorId(id);
+  if (!cliente) {
+    selecionarConsumidorFinal();
 
-    if (!cliente) {
+    return;
+  }
 
-        selecionarConsumidorFinal();
-
-        return;
-
-    }
-
-    clienteSelecionado = cliente;
-
+  clienteSelecionado = cliente;
 }
 
 function selecionarConsumidorFinal() {
+  clienteSelecionado = null;
 
-    clienteSelecionado = null;
-
-    if (selectCliente) {
-        selectCliente.value = "";
-    }
-
+  if (selectCliente) {
+    selectCliente.value = "";
+  }
 }
 
 export function limparCliente() {
-
-    selecionarConsumidorFinal();
-
+  selecionarConsumidorFinal();
 }
 
 export function selecionarClientePorId(id) {
+  if (!id) {
+    selecionarConsumidorFinal();
 
+    return;
+  }
 
-    if (!id) {
+  const cliente = buscarClientePorId(id);
 
+  if (!cliente) {
+    toast("Cliente não encontrado.");
 
-        selecionarConsumidorFinal();
+    selecionarConsumidorFinal();
 
+    return;
+  }
 
-        return;
+  clienteSelecionado = cliente;
 
-
-    }
-
-
-    const cliente =
-        buscarClientePorId(id);
-
-
-    if (!cliente) {
-
-
-        toast(
-            "Cliente não encontrado."
-        );
-
-
-        selecionarConsumidorFinal();
-
-
-        return;
-
-
-    }
-
-
-    clienteSelecionado = cliente;
-
-
-    if (selectCliente) {
-
-
-        selectCliente.value =
-            id;
-
-
-    }
-
-
+  if (selectCliente) {
+    selectCliente.value = id;
+  }
 }
 
 /* ==========================================================
@@ -349,33 +221,23 @@ export function selecionarClientePorId(id) {
 ========================================================== */
 
 export function getClienteSelecionado() {
-
-    return clienteSelecionado;
-
+  return clienteSelecionado;
 }
 
 export function getClienteId() {
-
-    return clienteSelecionado?.id || null;
-
+  return clienteSelecionado?.id || null;
 }
 
 export function getNomeCliente() {
-
-    return clienteSelecionado?.nome || "";
-
+  return clienteSelecionado?.nome || "";
 }
 
 export function getTelefoneCliente() {
-
-    return clienteSelecionado?.telefone || "";
-
+  return clienteSelecionado?.telefone || "";
 }
 
 export function possuiClienteSelecionado() {
-
-    return clienteSelecionado !== null;
-
+  return clienteSelecionado !== null;
 }
 
 /* ==========================================================
@@ -383,94 +245,53 @@ export function possuiClienteSelecionado() {
 ========================================================== */
 
 function buscarClientePorId(id) {
-
-    return clientesCache.find(
-
-        cliente => cliente.id === id
-
-    ) || null;
-
+  return clientesCache.find((cliente) => cliente.id === id) || null;
 }
 
 function ordenarClientes(clientes = []) {
+  return [...clientes].sort((a, b) => {
+    const nomeA = String(a.nome || "");
 
-    return [...clientes].sort((a, b) => {
+    const nomeB = String(b.nome || "");
 
-        const nomeA =
-            String(a.nome || "");
-
-        const nomeB =
-            String(b.nome || "");
-
-        return nomeA.localeCompare(
-
-            nomeB,
-            "pt-BR"
-
-        );
-
-    });
-
+    return nomeA.localeCompare(nomeB, "pt-BR");
+  });
 }
 
 export function getClientes() {
-
-    return [...clientesCache];
-
+  return [...clientesCache];
 }
 
-export function getEnderecoCliente(){
-
-    return clienteSelecionado?.endereco || null;
-
+export function getEnderecoCliente() {
+  return clienteSelecionado?.endereco || null;
 }
 
 /* ==========================================================
    RESET DO MÓDULO
 ========================================================== */
 
-
 export function resetClientePDV() {
+  clienteSelecionado = null;
 
+  clientesCache = [];
 
-    clienteSelecionado = null;
+  if (selectCliente) {
+    selectCliente.innerHTML = "";
 
+    adicionarOpcaoConsumidorFinal();
 
-    clientesCache = [];
+    adicionarOpcaoNovoCliente();
 
-
-    if (selectCliente) {
-
-
-        selectCliente.innerHTML = "";
-
-
-        adicionarOpcaoConsumidorFinal();
-
-
-        adicionarOpcaoNovoCliente();
-
-
-        selectCliente.value = "";
-
-
-    }
-
-
+    selectCliente.value = "";
+  }
 }
-
 
 /* ==========================================================
    ATUALIZAÇÃO EXTERNA
 ========================================================== */
 
-
 export function atualizarClientes() {
-
-
-    carregarClientes();
-
-
+  carregarClientes();
 }
 
 /* ==========================================================
@@ -478,10 +299,9 @@ export function atualizarClientes() {
 ========================================================== */
 
 function abrirModalNovoCliente() {
-
-    abrirModal(
-        "Novo Cliente",
-        `
+  abrirModal(
+    "Novo Cliente",
+    `
         <form id="formNovoClientePDV" class="form-grid">
 
             <div class="form-group">
@@ -502,7 +322,9 @@ function abrirModalNovoCliente() {
 
                 <input
                     id="pdvTelefoneCliente"
-                    type="text"
+                    type="tel"
+                    maxlength="19"
+                    placeholder="+55 (19) 99999-9999"
                 >
 
             </div>
@@ -586,22 +408,67 @@ function abrirModalNovoCliente() {
             </div>
 
         </form>
-        `
-    );
+        `,
+  );
 
-    document
-        .getElementById("cancelarNovoClientePDV")
-        ?.addEventListener(
-            "click",
-            cancelarCadastroCliente
-        );
+  aplicarMascaraTelefone(document.getElementById("pdvTelefoneCliente"));
 
-    document
-        .getElementById("formNovoClientePDV")
-        ?.addEventListener(
-            "submit",
-            salvarNovoCliente
-        );
+  document
+    .getElementById("cancelarNovoClientePDV")
+    ?.addEventListener("click", cancelarCadastroCliente);
+
+  document
+    .getElementById("formNovoClientePDV")
+    ?.addEventListener("submit", salvarNovoCliente);
+}
+
+function aplicarMascaraTelefone(input) {
+
+    if (!input) return;
+
+    // Preenche automaticamente o código do país
+    input.value = "+55 ";
+
+    input.addEventListener("focus", () => {
+
+        if (!input.value.trim()) {
+            input.value = "+55 ";
+        }
+
+    });
+
+    input.addEventListener("input", () => {
+
+        // Mantém sempre o +55
+        let numeros = input.value.replace(/\D/g, "");
+
+        if (!numeros.startsWith("55")) {
+            numeros = "55" + numeros.replace(/^55/, "");
+        }
+
+        numeros = numeros.substring(0, 13);
+
+        let valor = "+55";
+
+        if (numeros.length > 2) {
+            valor += " (" + numeros.substring(2, 4);
+        }
+
+        if (numeros.length >= 4) {
+            valor += ")";
+        }
+
+        if (numeros.length > 4) {
+            valor += " " + numeros.substring(4, 9);
+        }
+
+        if (numeros.length > 9) {
+            valor += "-" + numeros.substring(9, 13);
+        }
+
+        input.value = valor;
+
+    });
 
 }
 
@@ -610,51 +477,42 @@ function abrirModalNovoCliente() {
 ========================================================== */
 
 async function salvarNovoCliente(evento) {
+  evento.preventDefault();
 
-    evento.preventDefault();
+  try {
+    const dados = obterDadosFormulario();
 
-    try {
+    if (!dados.nome) {
+      toast("Informe o nome do cliente.");
 
-        const dados = obterDadosFormulario();
-
-        if (!dados.nome) {
-
-            toast("Informe o nome do cliente.");
-
-            return;
-
-        }
-
-        const referencia = await criarCliente({
-
-            nome:dados.nome,
-
-            telefone:dados.telefone,
-
-            observacoes:dados.observacoes,
-
-            endereco:dados.endereco,
-
-            totalPedidos:0,
-
-            totalGasto:0
-
-        });
-
-        toast("Cliente cadastrado com sucesso!");
-
-        fecharModal();
-
-        selecionarClienteRecemCriado(referencia.id);
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        toast("Erro ao cadastrar cliente.");
-
+      return;
     }
 
+    const referencia = await criarCliente({
+      nome: dados.nome,
+
+      telefone: dados.telefone,
+      telefoneWhatsapp: dados.telefone.replace(/\D/g, ""),
+
+      observacoes: dados.observacoes,
+
+      endereco: dados.endereco,
+
+      totalPedidos: 0,
+
+      totalGasto: 0,
+    });
+
+    toast("Cliente cadastrado com sucesso!");
+
+    fecharModal();
+
+    selecionarClienteRecemCriado(referencia.id);
+  } catch (erro) {
+    console.error(erro);
+
+    toast("Erro ao cadastrar cliente.");
+  }
 }
 
 /* ==========================================================
@@ -662,76 +520,33 @@ async function salvarNovoCliente(evento) {
 ========================================================== */
 
 function obterDadosFormulario() {
+  return {
+    nome: document.getElementById("pdvNomeCliente")?.value.trim() || "",
 
-    return {
+    telefone: document.getElementById("pdvTelefoneCliente")?.value.trim() || "",
 
-        nome:
-            document
-                .getElementById("pdvNomeCliente")
-                ?.value
-                .trim() || "",
+    observacoes:
+      document.getElementById("pdvObservacoesCliente")?.value.trim() || "",
 
+    endereco: {
+      rua: document.getElementById("pdvRuaCliente")?.value.trim() || "",
 
-        telefone:
-            document
-                .getElementById("pdvTelefoneCliente")
-                ?.value
-                .trim() || "",
+      numero: document.getElementById("pdvNumeroCliente")?.value.trim() || "",
 
+      bairro: document.getElementById("pdvBairroCliente")?.value.trim() || "",
 
-        observacoes:
-            document
-                .getElementById("pdvObservacoesCliente")
-                ?.value
-                .trim() || "",
-
-
-        endereco: {
-
-            rua:
-                document
-                    .getElementById("pdvRuaCliente")
-                    ?.value
-                    .trim() || "",
-
-
-            numero:
-                document
-                    .getElementById("pdvNumeroCliente")
-                    ?.value
-                    .trim() || "",
-
-
-            bairro:
-                document
-                    .getElementById("pdvBairroCliente")
-                    ?.value
-                    .trim() || "",
-
-
-            complemento:
-                document
-                    .getElementById("pdvComplementoCliente")
-                    ?.value
-                    .trim() || ""
-
-        }
-
-    };
-
+      complemento:
+        document.getElementById("pdvComplementoCliente")?.value.trim() || "",
+    },
+  };
 }
 
 function cancelarCadastroCliente() {
+  fecharModal();
 
-    fecharModal();
-
-    if (selectCliente) {
-
-        selectCliente.value =
-            clienteSelecionado?.id || "";
-
-    }
-
+  if (selectCliente) {
+    selectCliente.value = clienteSelecionado?.id || "";
+  }
 }
 
 /* ==========================================================
@@ -739,23 +554,17 @@ function cancelarCadastroCliente() {
 ========================================================== */
 
 function selecionarClienteRecemCriado(id) {
+  if (!id) return;
 
-    if (!id) return;
+  const unsubscribe = ouvirClientes((clientes) => {
+    clientesCache = ordenarClientes(clientes);
 
-    const unsubscribe = ouvirClientes((clientes) => {
+    renderClientes();
 
-        clientesCache = ordenarClientes(clientes);
+    if (clientes.some((cliente) => cliente.id === id)) {
+      unsubscribe();
 
-        renderClientes();
-
-        if (clientes.some(cliente => cliente.id === id)) {
-
-            unsubscribe();
-
-            selecionarClientePorId(id);
-
-        }
-
-    });
-
+      selecionarClientePorId(id);
+    }
+  });
 }

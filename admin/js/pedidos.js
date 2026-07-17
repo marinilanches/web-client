@@ -31,9 +31,9 @@ let pedidosCache = [];
 console.log("pedidos.js carregado");
 
 ouvirPedidos((pedidos) => {
-    pedidosCache = pedidos;
+  pedidosCache = pedidos;
 
-    aplicarFiltros();
+  aplicarFiltros();
 });
 
 /* ==========================================
@@ -124,8 +124,8 @@ function renderPedidos(pedidos) {
             </p>
 
             <p>
-                <strong>Telefone:</strong>
-                ${pedido.telefone || "-"}
+              <strong>Telefone:</strong>
+              ${pedido.telefone || pedido.telefoneWhatsapp || "-"}
             </p>
 
             <p>
@@ -139,11 +139,11 @@ function renderPedidos(pedidos) {
             </p>
 
             ${
-                pedido.pagamentoMetodo === "DINHEIRO"
-                    ? `
+              pedido.pagamentoMetodo === "DINHEIRO"
+                ? `
                         ${
-                            Number(pedido.trocoPara || 0) > 0
-                                ? `
+                          Number(pedido.trocoPara || 0) > 0
+                            ? `
                                 <p>
                                     <strong>CLIENTE PAGA:</strong>
                                     R$ ${Number(pedido.trocoPara).toFixed(2)}
@@ -154,7 +154,7 @@ function renderPedidos(pedidos) {
                                     R$ ${(Number(pedido.trocoPara) - Number(pedido.valorTotal || 0)).toFixed(2)}
                                 </p>
                                 `
-                                : `
+                            : `
                                 <p>
                                     <strong>TROCO:</strong>
                                     Cliente informou que possui trocado.
@@ -162,7 +162,7 @@ function renderPedidos(pedidos) {
                                 `
                         }
                     `
-                    : ""
+                : ""
             }
 
             <p>
@@ -284,7 +284,7 @@ function abrirDetalhesPedido(id) {
             </p>
 
             <p>
-                📞 ${pedido.telefone}
+              📞 ${pedido.telefone || pedido.telefoneWhatsapp || "-"}
             </p>
 
 

@@ -2254,6 +2254,58 @@ button{
 
 }
 
+/* ======================================================
+   MODAL GLOBAL
+====================================================== */
+
+.modal-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:rgba(0,0,0,.45);
+
+    z-index:99999;
+
+    padding:20px;
+
+    overflow-y:auto;
+
+}
+
+.modal-overlay .app-modal-content{
+
+    position:relative;
+
+    width:420px;
+
+    max-width:95vw;
+
+    max-height:90vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    margin:auto;
+
+}
+
+.modal-overlay .app-modal-body{
+
+    overflow-y:auto;
+
+    max-height:calc(90vh - 90px);
+
+}
+
 /* ==========================================================
    HEADER
    ========================================================== */
@@ -6185,13 +6237,14 @@ position:static;
 
 
 .app-modal,
-.app-modal-overlay {
+.app-modal-overlay,
+.modal-overlay {
 
     display:flex;
 
-    align-items:center;
-
     justify-content:center;
+
+    align-items:center;
 
 }
 
