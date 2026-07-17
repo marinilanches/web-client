@@ -1,9 +1,15 @@
 module.exports = {
-  API_URL: "XXX",
 
-  CLIENT_ID: "XXX",
+    MOCK:
+    true,
 
-  CLIENT_SECRET: "XXX",
+    API_URL:
+    "https://api.beedelivery.com.br",
 
-  TOKEN: "XXX"
+    CLIENT_ID:
+    process.env.BEE_CLIENT_ID,
+
+    CLIENT_SECRET:
+    process.env.BEE_CLIENT_SECRET
+
 };

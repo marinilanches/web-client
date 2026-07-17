@@ -39,7 +39,7 @@ export async function buscarConfiguracaoBee(){
 
             ambiente:"teste",
 
-            token:"XXX",
+            token:"",
 
             entregador:{
 

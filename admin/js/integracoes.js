@@ -31,7 +31,6 @@ const alterarTokenBtn = document.getElementById("alterarToken");
 
 const atualizarStatusBtn = document.getElementById("atualizarStatus");
 
-
 // Controle do token
 let tokenVisivel = false;
 
@@ -212,7 +211,9 @@ async function salvar() {
 
 async function solicitar() {
   try {
-    const resposta = await solicitarEntregador("XXX");
+    const pedidoId = prompt("ID do pedido:");
+
+    const resposta = await solicitarEntregador(pedidoId);
 
     if (resposta.success) {
       await salvarConfiguracaoBee({
@@ -246,7 +247,9 @@ async function solicitar() {
 
 async function consultarStatus() {
   try {
-    const resposta = await consultarStatusEntregador("XXX");
+    const pedidoId = prompt("ID do pedido:");
+
+    const resposta = await consultarStatusEntregador(pedidoId);
 
     await salvarConfiguracaoBee({
       entregador: resposta.entregador,
@@ -269,44 +272,26 @@ salvarBtn?.addEventListener("click", salvar);
 solicitarBtn?.addEventListener("click", solicitar);
 
 alterarTokenBtn?.addEventListener("click", () => {
+  tokenVisivel = !tokenVisivel;
 
-    tokenVisivel = !tokenVisivel;
+  beeToken.readOnly = !tokenVisivel;
 
+  if (tokenVisivel) {
+    beeToken.value = "";
 
-    beeToken.readOnly = !tokenVisivel;
+    beeToken.type = "text";
 
+    alterarTokenBtn.innerHTML = "💾 Confirmar alteração";
+  } else {
+    beeToken.type = "password";
 
-    if (tokenVisivel) {
+    beeToken.value = "••••••••••••";
 
-        beeToken.value = "";
-
-        beeToken.type = "text";
-
-
-        alterarTokenBtn.innerHTML =
-            "💾 Confirmar alteração";
-
-
-    } else {
-
-        beeToken.type = "password";
-
-
-        beeToken.value =
-            "••••••••••••";
-
-
-        alterarTokenBtn.innerHTML =
-            "🔑 Alterar token";
-
-    }
-
+    alterarTokenBtn.innerHTML = "🔑 Alterar token";
+  }
 });
 
-atualizarStatusBtn?.addEventListener(
-    "click",
-    consultarStatus
-);
+atualizarStatusBtn?.addEventListener("click", consultarStatus);
 
 /*
 ==========================================

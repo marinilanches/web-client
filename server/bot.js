@@ -6,6 +6,7 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const serviceAccount = require("./serviceAccountKey.json");
+const { solicitarEntregador } = require("./bee/bee.orders");
 
 /* ==========================================================
    FIREBASE ADMIN
@@ -486,8 +487,18 @@ async function criarClienteWhatsapp() {
     }),
     puppeteer: {
       headless: true,
+
       executablePath:
         "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-zygote",
+      ],
     },
   });
 
@@ -621,7 +632,13 @@ async function criarClienteWhatsapp() {
 
     if (clienteDesconectado) {
       try {
-        await clienteDesconectado.destroy();
+        try {
+          if (clienteDesconectado && clienteDesconectado.pupBrowser) {
+            await clienteDesconectado.destroy();
+          }
+        } catch (e) {
+          console.log("[BOT] Erro destruindo sessão:", e.message);
+        }
       } catch (e) {
         console.warn("[BOT] Erro ao destruir cliente:", e.message);
       }
@@ -683,6 +700,26 @@ app.post("/api/whatsapp/reconnect", async (req, res) => {
   }
 });
 
+app.post("/api/bee/solicitar-entrega", async (req, res) => {
+  try {
+    const resposta = await solicitarEntregador(req.body.pedido);
+
+    res.json({
+      success: true,
+
+      resposta,
+    });
+  } catch (error) {
+    console.error("[BEE]", error);
+
+    res.status(500).json({
+      success: false,
+
+      message: "Erro ao solicitar entregador",
+    });
+  }
+});
+
 /* ==========================================================
    START
 ========================================================== */
@@ -694,10 +731,3 @@ app.listen(PORT, () => {
 });
 
 criarClienteWhatsapp();
-
-const {
- iniciarBeeListener
-}=require("./bee/listener");
-
-
-iniciarBeeListener();
