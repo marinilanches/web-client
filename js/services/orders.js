@@ -9,6 +9,7 @@ import {
   updateDoc,
   deleteDoc,
   getDoc,
+  getDocs,
   query,
   orderBy,
   where,
@@ -256,35 +257,21 @@ export async function alterarStatus(id, status) {
 ========================================================== */
 
 export async function atualizarEntregadorPedido(id, entrega) {
-
   try {
-
     await updateDoc(
-
       doc(db, "pedidos", id),
 
       {
-
         entrega,
 
-        atualizadoEm:
-        serverTimestamp()
-
-      }
-
+        atualizadoEm: serverTimestamp(),
+      },
     );
-
   } catch (erro) {
-
-    console.error(
-      "Erro ao atualizar entrega:",
-      erro
-    );
+    console.error("Erro ao atualizar entrega:", erro);
 
     throw erro;
-
   }
-
 }
 
 /* ==========================================================
@@ -350,29 +337,55 @@ export async function marcarComoImpresso(id) {
 export function ouvirPedidos(callback) {
   const { inicioHoje, inicioAmanha } = getInicioEFimDeHoje();
 
+  return ouvirPedidosPorPeriodo(
+    inicioHoje.toDate(),
+    inicioAmanha.toDate(),
+    callback,
+  );
+}
+
+/* ==========================================================
+   BUSCAR PEDIDOS POR PERÍODO
+========================================================== */
+
+export function ouvirPedidosPorPeriodo(dataInicio, dataFim, callback) {
+  const inicio = new Date(dataInicio);
+
+  inicio.setHours(0, 0, 0, 0);
+
+  const fim = new Date(dataFim);
+
+  fim.setHours(23, 59, 59, 999);
+
   const q = query(
     pedidosRef,
-    where("criadoEm", ">=", inicioHoje),
-    where("criadoEm", "<", inicioAmanha),
+
+    where("criadoEm", ">=", Timestamp.fromDate(inicio)),
+
+    where("criadoEm", "<=", Timestamp.fromDate(fim)),
+
     orderBy("criadoEm", "desc"),
   );
 
   return onSnapshot(
     q,
+
     (snapshot) => {
       const pedidos = [];
 
       snapshot.forEach((docItem) => {
         pedidos.push({
           id: docItem.id,
+
           ...docItem.data(),
         });
       });
 
       callback(pedidos);
     },
+
     (erro) => {
-      console.error("Erro ao ouvir pedidos:", erro);
+      console.error("Erro ao buscar pedidos por período:", erro);
     },
   );
 }
@@ -419,6 +432,108 @@ export function contarPedidos(pedidos) {
       .filter((p) => p.status === "ENTREGUE")
       .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0),
   };
+}
+
+/* ==========================================================
+   BUSCAR PEDIDOS POR PERÍODO (RELATÓRIOS)
+========================================================== */
+
+export async function buscarPedidosPorPeriodo(
+  dataInicial,
+  dataFinal,
+  formaPagamento = "TODOS"
+) {
+
+  const inicio = new Date(dataInicial);
+
+  inicio.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const fim = new Date(dataFinal);
+
+  fim.setHours(
+    23,
+    59,
+    59,
+    999
+  );
+
+
+  const q = query(
+
+    pedidosRef,
+
+    where(
+      "criadoEm",
+      ">=",
+      Timestamp.fromDate(inicio)
+    ),
+
+    where(
+      "criadoEm",
+      "<=",
+      Timestamp.fromDate(fim)
+    ),
+
+    orderBy(
+      "criadoEm",
+      "desc"
+    )
+
+  );
+
+
+  const snapshot = await getDocs(q);
+
+
+  let pedidos = [];
+
+
+  snapshot.forEach((docItem)=>{
+
+    pedidos.push({
+
+      id: docItem.id,
+
+      ...docItem.data()
+
+    });
+
+  });
+
+
+  if(
+    formaPagamento &&
+    formaPagamento !== "TODOS"
+  ){
+
+    pedidos =
+    pedidos.filter(
+
+      pedido =>
+
+      String(
+        pedido.pagamentoMetodo || ""
+      )
+      .toUpperCase()
+      ===
+      String(
+        formaPagamento
+      )
+      .toUpperCase()
+
+    );
+
+  }
+
+
+  return pedidos;
+
 }
 
 /* ==========================================================

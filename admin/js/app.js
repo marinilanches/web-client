@@ -32,7 +32,16 @@ async function iniciarAdmin() {
 
     case "pedidos.html":
       console.log("Carregando pedidos.js");
+
       await import("./pedidos.js");
+
+      break;
+
+    case "historico-pedidos.html":
+      console.log("Carregando historico-pedidos.js");
+
+      await import("./historico-pedidos.js");
+
       break;
 
     case "produtos.html":

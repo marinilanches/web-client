@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Histórico de Pedidos • Mesa Fácil</title>
+
+    <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
+
+    <link rel="stylesheet" href="css/admin.css" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+
+      <aside id="sidebar"></aside>
+
+      <!-- Conteúdo -->
+
+      <main class="content">
+        <!-- Header -->
+
+        <header id="header"></header>
+
+        <section class="dashboard">
+          <h1>Histórico de Pedidos</h1>
+
+          <p class="subtitle">Consulte pedidos antigos da loja.</p>
+
+          <!-- FILTROS -->
+
+          <div class="toolbar">
+            <input type="date" id="dataInicial" />
+
+            <input type="date" id="dataFinal" />
+
+            <select id="filtroStatus">
+              <option value="">Todos os status</option>
+
+              <option value="RECEBIDO">Recebido</option>
+
+              <option value="PREPARANDO">Preparando</option>
+
+              <option value="PRONTO">Pronto</option>
+
+              <option value="ENTREGUE">Entregue</option>
+
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+
+            <input
+              type="text"
+              id="buscarPedido"
+              placeholder="Pesquisar pedido..."
+            />
+
+            <button id="buscarPedidos">🔎 Buscar</button>
+          </div>
+
+          <!-- LISTA -->
+
+          <div id="listaHistorico">
+            <div class="empty-state">
+              <h3>Selecione um período</h3>
+
+              <p>Informe as datas para carregar os pedidos.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

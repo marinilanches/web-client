@@ -1,5 +1,5 @@
 import {
-    ouvirPedidos
+    buscarPedidosPorPeriodo
 } from "../../js/services/orders.js";
 
 
@@ -53,13 +53,45 @@ FIRESTORE
 */
 
 
-ouvirPedidos(data=>{
+async function carregarRelatorio(){
 
-    pedidos=data;
+    const dataInicial =
+    document.getElementById(
+        "dataInicial"
+    ).value;
+
+
+    const dataFinal =
+    document.getElementById(
+        "dataFinal"
+    ).value;
+
+
+    const filtroPagamento =
+    document.getElementById(
+        "filtroPagamento"
+    ).value;
+
+
+
+    pedidos =
+    await buscarPedidosPorPeriodo(
+
+        dataInicial,
+
+        dataFinal,
+
+        filtroPagamento
+
+    );
+
+
+    carregarFormasPagamento();
+
 
     atualizar();
 
-});
+}
 
 
 
@@ -581,3 +613,81 @@ Object.values(formas)
 
 
 }
+
+function carregarFormasPagamento(){
+
+    const select =
+    document.getElementById(
+        "filtroPagamento"
+    );
+
+
+    if(!select)
+    return;
+
+
+    const atual =
+    select.value;
+
+
+
+    const formas =
+    [
+        ...new Set(
+
+            pedidos
+
+            .map(
+                pedido =>
+                pedido.pagamentoMetodo
+            )
+
+            .filter(Boolean)
+
+        )
+
+    ];
+
+
+
+    select.innerHTML = `
+
+        <option value="TODOS">
+            Todos pagamentos
+        </option>
+
+        ${
+            formas.map(
+                forma =>
+                `
+                <option value="${forma}">
+                    ${forma}
+                </option>
+                `
+            ).join("")
+        }
+
+    `;
+
+
+    if(
+        formas.includes(atual)
+    ){
+
+        select.value = atual;
+
+    }
+
+}
+
+document
+.getElementById(
+    "btnAtualizar"
+)
+?.addEventListener(
+
+    "click",
+
+    carregarRelatorio
+
+);

@@ -1,5 +1,7 @@
-import { abrirModal, fecharModal } from "../components/modal.js";
+import { fecharModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
+
+import { abrirDetalhesPedido } from "../components/pedido-detalhes.js";
 
 import {
   ouvirPedidos,
@@ -7,10 +9,8 @@ import {
   alterarStatus,
   cancelarPedido,
   marcarComoImpresso,
-  atualizarEntregadorPedido,
+  excluirPedido,
 } from "../../js/services/orders.js";
-
-import { solicitarEntregador } from "../../js/services/bee-delivery.js";
 
 /* ==========================================
    ELEMENTOS
@@ -99,13 +99,28 @@ function renderPedidos(pedidos) {
 
     if (a.status !== "RECEBIDO" && b.status === "RECEBIDO") return 1;
 
-    const dataA = a.criadoEm?.seconds || 0;
-    const dataB = b.criadoEm?.seconds || 0;
+    const dataA = a.criadoEm?.seconds ? a.criadoEm.seconds : 0;
+
+    const dataB = b.criadoEm?.seconds ? b.criadoEm.seconds : 0;
 
     return dataB - dataA;
   });
 
   pedidos.forEach((pedido) => {
+    const dataPedido = pedido.criadoEm
+      ? new Date(pedido.criadoEm.seconds * 1000)
+      : null;
+
+    const dataFormatada = dataPedido
+      ? dataPedido.toLocaleDateString("pt-BR")
+      : "-";
+
+    const horarioFormatado = dataPedido
+      ? dataPedido.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "-";
     const card = document.createElement("div");
 
     card.className =
@@ -115,6 +130,16 @@ function renderPedidos(pedidos) {
             <div class="panel-title">
                 Pedido #${pedido.numeroPedido || pedido.id?.slice(0, 6) || "-"}
             </div>
+
+            <p>
+              <strong>📅 Data:</strong>
+              ${dataFormatada}
+            </p>
+
+            <p>
+              <strong>🕒 Horário:</strong>
+              ${horarioFormatado}
+            </p>
 
             <p>
                 <strong>Cliente:</strong>
@@ -193,8 +218,16 @@ function renderPedidos(pedidos) {
                     🚚 Entregue
                 </button>
 
-                <button class="btn btn-danger btn-cancelar" data-id="${pedido.id}">
-                    ❌ Cancelar
+                <button 
+                  class="btn btn-danger btn-cancelar" 
+                  data-id="${pedido.id}">
+                  ❌ Cancelar
+                </button>
+
+                <button 
+                  class="btn btn-danger btn-excluir" 
+                  data-id="${pedido.id}">
+                  🗑️ Excluir
                 </button>
 
             </div>
@@ -210,302 +243,12 @@ function renderPedidos(pedidos) {
    AÇÕES DOS PEDIDOS
 ========================================== */
 
-function abrirDetalhesPedido(id) {
-  const pedido = pedidosCache.find((p) => p.id === id);
-
-  console.log("PEDIDO COMPLETO:", pedido);
-  console.log("TROCO PARA:", pedido.trocoPara);
-  console.log("VALOR TOTAL:", pedido.valorTotal);
-  console.log("METODO:", pedido.pagamentoMetodo);
-
-  if (!pedido) {
-    toast("Pedido não encontrado");
-    return;
-  }
-
-  const itensHTML = (pedido.itens || [])
-    .map((item) => {
-      const adicionais = (item.adicionais || [])
-        .map((a) => `${a.nome} (+R$ ${Number(a.preco || 0).toFixed(2)})`)
-        .join("<br>");
-
-      return `
-            <div class="item-pedido">
-
-                <strong>
-                    ${item.nome}
-                </strong>
-
-                <p>
-                    Quantidade: ${item.quantidade}
-                </p>
-
-                <p>
-                    Valor unitário:
-                    R$ ${Number(item.valorUnitario || 0).toFixed(2)}
-                </p>
-
-                ${
-                  adicionais
-                    ? `<p>
-                        <strong>Adicionais:</strong><br>
-                        ${adicionais}
-                    </p>`
-                    : ""
-                }
-
-
-                ${
-                  item.observacaoItem && item.observacaoItem.trim()
-                    ? `
-                    <p>
-                        <strong>📝 Observação:</strong><br>
-                        ${item.observacaoItem}
-                    </p>
-                    `
-                    : ""
-                }
-
-
-                <hr>
-
-            </div>
-        `;
-    })
-    .join("");
-
-  abrirModal(
-    `Pedido #${pedido.numeroPedido}`,
-    `
-
-        <div>
-
-            <h3>👤 Cliente</h3>
-
-            <p>
-                ${pedido.cliente}
-            </p>
-
-            <p>
-              📞 ${pedido.telefone || pedido.telefoneWhatsapp || "-"}
-            </p>
-
-
-            <h3>📦 Tipo</h3>
-
-            <p>
-                ${pedido.tipo}
-            </p>
-
-            ${
-              pedido.tipo === "Delivery"
-                ? `
-                <h3>🚚 Entrega</h3>
-
-                ${
-                  pedido.entrega
-                    ? `
-
-                <h3>🚚 Bee Delivery</h3>
-
-                <p>
-
-                <strong>Status:</strong><br>
-
-                ${pedido.entrega.statusDescricao || pedido.entrega.status || "-"}
-
-                </p>
-
-                <p>
-
-                <strong>Código:</strong><br>
-
-                ${pedido.entrega.id || "-"}
-
-                </p>
-
-                <p>
-
-                <strong>Previsão:</strong><br>
-
-                ${
-                  pedido.entrega.previsaoMinutos
-                    ? `${pedido.entrega.previsaoMinutos} min`
-                    : "-"
-                }
-
-                </p>
-
-                <p>
-
-                <strong>Entregador:</strong><br>
-
-                ${pedido.entrega.entregador?.nome || "-"}
-
-                </p>
-
-                <p>
-
-                <strong>Telefone:</strong><br>
-
-                ${pedido.entrega.entregador?.telefone || "-"}
-
-                </p>
-
-                ${
-                  pedido.entrega.trackingUrl
-                    ? `
-
-                <p>
-
-                <a
-                href="${pedido.entrega.trackingUrl}"
-                target="_blank">
-
-                📍 Acompanhar entrega
-
-                </a>
-
-                </p>
-
-                `
-                    : ""
-                }
-
-                `
-                    : ""
-                }
-
-                <p>
-                    <strong>Bairro:</strong><br>
-                    ${pedido.bairro || "-"}
-                </p>
-
-                <p>
-                    <strong>CEP:</strong><br>
-                    ${pedido.endereco?.cep || "-"}
-                </p>
-
-                <p>
-                    <strong>Endereço:</strong><br>
-                    ${pedido.endereco?.rua || "-"}${pedido.endereco?.numero ? `, ${pedido.endereco.numero}` : ""}
-                </p>
-
-                <p>
-                    <strong>Referência:</strong><br>
-                    ${pedido.endereco?.complemento || pedido.referencia || "—"}
-                </p>
-                `
-                : ""
-            }
-
-
-            <h3>🍔 Itens</h3>
-
-            ${itensHTML || "Nenhum item"}
-
-
-            <h3>💰 Pagamento</h3>
-
-            <p>
-                Método:
-                ${pedido.pagamentoMetodo || "-"}
-            </p>
-
-
-            <p>
-                Status:
-                ${pedido.pagamentoStatus || "-"}
-            </p>
-
-            <h3>Total</h3>
-
-            <h2>
-                R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
-            </h2>
-
-            <div class="modal-actions mt-3">
-
-
-              ${
-                pedido.tipo === "Delivery" && !pedido.entrega
-                  ? `
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    id="btnSolicitarEntregador">
-
-                    🚚 Solicitar entregador
-
-                </button>
-                `
-                  : ""
-              }
-
-
-
-              <button
-                  type="button"
-                  class="btn btn-primary"
-                  id="btnImprimirComanda">
-
-                  🖨️ Imprimir comanda
-
-              </button>
-
-
-            </div>
-
-            ${
-              pedido.observacoes
-                ? `
-                <h3>Observações</h3>
-                <p>${pedido.observacoes}</p>
-                `
-                : ""
-            }
-
-
-        </div>
-
-        `,
-  );
-
-  document
-    .getElementById("btnImprimirComanda")
-    ?.addEventListener("click", async () => {
-      await enviarParaImpressora(pedido);
-    });
-
-  document
-    .getElementById("btnSolicitarEntregador")
-    ?.addEventListener("click", async () => {
-      try {
-        const resposta = await solicitarEntregador(pedido);
-
-        if (resposta.success) {
-          await atualizarEntregadorPedido(
-            pedido.id,
-
-            resposta.entrega,
-          );
-
-          toast("🚚 Entregador solicitado!");
-
-          fecharModal();
-        }
-      } catch (error) {
-        console.error(error);
-
-        toast("Erro ao solicitar entregador.");
-      }
-    });
-} // <-- FECHA abrirDetalhesPedido AQUI
-
 function bindAcoesPedidos() {
   document.querySelectorAll(".btn-detalhes").forEach((btn) => {
     btn.addEventListener("click", () => {
-      abrirDetalhesPedido(btn.dataset.id);
+      const pedido = pedidosCache.find((p) => p.id === btn.dataset.id);
+
+      abrirDetalhesPedido(pedido);
     });
   });
   document.querySelectorAll(".btn-preparando").forEach((btn) => {
@@ -570,6 +313,26 @@ function bindAcoesPedidos() {
       } catch (erro) {
         console.error(erro);
         toast("Erro ao cancelar pedido.");
+      }
+    });
+  });
+
+  document.querySelectorAll(".btn-excluir").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const confirmar = confirm("Deseja realmente excluir este pedido?");
+
+      if (!confirmar) {
+        return;
+      }
+
+      try {
+        await excluirPedido(btn.dataset.id);
+
+        toast("Pedido excluído com sucesso.");
+      } catch (erro) {
+        console.error("Erro ao excluir pedido:", erro);
+
+        toast("Erro ao excluir pedido.");
       }
     });
   });

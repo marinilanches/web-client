@@ -6,7 +6,18 @@ export function carregarSidebar() {
 
   const links = [
     { href: "index.html", emoji: "🏠", texto: "Dashboard" },
-    { href: "pedidos.html", emoji: "📦", texto: "Pedidos" },
+
+    {
+      href: "pedidos.html",
+      emoji: "📦",
+      texto: "Pedidos",
+    },
+
+    {
+      href: "historico-pedidos.html",
+      emoji: "🕒",
+      texto: "Histórico",
+    },
     { href: "pdv.html", emoji: "🛒", texto: "PDV" },
     { href: "produtos.html", emoji: "🍔", texto: "Produtos" },
     { href: "promocoes.html", emoji: "🔥", texto: "Promoções" },
