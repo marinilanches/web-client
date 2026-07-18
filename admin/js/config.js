@@ -312,7 +312,6 @@ function renderizarPagamentos(pagamentos = []) {
       <label>
         <input
           type="checkbox"
-          data-index="${index}"
           ${pagamento.ativo ? "checked" : ""}
         >
         ${pagamento.nome}
@@ -320,11 +319,17 @@ function renderizarPagamentos(pagamentos = []) {
 
       <button
         type="button"
-        class="btn-remover-pagamento"
-        data-index="${index}">
+        class="btn-remover-pagamento">
         🗑
       </button>
     `;
+
+    linha
+      .querySelector(".btn-remover-pagamento")
+      .addEventListener("click", () => {
+        pagamentos.splice(index, 1);
+        renderizarPagamentos(pagamentos);
+      });
 
     lista.appendChild(linha);
 
