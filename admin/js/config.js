@@ -30,10 +30,8 @@ function getElements() {
     distancia: document.getElementById("distancia"),
     bairro: document.getElementById("bairro"),
 
-    pix: document.getElementById("pix"),
-    dinheiro: document.getElementById("dinheiro"),
-    cartao: document.getElementById("cartao"),
-    pagbank: document.getElementById("pagbank"),
+    listaPagamentos: document.getElementById("listaPagamentos"),
+    btnAdicionarPagamento: document.getElementById("btnAdicionarPagamento"),
 
     registrarLogs: document.getElementById("registrarLogs"),
     backupAutomatico: document.getElementById("backupAutomatico"),
@@ -76,12 +74,7 @@ function coletarDados(el) {
       taxaPorBairro: el.bairro.checked,
     },
 
-    pagamentos: {
-      pix: el.pix.checked,
-      dinheiro: el.dinheiro.checked,
-      cartao: el.cartao.checked,
-      pagbank: el.pagbank.checked,
-    },
+    pagamentos: obterPagamentos(),
 
     seguranca: {
       registrarLogs: el.registrarLogs.checked,
@@ -102,7 +95,32 @@ function preencherFormulario(el, dados = {}) {
   const loja = dados.loja || {};
   const funcionamento = dados.funcionamento || {};
   const delivery = dados.delivery || {};
-  const pagamentos = dados.pagamentos || {};
+  let pagamentos = dados.pagamentos || [];
+
+  if (!Array.isArray(pagamentos)) {
+    pagamentos = [
+      {
+        id: "pix",
+        nome: "PIX",
+        ativo: pagamentos.pix ?? true,
+      },
+      {
+        id: "dinheiro",
+        nome: "Dinheiro",
+        ativo: pagamentos.dinheiro ?? true,
+      },
+      {
+        id: "cartao",
+        nome: "Cartão",
+        ativo: pagamentos.cartao ?? true,
+      },
+      {
+        id: "pagbank",
+        nome: "PagBank",
+        ativo: pagamentos.pagbank ?? true,
+      },
+    ];
+  }
   const seguranca = dados.seguranca || {};
 
   el.nomeLoja.value = loja.nome || "";
@@ -125,10 +143,7 @@ function preencherFormulario(el, dados = {}) {
     el.bairro.checked = true;
   }
 
-  el.pix.checked = pagamentos.pix ?? true;
-  el.dinheiro.checked = pagamentos.dinheiro ?? true;
-  el.cartao.checked = pagamentos.cartao ?? true;
-  el.pagbank.checked = pagamentos.pagbank ?? true;
+  renderizarPagamentos(pagamentos);
 
   el.registrarLogs.checked = seguranca.registrarLogs ?? true;
   el.backupAutomatico.checked = seguranca.backupAutomatico ?? true;
@@ -181,12 +196,28 @@ function restaurarPadrao(el) {
       taxaPorDistancia: false,
       taxaPorBairro: true,
     },
-    pagamentos: {
-      pix: true,
-      dinheiro: true,
-      cartao: true,
-      pagbank: true,
-    },
+    pagamentos: [
+      {
+        id: "pix",
+        nome: "PIX",
+        ativo: true,
+      },
+      {
+        id: "dinheiro",
+        nome: "Dinheiro",
+        ativo: true,
+      },
+      {
+        id: "cartao",
+        nome: "Cartão",
+        ativo: true,
+      },
+      {
+        id: "pagbank",
+        nome: "PagBank",
+        ativo: true,
+      },
+    ],
     seguranca: {
       registrarLogs: true,
       backupAutomatico: true,
@@ -234,6 +265,101 @@ function registrarEventos(el) {
 
     restaurarPadrao(el);
   });
+  let pagamentos = [];
+
+  el.btnAdicionarPagamento.addEventListener("click", () => {
+
+    const nome = prompt("Nome da nova forma de pagamento:");
+
+    if (!nome) return;
+
+    pagamentos = obterPagamentos();
+
+    pagamentos.push({
+
+      id: nome
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "_"),
+
+      nome,
+
+      ativo: true
+
+    });
+
+    renderizarPagamentos(pagamentos);
+
+  });
+}
+
+function renderizarPagamentos(pagamentos = []) {
+
+  const lista = document.getElementById("listaPagamentos");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  pagamentos.forEach((pagamento, index) => {
+
+    const linha = document.createElement("div");
+
+    linha.className = "pagamento-item";
+
+    linha.innerHTML = `
+      <label>
+        <input
+          type="checkbox"
+          data-index="${index}"
+          ${pagamento.ativo ? "checked" : ""}
+        >
+        ${pagamento.nome}
+      </label>
+
+      <button
+        type="button"
+        class="btn-remover-pagamento"
+        data-index="${index}">
+        🗑
+      </button>
+    `;
+
+    lista.appendChild(linha);
+
+  });
+
+}
+
+function obterPagamentos() {
+
+  const lista = document.getElementById("listaPagamentos");
+
+  return [...lista.querySelectorAll(".pagamento-item")].map((item) => {
+
+    const checkbox = item.querySelector("input");
+
+    return {
+
+      id: item.textContent
+        .replace("🗑", "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "_"),
+
+      nome: item.textContent
+        .replace("🗑", "")
+        .trim(),
+
+      ativo: checkbox.checked
+
+    };
+
+  });
+
 }
 
 async function init() {

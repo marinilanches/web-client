@@ -5,6 +5,13 @@ import {
     toast
 } from "../../components/toast.js";
 
+import {
+    doc,
+    getDoc,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { db } from "../../../js/services/firebase.js";
+
 
 
 /* ==========================================================
@@ -53,18 +60,13 @@ let pagamentoSelecionado = {
 ========================================================== */
 
 
-export function initPagamento() {
-
+export async function initPagamento() {
 
     bindEventos();
 
-    selecionarFormaPagamento(
-        formaPagamento?.value || "DINHEIRO"
-    );
-
+    await carregarFormasPagamentoPDV();
 
     atualizarInterface();
-
 
 }
 
@@ -122,17 +124,9 @@ export function selecionarFormaPagamento(forma) {
         .toUpperCase();
 
 
-    const formasValidas = [
-
-        "DINHEIRO",
-
-        "PIX",
-
-        "CREDITO",
-
-        "DEBITO"
-
-    ];
+    const formasValidas = Array.from(
+        formaPagamento.options
+    ).map((option) => option.value.toUpperCase());
 
 
     if (
@@ -276,6 +270,47 @@ function atualizarInterface() {
 
 }
 
+async function carregarFormasPagamentoPDV() {
+    if (!formaPagamento) return;
+
+    try {
+        const snap = await getDoc(
+            doc(db, "configuracoes", "geral")
+        );
+
+        if (!snap.exists()) return;
+
+        const configuracao = snap.data();
+        const pagamentos = Array.isArray(configuracao.pagamentos)
+            ? configuracao.pagamentos
+            : [];
+
+        formaPagamento.innerHTML = "";
+
+        pagamentos
+            .filter((pagamento) => pagamento.ativo)
+            .forEach((pagamento) => {
+                const option = document.createElement("option");
+
+                option.value = pagamento.id.toUpperCase();
+                option.textContent = pagamento.nome;
+
+                formaPagamento.appendChild(option);
+            });
+
+        if (formaPagamento.options.length > 0) {
+            selecionarFormaPagamento(
+                formaPagamento.options[0].value
+            );
+        }
+    } catch (erro) {
+        console.error(
+            "Erro ao carregar formas de pagamento:",
+            erro
+        );
+    }
+}
+
 
 
 /* ==========================================================
@@ -414,14 +449,11 @@ export function limparPagamento() {
 
 
 
-    if (formaPagamento) {
+    if (formaPagamento && formaPagamento.options.length) {
+        formaPagamento.selectedIndex = 0;
 
-
-        formaPagamento.value = "DINHEIRO";
-
-        pagamentoSelecionado.forma = "DINHEIRO";
-
-
+        pagamentoSelecionado.forma =
+            formaPagamento.value.toUpperCase();
     }
 
 
