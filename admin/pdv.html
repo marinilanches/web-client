@@ -1,329 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>PDV • Mesa Fácil</title>
-    <link rel="icon" type="image/png" href="../assets/admin-icon.png">
+    <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
 
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin.css" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-</head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
 
-<body>
+      <aside id="sidebar"></aside>
 
-<div class="layout">
+      <!-- Conteúdo -->
 
-    <!-- Sidebar -->
-
-    <aside id="sidebar"></aside>
-
-    <!-- Conteúdo -->
-
-    <main class="content">
-
+      <main class="content">
         <header id="header"></header>
 
         <section class="dashboard">
+          <div class="pdv-header">
+            <div>
+              <h1>Frente de Caixa (PDV)</h1>
 
-            <div class="pdv-header">
+              <p class="subtitle">
+                Venda rápida para balcão, delivery, retirada e mesas.
+              </p>
+            </div>
 
-                <div>
+            <button class="btn btn-danger" id="btnCancelarVenda">
+              🗑 Cancelar Venda
+            </button>
+          </div>
 
-                    <h1>Frente de Caixa (PDV)</h1>
+          <div class="pdv-layout">
+            <!-- ESQUERDA -->
 
-                    <p class="subtitle">
-                        Venda rápida para balcão, delivery, retirada e mesas.
-                    </p>
+            <section class="pdv-produtos">
+              <div class="panel">
+                <div class="toolbar">
+                  <input
+                    id="buscarProdutoPDV"
+                    type="text"
+                    placeholder="Pesquisar produto..."
+                  />
 
+                  <select id="categoriaPDV">
+                    <option value="">Todas categorias</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="listaProdutosPDV" class="pdv-grid"></div>
+            </section>
+
+            <!-- DIREITA -->
+
+            <aside class="pdv-carrinho">
+              <div class="panel">
+                <h2>Carrinho</h2>
+
+                <div id="listaCarrinho">
+                  <div class="empty-state">
+                    <p>Nenhum produto adicionado.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="form-group">
+                  <label>Cliente</label>
+
+                  <select id="clientePDV">
+                    <option value="">Consumidor Final</option>
+                  </select>
                 </div>
 
-                <button
-                    class="btn btn-danger"
-                    id="btnCancelarVenda">
+                <div class="form-group">
+                  <label>Tipo</label>
 
-                    🗑 Cancelar Venda
+                  <select id="tipoPedidoPDV">
+                    <option value="RETIRADA">Retirada</option>
 
+                    <option value="DELIVERY">Delivery</option>
+
+                    <option value="MESA">Mesa</option>
+                  </select>
+                </div>
+
+                <div
+                  class="form-group"
+                  id="containerMesa"
+                  style="display: none"
+                >
+                  <label>Mesa</label>
+
+                  <select id="mesaPDV"></select>
+                </div>
+
+                <div
+                  class="form-group"
+                  id="enderecoEntregaPDV"
+                  style="display: none"
+                >
+                  <label>CEP</label>
+
+                  <input
+                    id="cepPDV"
+                    type="tel"
+                    placeholder="00000-000"
+                    maxlength="9"
+                  />
+
+                  <div class="campo">
+                    <label for="bairroPDV">Bairro</label>
+
+                    <input type="text" id="bairroPDV" placeholder="Bairro" />
+                  </div>
+
+                  <label>Rua</label>
+
+                  <div class="autocomplete-wrapper">
+                    <input id="ruaPDV" type="text" placeholder="Rua" />
+
+                    <div id="ruaSugestoesPDV" class="autocomplete-list"></div>
+                  </div>
+
+                  <label>Número</label>
+
+                  <input id="numeroPDV" type="text" placeholder="Número" />
+
+                  <input id="latitudePDV" type="hidden" />
+
+                  <input id="longitudePDV" type="hidden" />
+
+                  <div id="distanciaEntregaPDV" class="text-muted"></div>
+
+                  <div id="calculoEntregaPDV" class="text-muted"></div>
+
+                  <label>Complemento</label>
+
+                  <input
+                    id="complementoPDV"
+                    type="text"
+                    placeholder="Apartamento, casa..."
+                  />
+
+                  <label>Referência</label>
+
+                  <input
+                    id="referenciaPDV"
+                    type="text"
+                    placeholder="Próximo a..."
+                  />
+                </div>
+              </div>
+
+              <div class="panel">
+                <span id="quantidadeCarrinho">0</span>
+
+                <div class="pdv-total">
+                  <span>Subtotal</span>
+
+                  <strong id="subtotalCarrinho"> R$ 0,00 </strong>
+                </div>
+
+                <div class="pdv-total">
+                  <span>Taxa</span>
+
+                  <strong id="taxaPDV"> R$ 0,00 </strong>
+                </div>
+
+                <hr />
+
+                <div class="pdv-total total-geral">
+                  <span>Total</span>
+
+                  <strong id="totalCarrinho"> R$ 0,00 </strong>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="form-group">
+                  <label>Forma de pagamento</label>
+
+                  <select id="formaPagamentoPDV"></select>
+                </div>
+
+                <div class="form-group" id="trocoContainer">
+                  <label>Cliente paga</label>
+
+                  <input
+                    type="number"
+                    id="valorRecebidoPDV"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div class="pdv-total">
+                  <span>Troco</span>
+
+                  <strong id="trocoPDV"> R$ 0,00 </strong>
+                </div>
+
+                <button id="btnFinalizarVenda" class="btn btn-primary btn-full">
+                  💳 Finalizar Venda
                 </button>
-
-            </div>
-
-            <div class="pdv-layout">
-
-                <!-- ESQUERDA -->
-
-                <section class="pdv-produtos">
-
-                    <div class="panel">
-
-                        <div class="toolbar">
-
-                            <input
-                                id="buscarProdutoPDV"
-                                type="text"
-                                placeholder="Pesquisar produto..."
-                            >
-
-                            <select id="categoriaPDV">
-
-                                <option value="">Todas categorias</option>
-
-                            </select>
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="listaProdutosPDV"
-                        class="pdv-grid">
-
-                    </div>
-
-                </section>
-
-                <!-- DIREITA -->
-
-                <aside class="pdv-carrinho">
-
-                    <div class="panel">
-
-                        <h2>Carrinho</h2>
-
-                        <div id="listaCarrinho">
-
-                            <div class="empty-state">
-
-                                <p>
-
-                                    Nenhum produto adicionado.
-
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="panel">
-
-                        <div class="form-group">
-
-                            <label>Cliente</label>
-
-                            <select id="clientePDV">
-
-                                <option value="">
-                                    Consumidor Final
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <label>Tipo</label>
-
-                            <select id="tipoPedidoPDV">
-
-                                <option value="RETIRADA">
-
-                                    Retirada
-
-                                </option>
-
-                                <option value="DELIVERY">
-
-                                    Delivery
-
-                                </option>
-
-                                <option value="MESA">
-
-                                    Mesa
-
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div
-                            class="form-group"
-                            id="containerMesa"
-                            style="display:none">
-
-                            <label>Mesa</label>
-
-                            <select id="mesaPDV">
-
-                            </select>
-
-                        </div>
-
-                        <div
-                            class="form-group"
-                            id="enderecoEntregaPDV"
-                            style="display:none">
-
-
-                            <label>Rua</label>
-
-                            <input
-                                id="ruaPDV"
-                                type="text"
-                                placeholder="Rua">
-
-
-                            <label>Número</label>
-
-                            <input
-                                id="numeroPDV"
-                                type="text"
-                                placeholder="Número">
-
-
-                            <label>Bairro</label>
-
-                            <select id="bairroPDV">
-
-                                <option value="">
-                                    Selecione o bairro
-                                </option>
-
-                            </select>
-
-
-                            <label>Complemento</label>
-
-                            <input
-                                id="complementoPDV"
-                                type="text"
-                                placeholder="Apartamento, casa...">
-
-
-                            <label>Referência</label>
-
-                            <input
-                                id="referenciaPDV"
-                                type="text"
-                                placeholder="Próximo a...">
-
-
-                        </div>
-
-                    </div>
-
-                    <div class="panel">
-
-                        <span id="quantidadeCarrinho">0</span>
-
-                        <div class="pdv-total">
-
-                            <span>Subtotal</span>
-
-                            <strong id="subtotalCarrinho">
-
-                                R$ 0,00
-
-                            </strong>
-
-                        </div>
-
-                        <div class="pdv-total">
-
-                            <span>Taxa</span>
-
-                            <strong id="taxaPDV">
-
-                                R$ 0,00
-
-                            </strong>
-
-                        </div>
-
-                        <hr>
-
-                        <div class="pdv-total total-geral">
-
-                            <span>Total</span>
-
-                            <strong id="totalCarrinho">
-
-                                R$ 0,00
-
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                    <div class="panel">
-
-                        <div class="form-group">
-
-                            <label>Forma de pagamento</label>
-
-                            <select id="formaPagamentoPDV"></select>
-
-                        </div>
-
-                        <div
-                            class="form-group"
-                            id="trocoContainer">
-
-                            <label>Cliente paga</label>
-
-                            <input
-                                type="number"
-                                id="valorRecebidoPDV"
-                                min="0"
-                                step="0.01"
-                            >
-
-                        </div>
-
-                        <div class="pdv-total">
-
-                            <span>Troco</span>
-
-                            <strong id="trocoPDV">
-
-                                R$ 0,00
-
-                            </strong>
-
-                        </div>
-
-                        <button
-                            id="btnFinalizarVenda"
-                            class="btn btn-primary btn-full">
-
-                            💳 Finalizar Venda
-
-                        </button>
-
-                    </div>
-
-                </aside>
-
-            </div>
-
+              </div>
+            </aside>
+          </div>
         </section>
+      </main>
+    </div>
 
-    </main>
-
-</div>
-
-<script type="module" src="js/app.js"></script>
-
-</body>
-
+    <script type="module" src="js/app.js"></script>
+  </body>
 </html>

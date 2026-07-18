@@ -26,6 +26,12 @@ export function obterTaxaEntrega(){
 
 }
 
+export function possuiTaxaEntrega(){
+
+    return taxaEntrega > 0;
+
+}
+
 export function quantidadeItensCarrinho() {
 
     return carrinho.reduce(
@@ -168,7 +174,13 @@ export function diminuirQuantidadeCarrinho(idCarrinho) {
 
 export function definirTaxaEntrega(valor){
 
-    taxaEntrega = Number(valor || 0);
+    const novaTaxa = Number(valor);
+
+    taxaEntrega =
+        Number.isFinite(novaTaxa) && novaTaxa > 0
+            ? novaTaxa
+            : 0;
+
 
     atualizarCarrinhoUI();
 

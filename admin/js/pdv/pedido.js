@@ -12,11 +12,7 @@ import {
 
 import { getTipoPedido, isDelivery, isMesa } from "./tipoPedido.js";
 
-import {
-  obterCarrinho,
-  totalCarrinho,
-  totalComEntrega
-} from "./carrinho.js";
+import { obterCarrinho, totalCarrinho, totalComEntrega } from "./carrinho.js";
 
 import {
   getDesconto,
@@ -64,9 +60,23 @@ export function montarPedido() {
 
     tipo: getTipoPedido(),
 
-    endereco: getEnderecoFormatado(),
+    endereco: {
+      cep: getEnderecoEntrega().cep || "",
 
-    bairro: getEnderecoEntrega().bairro || "",
+      rua: getEnderecoEntrega().rua || "",
+
+      numero: getEnderecoEntrega().numero || "",
+
+      complemento: getEnderecoEntrega().complemento || "",
+
+      referencia: getEnderecoEntrega().referencia || "",
+
+      latitude: getEnderecoEntrega().latitude ?? null,
+
+      longitude: getEnderecoEntrega().longitude ?? null,
+
+      distanciaKm: getEnderecoEntrega().distanciaKm ?? null,
+    },
 
     itens: carrinho,
 
@@ -118,10 +128,9 @@ export function validarPedido() {
     return false;
   }
 
-  const valorTotal =
-    calcularTotalComDesconto(
-      totalCarrinho() + getTaxaEntrega()
-    );
+  const valorTotal = calcularTotalComDesconto(
+    totalCarrinho() + getTaxaEntrega(),
+  );
 
   if (!validarPagamento(valorTotal)) {
     return false;
@@ -161,9 +170,7 @@ function getEnderecoFormatado() {
     return "";
   }
 
-  return [endereco.rua, endereco.numero, endereco.bairro]
-    .filter(Boolean)
-    .join(", ");
+  return [endereco.rua, endereco.numero].filter(Boolean).join(", ");
 }
 
 /* ==========================================================

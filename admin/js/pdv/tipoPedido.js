@@ -1,26 +1,22 @@
 // admin/js/pdv/tipoPedido.js
 
-import {
-    toast
-} from "../../components/toast.js";
+import { toast } from "../../components/toast.js";
+
+import { atualizarDelivery, preencherEnderecoCliente } from "./delivery.js";
 
 import {
-    atualizarDelivery,
-    preencherEnderecoCliente
-} from "./delivery.js";
+    getClienteSelecionado
+} from "./cliente.js";
 
 /* ==========================================================
    ELEMENTOS
 ========================================================== */
 
-const selectTipoPedido =
-    document.getElementById("tipoPedidoPDV");
+const selectTipoPedido = document.getElementById("tipoPedidoPDV");
 
-const containerMesa =
-    document.getElementById("containerMesa");
+const containerMesa = document.getElementById("containerMesa");
 
-const containerTaxa =
-    document.getElementById("containerTaxa");
+const containerTaxa = document.getElementById("containerTaxa");
 
 /* ==========================================================
    ESTADO
@@ -33,11 +29,9 @@ let tipoPedido = "RETIRADA";
 ========================================================== */
 
 export function initTipoPedido() {
+  bindEventos();
 
-    bindEventos();
-
-    atualizarInterface();
-
+  atualizarInterface();
 }
 
 /* ==========================================================
@@ -45,23 +39,15 @@ export function initTipoPedido() {
 ========================================================== */
 
 function bindEventos() {
+  selectTipoPedido?.addEventListener(
+    "change",
 
-    selectTipoPedido?.addEventListener(
-
-        "change",
-
-        alterarTipoPedido
-
-    );
-
+    alterarTipoPedido,
+  );
 }
 
 function alterarTipoPedido() {
-
-    selecionarTipoPedido(
-        selectTipoPedido.value
-    );
-
+  selecionarTipoPedido(selectTipoPedido.value);
 }
 
 /* ==========================================================
@@ -69,37 +55,25 @@ function alterarTipoPedido() {
 ========================================================== */
 
 export function selecionarTipoPedido(tipo) {
+  const tipos = ["RETIRADA", "DELIVERY", "MESA"];
 
-    const tipos = [
+  if (!tipos.includes(tipo)) {
+    toast("Tipo de pedido inválido.");
 
-        "RETIRADA",
+    return;
+  }
 
-        "DELIVERY",
+  tipoPedido = tipo;
 
-        "MESA"
+  if (tipo === "DELIVERY") {
+    const cliente = getClienteSelecionado();
 
-    ];
+    preencherEnderecoCliente(cliente);
+  }
 
-    if (!tipos.includes(tipo)) {
+  atualizarDelivery();
 
-        toast("Tipo de pedido inválido.");
-
-        return;
-
-    }
-
-    tipoPedido = tipo;
-
-    if(tipo==="DELIVERY"){
-
-        preencherEnderecoCliente();
-
-    }
-
-    atualizarDelivery();
-
-    atualizarInterface();
-
+  atualizarInterface();
 }
 
 /* ==========================================================
@@ -107,27 +81,13 @@ export function selecionarTipoPedido(tipo) {
 ========================================================== */
 
 function atualizarInterface() {
+  if (containerMesa) {
+    containerMesa.style.display = tipoPedido === "MESA" ? "block" : "none";
+  }
 
-    if (containerMesa) {
-
-        containerMesa.style.display =
-
-            tipoPedido === "MESA"
-                ? "block"
-                : "none";
-
-    }
-
-    if (containerTaxa) {
-
-        containerTaxa.style.display =
-
-            tipoPedido === "DELIVERY"
-                ? "block"
-                : "none";
-
-    }
-
+  if (containerTaxa) {
+    containerTaxa.style.display = tipoPedido === "DELIVERY" ? "block" : "none";
+  }
 }
 
 /* ==========================================================
@@ -135,27 +95,19 @@ function atualizarInterface() {
 ========================================================== */
 
 export function getTipoPedido() {
-
-    return tipoPedido;
-
+  return tipoPedido;
 }
 
 export function isMesa() {
-
-    return tipoPedido === "MESA";
-
+  return tipoPedido === "MESA";
 }
 
 export function isDelivery() {
-
-    return tipoPedido === "DELIVERY";
-
+  return tipoPedido === "DELIVERY";
 }
 
 export function isRetirada() {
-
-    return tipoPedido === "RETIRADA";
-
+  return tipoPedido === "RETIRADA";
 }
 
 /* ==========================================================
@@ -163,16 +115,11 @@ export function isRetirada() {
 ========================================================== */
 
 export function limparTipoPedido() {
+  tipoPedido = "RETIRADA";
 
-    tipoPedido = "RETIRADA";
+  if (selectTipoPedido) {
+    selectTipoPedido.value = "RETIRADA";
+  }
 
-    if (selectTipoPedido) {
-
-        selectTipoPedido.value =
-            "RETIRADA";
-
-    }
-
-    atualizarInterface();
-
+  atualizarInterface();
 }

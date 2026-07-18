@@ -365,12 +365,12 @@ function abrirModalNovoCliente() {
 
             <div class="form-group">
 
-                <label>Bairro</label>
+                <label>CEP</label>
 
                 <input
-                    id="pdvBairroCliente"
-                    type="text"
-                >
+                  id="pdvCepCliente"
+                  type="tel"
+                />
 
             </div>
 
@@ -423,53 +423,47 @@ function abrirModalNovoCliente() {
 }
 
 function aplicarMascaraTelefone(input) {
+  if (!input) return;
 
-    if (!input) return;
+  // Preenche automaticamente o código do país
+  input.value = "+55 ";
 
-    // Preenche automaticamente o código do país
-    input.value = "+55 ";
+  input.addEventListener("focus", () => {
+    if (!input.value.trim()) {
+      input.value = "+55 ";
+    }
+  });
 
-    input.addEventListener("focus", () => {
+  input.addEventListener("input", () => {
+    // Mantém sempre o +55
+    let numeros = input.value.replace(/\D/g, "");
 
-        if (!input.value.trim()) {
-            input.value = "+55 ";
-        }
+    if (!numeros.startsWith("55")) {
+      numeros = "55" + numeros.replace(/^55/, "");
+    }
 
-    });
+    numeros = numeros.substring(0, 13);
 
-    input.addEventListener("input", () => {
+    let valor = "+55";
 
-        // Mantém sempre o +55
-        let numeros = input.value.replace(/\D/g, "");
+    if (numeros.length > 2) {
+      valor += " (" + numeros.substring(2, 4);
+    }
 
-        if (!numeros.startsWith("55")) {
-            numeros = "55" + numeros.replace(/^55/, "");
-        }
+    if (numeros.length >= 4) {
+      valor += ")";
+    }
 
-        numeros = numeros.substring(0, 13);
+    if (numeros.length > 4) {
+      valor += " " + numeros.substring(4, 9);
+    }
 
-        let valor = "+55";
+    if (numeros.length > 9) {
+      valor += "-" + numeros.substring(9, 13);
+    }
 
-        if (numeros.length > 2) {
-            valor += " (" + numeros.substring(2, 4);
-        }
-
-        if (numeros.length >= 4) {
-            valor += ")";
-        }
-
-        if (numeros.length > 4) {
-            valor += " " + numeros.substring(4, 9);
-        }
-
-        if (numeros.length > 9) {
-            valor += "-" + numeros.substring(9, 13);
-        }
-
-        input.value = valor;
-
-    });
-
+    input.value = valor;
+  });
 }
 
 /* ==========================================================
@@ -533,7 +527,11 @@ function obterDadosFormulario() {
 
       numero: document.getElementById("pdvNumeroCliente")?.value.trim() || "",
 
-      bairro: document.getElementById("pdvBairroCliente")?.value.trim() || "",
+      cep: document.getElementById("pdvCepCliente")?.value.trim() || "",
+
+      latitude: null,
+
+      longitude: null,
 
       complemento:
         document.getElementById("pdvComplementoCliente")?.value.trim() || "",

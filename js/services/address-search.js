@@ -115,6 +115,35 @@ export async function buscarDetalhesEndereco(latitude, longitude) {
   };
 }
 
+export async function calcularDistanciaBee({
+  origem,
+  destino,
+}) {
+
+  const url =
+    `https://router.project-osrm.org/route/v1/driving/` +
+    `${origem.longitude},${origem.latitude};` +
+    `${destino.longitude},${destino.latitude}` +
+    `?overview=false`;
+
+
+  const resposta = await fetch(url);
+
+  const dados = await resposta.json();
+
+
+  if (
+    !dados.routes ||
+    !dados.routes.length
+  ) {
+    throw new Error("Não foi possível calcular rota");
+  }
+
+
+  // metros para km
+  return dados.routes[0].distance / 1000;
+}
+
 export function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
 
