@@ -618,16 +618,22 @@ async function imprimirPedido(pedido) {
         pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO"
     ) {
 
-        const pago = Number(pedido.trocoPara || 0);
-
         const total = Number(pedido.valorTotal || 0);
 
-        const troco = pago - total;
+        if (
+            pedido.trocoPara !== null &&
+            pedido.trocoPara !== undefined &&
+            pedido.trocoPara !== ""
+        ) {
 
+            const pago = Number(pedido.trocoPara);
 
-        cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
+            const troco = pago - total;
 
-        cupom += `TROCO: R$ ${moeda(troco)}\n`;
+            cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
+            cupom += `TROCO: R$ ${moeda(troco)}\n`;
+
+        }
 
     }
 
@@ -934,7 +940,7 @@ app.post("/print/test", async (req, res) => {
 
 app.post("/print/order", async (req, res) => {
 
-	console.log("TESTE RESTART AUTOMATICO");
+    console.log("TESTE RESTART AUTOMATICO");
 
     console.log("==============================");
     console.log("JSON RECEBIDO:");

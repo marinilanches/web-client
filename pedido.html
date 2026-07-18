@@ -1460,7 +1460,11 @@
         pagamentoStatus: "PENDENTE",
         trocoPara:
           pagamentoMetodoEl.value === "DINHEIRO"
-            ? Number(trocoParaEl.value || 0)
+            ? (
+              trocoParaEl.value.trim() === ""
+                ? null
+                : Number(trocoParaEl.value)
+            )
             : null,
 
         bairroId,
