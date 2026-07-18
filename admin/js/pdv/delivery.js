@@ -10,6 +10,7 @@ import {
   buscarEnderecos,
   buscarDetalhesEndereco,
   calcularDistanciaBee,
+  buscarCoordenadasEnderecoCompleto,
 } from "../../../js/services/address-search.js";
 
 import { db } from "../../../js/services/firebase.js";
@@ -158,7 +159,7 @@ async function buscarBairroPorNome(nome) {
   return encontrado;
 }
 
-async function cadastrarBairroAutomaticamente(nome, taxa) {
+async function cadastrarBairroAutomaticamente(nome, taxa, distanciaKm) {
   if (!nome || taxa == null) return;
 
   const existente = await buscarBairroPorNome(nome);
@@ -171,6 +172,7 @@ async function cadastrarBairroAutomaticamente(nome, taxa) {
     if (Number(taxa) > taxaAtual) {
       await updateDoc(doc(db, "taxasEntrega", existente.id), {
         taxa: Number(taxa),
+        distanciaKm: Number(distanciaKm),
         atualizadoEm: serverTimestamp(),
       });
 
@@ -185,6 +187,7 @@ async function cadastrarBairroAutomaticamente(nome, taxa) {
     nome: nome.trim(),
 
     taxa: Number(taxa),
+    distanciaKm: Number(distanciaKm),
 
     ativo: true,
 
@@ -358,44 +361,63 @@ function fecharSugestoes() {
 ========================================================== */
 
 async function calcularTaxaEntrega() {
-  if (enderecoEntrega.latitude == null || enderecoEntrega.longitude == null) {
-    return;
+
+  const coordenadas = await buscarCoordenadasEnderecoCompleto({
+    rua: enderecoEntrega.rua,
+    numero: enderecoEntrega.numero || "S/N",
+    bairro: enderecoEntrega.bairro,
+    cidade: "Capivari",
+    estado: "SP",
+  });
+
+
+  if (coordenadas) {
+
+    enderecoEntrega.latitude = coordenadas.latitude;
+
+    enderecoEntrega.longitude = coordenadas.longitude;
+
   }
+
 
   const distancia = await calcularDistanciaBee({
     origem: {
       latitude: -23.000761054962886,
-      longitude: -47.51735362883598,
+      longitude: -47.51735362883598
     },
 
     destino: {
       latitude: enderecoEntrega.latitude,
-      longitude: enderecoEntrega.longitude,
-    },
+      longitude: enderecoEntrega.longitude
+    }
   });
+
 
   const taxa = calcularTaxaPorDistancia(distancia);
 
-  if (taxa == null) {
-    toast("Endereço fora da área de entrega.");
-    definirTaxaEntrega(0);
-    return;
-  }
 
   taxaEntregaAtual = taxa;
 
   enderecoEntrega.distanciaKm = distancia;
 
+
   if (campoDistancia) {
-    campoDistancia.textContent = `Distância: ${distancia.toFixed(2)} km • Taxa: R$ ${taxa.toFixed(2)}`;
+
+    campoDistancia.textContent =
+      `Distância: ${distancia.toFixed(2)} km • Taxa: R$ ${taxa.toFixed(2)}`;
+
   }
+
 
   definirTaxaEntrega(taxa);
 
-  // apenas salva/atualiza bairro, nunca usa ele para calcular
-  if (enderecoEntrega.bairro) {
-    await cadastrarBairroAutomaticamente(enderecoEntrega.bairro, taxa);
-  }
+
+  await cadastrarBairroAutomaticamente(
+    enderecoEntrega.bairro,
+    taxa,
+    distancia
+  );
+
 }
 
 async function buscarCEP() {

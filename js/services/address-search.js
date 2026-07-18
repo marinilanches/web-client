@@ -115,6 +115,38 @@ export async function buscarDetalhesEndereco(latitude, longitude) {
   };
 }
 
+export async function buscarCoordenadasEnderecoCompleto({
+  rua,
+  numero,
+  bairro,
+  cidade,
+  estado,
+}) {
+
+  const endereco = encodeURIComponent(
+    `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}`
+  );
+
+
+  const resposta = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${endereco}&limit=1`
+  );
+
+
+  const dados = await resposta.json();
+
+
+  if (!dados.length) {
+    return null;
+  }
+
+
+  return {
+    latitude: Number(dados[0].lat),
+    longitude: Number(dados[0].lon),
+  };
+}
+
 export async function calcularDistanciaBee({
   origem,
   destino,
