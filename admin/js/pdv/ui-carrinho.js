@@ -4,6 +4,7 @@ import {
     obterCarrinho,
     obterTaxaEntrega,
     totalCarrinho,
+    totalComEntrega,
     quantidadeItensCarrinho,
     aumentarQuantidadeCarrinho,
     diminuirQuantidadeCarrinho,
@@ -11,9 +12,9 @@ import {
 } from "./carrinho.js";
 
 import {
-getTaxaEntrega
+    getTaxaEntrega
 }
-from "./delivery.js";
+    from "./delivery.js";
 
 /* ==========================================
    ELEMENTOS
@@ -109,24 +110,23 @@ function renderItens(carrinho) {
 
 function renderItemCarrinho(item) {
 
-    console.log("ITEM CARRINHO:", JSON.stringify(item,null,2));
+    console.log("ITEM CARRINHO:", JSON.stringify(item, null, 2));
 
     const adicionais = (
         item.personalizados?.adicionais ||
         item.adicionais ||
         []
     )
-    .map(adicional => `
+        .map(adicional => `
         <div class="carrinho-extra">
             + ${adicional.nome}
-            ${
-                Number(adicional.preco || 0) > 0
-                    ? ` (${formatarMoeda(adicional.preco)})`
-                    : ""
+            ${Number(adicional.preco || 0) > 0
+                ? ` (${formatarMoeda(adicional.preco)})`
+                : ""
             }
         </div>
     `)
-    .join("");
+        .join("");
 
     const personalizacoes = (item.personalizacoes || [])
         .map(p => `${p.grupo}: ${p.nome}`)
@@ -146,25 +146,23 @@ function renderItemCarrinho(item) {
 
                 ${adicionais}
 
-                ${
-                    personalizacoes
-                    ? `
+                ${personalizacoes
+            ? `
                     <div class="carrinho-extra">
                         ${personalizacoes}
                     </div>
                     `
-                    : ""
-                }
+            : ""
+        }
 
-                ${
-                    item.observacao
-                    ? `
+                ${item.observacao
+            ? `
                     <div class="carrinho-observacao">
                         📝 ${item.observacao}
                     </div>
                     `
-                    : ""
-                }
+            : ""
+        }
 
                 <div class="carrinho-preco">
 
@@ -226,7 +224,9 @@ function renderItemCarrinho(item) {
 
 function atualizarResumo() {
 
-    const total = totalCarrinho();
+    const subtotal = totalCarrinho();
+
+    const total = totalComEntrega();
 
     const taxa =
         obterTaxaEntrega();
@@ -235,34 +235,32 @@ function atualizarResumo() {
         quantidadeItensCarrinho();
 
 
-    if(subtotalCarrinho){
+    if (subtotalCarrinho) {
 
         subtotalCarrinho.textContent =
-            formatarMoeda(
-                total - taxa
-            );
+            formatarMoeda(subtotal);
 
     }
 
 
-    if(taxaPDV){
+    if (taxaPDV) {
 
         taxaPDV.textContent =
             formatarMoeda(taxa);
 
     }
 
-    if(taxaElemento){
+    if (taxaElemento) {
 
-    taxaElemento.textContent =
-    formatarMoeda(
-    getTaxaEntrega()
-    );
+        taxaElemento.textContent =
+            formatarMoeda(
+                getTaxaEntrega()
+            );
 
     }
 
 
-    if(totalCarrinhoElemento){
+    if (totalCarrinhoElemento) {
 
         totalCarrinhoElemento.textContent =
             formatarMoeda(total);
@@ -270,7 +268,7 @@ function atualizarResumo() {
     }
 
 
-    if(quantidadeCarrinho){
+    if (quantidadeCarrinho) {
 
         quantidadeCarrinho.textContent =
             quantidade;

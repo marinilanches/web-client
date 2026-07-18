@@ -265,23 +265,17 @@ function selecionarBairro(){
             selectBairro.selectedIndex
         ];
 
-
     if(!opcao) return;
 
+    enderecoEntrega.bairro = opcao.value;
 
-    enderecoEntrega.bairro =
-        opcao.value;
+    const taxa = Number(
+        opcao.dataset.taxa || 0
+    );
 
-
-    const taxa =
-        Number(
-            opcao.dataset.taxa || 0
-        );
-
+    taxaEntregaAtual = taxa;
 
     definirTaxaEntrega(taxa);
-
-
 }
 
 

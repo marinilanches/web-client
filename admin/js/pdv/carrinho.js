@@ -37,14 +37,18 @@ export function quantidadeItensCarrinho() {
 
 export function totalCarrinho() {
 
-    const subtotal = carrinho.reduce(
+    return carrinho.reduce(
         (total, item) =>
             total + Number(item.valorTotal || 0),
         0
     );
 
+}
 
-    return subtotal + taxaEntrega;
+
+export function totalComEntrega() {
+
+    return totalCarrinho() + taxaEntrega;
 
 }
 

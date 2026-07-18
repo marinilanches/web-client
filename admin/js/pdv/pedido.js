@@ -12,7 +12,11 @@ import {
 
 import { getTipoPedido, isDelivery, isMesa } from "./tipoPedido.js";
 
-import { obterCarrinho, totalCarrinho } from "./carrinho.js";
+import {
+  obterCarrinho,
+  totalCarrinho,
+  totalComEntrega
+} from "./carrinho.js";
 
 import {
   getDesconto,
@@ -41,7 +45,7 @@ export function montarPedido() {
 
   const taxaEntrega = getTaxaEntrega();
 
-  const valorTotal = calcularTotalComDesconto(valorSubtotal + taxaEntrega);
+  const valorTotal = calcularTotalComDesconto(totalComEntrega());
 
   const cliente = getClienteSelecionado();
 
@@ -114,7 +118,10 @@ export function validarPedido() {
     return false;
   }
 
-  const valorTotal = calcularTotalComDesconto(totalCarrinho());
+  const valorTotal =
+    calcularTotalComDesconto(
+      totalCarrinho() + getTaxaEntrega()
+    );
 
   if (!validarPagamento(valorTotal)) {
     return false;
