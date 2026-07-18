@@ -170,14 +170,56 @@ export function ouvirTaxasEntrega(callback) {
   );
 }
 
+export async function buscarBairroPorNome(nome) {
+  const busca = normalizarNomeBairro(nome).toLowerCase();
+
+  const taxas = await listarTaxasEntrega();
+
+  return (
+    taxas.find((bairro) => {
+      return (
+        normalizarNomeBairro(bairro.nome).toLowerCase() === busca
+      );
+    }) || null
+  );
+}
+
 export async function buscarBairrosPorNome(nome) {
   const busca = normalizarNomeBairro(nome).toLowerCase();
 
   const taxas = await listarTaxasEntrega();
 
-  return taxas.filter((bairro) => {
-    const nomeBanco = normalizarNomeBairro(bairro.nome).toLowerCase();
+  return taxas.filter((bairro) =>
+    normalizarNomeBairro(bairro.nome)
+      .toLowerCase()
+      .includes(busca),
+  );
+}
 
-    return nomeBanco.includes(busca);
+export async function cadastrarBairroAutomaticamente(
+  nome,
+  taxa,
+) {
+  const existente = await buscarBairroPorNome(nome);
+
+  if (existente) {
+    return existente;
+  }
+
+  const taxas = await listarTaxasEntrega();
+
+  const maiorOrdem = taxas.reduce(
+    (maior, item) => Math.max(maior, Number(item.ordem || 0)),
+    0,
+  );
+
+  await criarTaxaEntrega({
+    nome,
+    taxa,
+    ativo: true,
+    ordem: maiorOrdem + 1,
+    ruas: [],
   });
+
+  return null;
 }

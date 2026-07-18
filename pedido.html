@@ -223,6 +223,8 @@
         buscarDetalhesEndereco,
       } from "./js/services/address-search.js";
 
+      import { cadastrarBairroAutomaticamente } from "./js/services/delivery-fees.js";
+
       import {
         garantirClienteAuth,
         buscarCliente,
@@ -452,9 +454,7 @@
 
               // tenta encontrar a taxa do bairro automaticamente
 
-              if (bairroEncontrado) {
-                recalcularTotal();
-              }
+              await calcularTaxaEntregaAutomatica();
             } catch (erro) {
               console.error("Erro detalhes endereço:", erro);
             }
@@ -951,6 +951,45 @@
         return null;
       }
 
+      async function calcularTaxaEntregaAutomatica() {
+        if (!configuracoesLoja?.delivery?.taxaPorDistancia) {
+          return;
+        }
+
+        if (latitudeCliente == null || longitudeCliente == null) {
+          return;
+        }
+
+        const loja = configuracoesLoja.localizacao;
+
+        const distancia = calcularDistancia(
+          loja.latitude,
+          loja.longitude,
+          latitudeCliente,
+          longitudeCliente,
+        );
+
+        const taxa = calcularTaxaPorDistancia(distancia);
+
+        if (taxa == null) {
+          entregaDisponivel = false;
+          taxaEntrega = 0;
+          recalcularTotal();
+          return;
+        }
+
+        entregaDisponivel = true;
+        taxaEntrega = taxa;
+
+        const bairro = bairroEl.value.trim();
+
+        if (bairro) {
+          await cadastrarBairroAutomaticamente(bairro, taxa);
+        }
+
+        recalcularTotal();
+      }
+
       async function buscarEnderecoPorCoordenadas(lat, lon) {
         const url =
           `https://nominatim.openstreetmap.org/reverse?` +
@@ -1045,7 +1084,7 @@
           numeroCEP,
         );
 
-        recalcularTotal();
+        await calcularTaxaEntregaAutomatica();
       }
 
       async function usarLocalizacaoAtual() {
@@ -1103,7 +1142,7 @@
               // NÃO tenta descobrir bairro pelo Nominatim
               // O cliente escolherá manualmente no campo bairro
 
-              recalcularTotal();
+              await calcularTaxaEntregaAutomatica();
 
               statusLocalizacaoEl.innerText =
                 "Localização encontrada! Confirme o bairro e número.";
