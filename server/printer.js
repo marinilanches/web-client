@@ -647,7 +647,12 @@ async function imprimirPedido(pedido) {
 
     cupom += `Subtotal: R$ ${moeda(pedido.valorSubtotal)}\n`;
 
-    cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
+    if (
+        pedido.tipo &&
+        pedido.tipo.toUpperCase() === "DELIVERY"
+    ) {
+        cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
+    }
 
     cupom += "\n";
 
@@ -657,11 +662,28 @@ async function imprimirPedido(pedido) {
 
     cupom += CMD.DOUBLE;
 
-    cupom += `TOTAL R$ ${moeda(pedido.valorTotal)}\n`;
+    cupom += `TOTAL: R$ ${moeda(pedido.valorTotal)}\n`;
 
     cupom += CMD.NORMAL;
 
     cupom += CMD.BOLD_OFF;
+
+    if (
+        pedido.pagamentoMetodo &&
+        pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO" &&
+        (
+            pedido.trocoPara === null ||
+            pedido.trocoPara === undefined ||
+            pedido.trocoPara === ""
+        )
+    ) {
+        cupom += "\n";
+        cupom += CMD.LEFT;
+        cupom += CMD.BOLD_ON;
+        cupom += "TROCO: ";
+        cupom += CMD.BOLD_OFF;
+        cupom += "Cliente informou que possui trocado.\n";
+    }
 
 
     cupom += CMD.NORMAL;
