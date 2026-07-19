@@ -1,134 +1,180 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Taxas de Entrega • Mesa Fácil</title>
-    <link rel="icon" type="image/png" href="../assets/admin-icon.png">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="css/admin.css" />
+  <title>Taxas de Entrega • Mesa Fácil</title>
+  <link rel="icon" type="image/png" href="../assets/admin-icon.png">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="layout">
-      <!-- Sidebar -->
-      <aside id="sidebar"></aside>
+  <link rel="stylesheet" href="css/admin.css" />
 
-      <!-- Conteúdo -->
-      <main class="content">
-        <!-- Header -->
-        <header id="header"></header>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-        <section class="dashboard taxas-page">
-          <h1>Taxas de Entrega</h1>
-          <p class="subtitle">
-            Cadastre os bairros e a taxa de entrega usada no checkout do
-            cliente.
-          </p>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+</head>
 
-          <!-- Formulário -->
-          <section class="panel taxas-card">
-            <div class="panel-title">
-              🚚 <span id="formTitulo">Cadastrar bairro</span>
+<body>
+
+  <div class="layout">
+
+    <aside id="sidebar"></aside>
+
+    <main class="content">
+
+      <header id="header"></header>
+
+
+      <section class="dashboard taxas-page">
+
+        <h1>Configuração de Entrega</h1>
+
+        <p class="subtitle">
+          Configure automaticamente a taxa de entrega por distância.
+        </p>
+
+
+        <section class="panel taxas-card">
+
+          <div class="panel-title">
+            🚚 Entrega própria
+          </div>
+
+
+          <div class="taxas-grid">
+
+            <div class="taxas-campo">
+              <label>
+                Tempo médio de entrega
+              </label>
+
+              <input type="number" id="tempoEntrega" value="50" />
             </div>
 
-            <form id="taxaForm">
-              <div class="taxas-grid">
-                <div class="taxas-campo">
-                  <label for="nome">Nome do bairro</label>
-                  <input
-                    type="text"
-                    id="nome"
-                    placeholder="Ex.: Centro"
-                    required
-                  />
-                </div>
 
-                <div class="taxas-campo">
-                  <label for="taxa">Taxa de entrega (R$)</label>
-                  <input
-                    type="number"
-                    id="taxa"
-                    min="0"
-                    step="0.01"
-                    placeholder="Ex.: 5.00"
-                    required
-                  />
-                </div>
+            <div class="taxas-campo">
+              <label>
+                Raio máximo (km)
+              </label>
 
-                <div class="taxas-campo">
-                  <label for="ordem">Ordem</label>
-                  <input
-                    type="number"
-                    id="ordem"
-                    min="0"
-                    step="1"
-                    placeholder="Ex.: 1"
-                  />
-                </div>
-
-                <div class="taxas-campo">
-                  <label for="ativo">Status</label>
-                  <select id="ativo">
-                    <option value="true">Ativo</option>
-                    <option value="false">Inativo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="taxas-acoes-form">
-                <button type="submit" class="btn" id="btnSalvar">
-                  Salvar bairro
-                </button>
-
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  id="btnCancelarEdicao"
-                  style="display: none"
-                >
-                  Cancelar edição
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <!-- Lista -->
-          <section class="panel taxas-card">
-            <div class="panel-title">📍 Bairros cadastrados</div>
-
-            <div class="taxas-table-wrap">
-              <table class="taxas-table">
-                <thead>
-                  <tr>
-                    <th>Bairro</th>
-                    <th>Taxa</th>
-                    <th>Ordem</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="listaTaxas">
-                  <tr>
-                    <td colspan="5" class="taxas-empty">
-                      Carregando bairros...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <input type="number" id="raioMaximo" value="7" step="0.1" />
             </div>
-          </section>
+
+
+          </div>
+
+
         </section>
-      </main>
-    </div>
 
-    <script type="module" src="js/app.js"></script>
-  </body>
+
+
+        <section class="panel taxas-card">
+
+          <div class="panel-title">
+            📍 Faixas de distância
+          </div>
+
+
+          <button type="button" class="btn" id="btnAdicionarDistancia">
+            ➕ Adicionar distância
+          </button>
+
+
+          <br><br>
+
+
+          <table class="taxas-table">
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Distância
+                </th>
+
+                <th>
+                  Tempo
+                </th>
+
+                <th>
+                  Taxa
+                </th>
+
+                <th>
+                  Ações
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="listaDistancias">
+
+            </tbody>
+
+
+          </table>
+
+
+
+        </section>
+
+
+        <section class="panel taxas-card">
+
+
+          <div class="panel-title">
+            🗺️ Mapa
+          </div>
+
+
+          <div id="mapaEntrega" style="
+          height:400px;
+          border-radius:12px;
+          background:#eee;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          ">
+
+            Mapa de entrega
+
+          </div>
+
+
+        </section>
+
+
+
+        <div class="toolbar">
+
+          <button id="btnSalvar" class="btn">
+            💾 Salvar
+          </button>
+
+
+        </div>
+
+
+      </section>
+
+
+    </main>
+
+
+  </div>
+
+
+  <script type="module" src="js/app.js"></script>
+
+  <script type="module" src="js/pages/taxas.js"></script>
+
+
+</body>
+
 </html>

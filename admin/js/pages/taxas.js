@@ -1,216 +1,363 @@
+import { db } from "../../../js/services/firebase.js";
+
 import {
-  criarTaxaEntrega,
-  editarTaxaEntrega,
-  excluirTaxaEntrega,
-  ouvirTaxasEntrega,
-} from "../../../js/services/delivery-fees.js";
+  doc,
+  getDoc,
+  setDoc,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const form = document.getElementById("taxaForm");
-const formTitulo = document.getElementById("formTitulo");
-const listaTaxas = document.getElementById("listaTaxas");
 
-const nomeEl = document.getElementById("nome");
-const taxaEl = document.getElementById("taxa");
-const ordemEl = document.getElementById("ordem");
-const ativoEl = document.getElementById("ativo");
+const REF = doc(
+  db,
+  "configuracoes",
+  "geral"
+);
 
-const btnSalvar = document.getElementById("btnSalvar");
-const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
 
-let taxaEditandoId = null;
-let taxasCache = [];
 
-function formatarMoeda(valor) {
-  return Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+const lista = document.getElementById(
+  "listaDistancias"
+);
 
-function resetForm() {
-  taxaEditandoId = null;
-  form.reset();
+const btnSalvar = document.getElementById(
+  "btnSalvar"
+);
 
-  nomeEl.value = "";
-  taxaEl.value = "";
-  ordemEl.value = "";
-  ativoEl.value = "true";
+const btnAdicionarDistancia = document.getElementById(
+  "btnAdicionarDistancia"
+);
 
-  formTitulo.textContent = "Cadastrar bairro";
-  btnSalvar.textContent = "Salvar bairro";
-  btnCancelarEdicao.style.display = "none";
-}
 
-function preencherFormulario(taxa) {
-  taxaEditandoId = taxa.id;
+const tempoEntrega = document.getElementById(
+  "tempoEntrega"
+);
 
-  nomeEl.value = taxa.nome || "";
-  taxaEl.value = Number(taxa.taxa || 0);
-  ordemEl.value = Number(taxa.ordem || 0);
-  ativoEl.value = String(Boolean(taxa.ativo));
+const raioMaximo = document.getElementById(
+  "raioMaximo"
+);
 
-  formTitulo.textContent = "Editar bairro";
-  btnSalvar.textContent = "Salvar alterações";
-  btnCancelarEdicao.style.display = "inline-block";
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
 
-function validarFormulario() {
-  const nome = nomeEl.value.trim();
-  const taxa = Number(taxaEl.value || 0);
+let faixas = [
 
-  if (!nome) {
-    alert("Informe o nome do bairro.");
-    nomeEl.focus();
-    return false;
+  {
+    limiteKm: 0.5,
+    taxa: 9
+  },
+
+  {
+    limiteKm: 1,
+    taxa: 9
+  },
+
+  {
+    limiteKm: 1.5,
+    taxa: 9
+  },
+
+  {
+    limiteKm: 2,
+    taxa: 9
+  },
+
+  {
+    limiteKm: 2.5,
+    taxa: 10
+  },
+
+  {
+    limiteKm: 3,
+    taxa: 10
+  },
+
+  {
+    limiteKm: 3.5,
+    taxa: 11
+  },
+
+  {
+    limiteKm: 4,
+    taxa: 11
+  },
+
+  {
+    limiteKm: 5,
+    taxa: 13
+  },
+
+  {
+    limiteKm: 6,
+    taxa: 14
+  },
+
+  {
+    limiteKm: 7,
+    taxa: 17
   }
 
-  if (taxa < 0) {
-    alert("A taxa não pode ser negativa.");
-    taxaEl.focus();
-    return false;
-  }
+];
 
-  const nomeNormalizado = nome.toLowerCase();
 
-  const duplicado = taxasCache.find((item) => {
-    if (taxaEditandoId && item.id === taxaEditandoId) return false;
-    return (
-      String(item.nome || "")
-        .trim()
-        .toLowerCase() === nomeNormalizado
-    );
-  });
 
-  if (duplicado) {
-    alert("Já existe um bairro com esse nome.");
-    nomeEl.focus();
-    return false;
-  }
+function renderizar() {
 
-  return true;
-}
+  lista.innerHTML = "";
 
-function renderLista(taxas) {
-  taxasCache = taxas;
 
-  if (!Array.isArray(taxas) || taxas.length === 0) {
-    listaTaxas.innerHTML = `
-      <tr>
-        <td colspan="5" class="taxas-empty">Nenhum bairro cadastrado.</td>
-      </tr>
-    `;
-    return;
-  }
+  faixas.forEach((item, index) => {
 
-  listaTaxas.innerHTML = taxas
-    .map(
-      (taxa) => `
+
+    lista.innerHTML += `
+
     <tr>
-      <td>${taxa.nome || "—"}</td>
-      <td>${formatarMoeda(taxa.taxa)}</td>
-      <td>${Number(taxa.ordem || 0)}</td>
-      <td>${taxa.ativo ? "Ativo" : "Inativo"}</td>
+
       <td>
-        <div class="taxas-acoes-linha">
-          <button
-            class="btn"
-            data-action="editar"
-            data-id="${taxa.id}"
-            type="button"
-          >
-            Editar
-          </button>
-
-          <button
-            class="btn btn-danger"
-            data-action="excluir"
-            data-id="${taxa.id}"
-            type="button"
-          >
-            Excluir
-          </button>
-        </div>
+        Até ${Number(item.limiteKm).toString()} km
       </td>
+
+
+      <td>
+
+        ${tempoEntrega.value}
+        min
+
+      </td>
+
+
+      <td>
+
+        <input
+          type="number"
+          value="${item.taxa}"
+          data-index="${index}"
+          class="inputTaxa"
+        >
+
+      </td>
+
+
+      <td>
+
+        <button
+          type="button"
+          class="btn btn-danger btnRemoverDistancia"
+          data-index="${index}"
+        >
+          🗑
+        </button>
+
+      </td>
+
+
     </tr>
-  `,
-    )
-    .join("");
+
+    `;
+
+
+  });
+
+
+  document
+    .querySelectorAll(".btnRemoverDistancia")
+    .forEach(botao => {
+
+      botao.addEventListener(
+        "click",
+        () => {
+
+          const index =
+            Number(botao.dataset.index);
+
+
+          faixas.splice(
+            index,
+            1
+          );
+
+
+          renderizar();
+
+        }
+      );
+
+    });
+
+
 }
 
-async function onSubmit(event) {
-  event.preventDefault();
 
-  if (!validarFormulario()) return;
 
-  const payload = {
-    nome: nomeEl.value.trim(),
+async function carregar() {
 
-    taxa: Number(taxaEl.value || 0),
 
-    ordem: Number(ordemEl.value || 0),
+  const snap = await getDoc(REF);
 
-    ativo: ativoEl.value === "true",
 
-    ruas: [],
-  };
+  if (
+    snap.exists()
+  ) {
 
-  try {
-    if (taxaEditandoId) {
-      await editarTaxaEntrega(taxaEditandoId, payload);
-      alert("Bairro atualizado com sucesso!");
-    } else {
-      await criarTaxaEntrega(payload);
-      alert("Bairro cadastrado com sucesso!");
+    const dados = snap.data();
+
+
+    const entrega =
+      dados.delivery?.configuracaoEntrega;
+
+
+    if (entrega) {
+
+      tempoEntrega.value =
+        entrega.tempo || 50;
+
+
+      raioMaximo.value =
+        entrega.raio || 7;
+
+
+      faixas =
+        (entrega.faixas || faixas)
+          .map((item) => ({
+            limiteKm:
+              item.limiteKm ?? item.distancia,
+
+            taxa:
+              item.taxa
+          }))
+          .filter(
+            (item, index, array) =>
+              array.findIndex(
+                (f) => f.limiteKm === item.limiteKm
+              ) === index
+          );
+
     }
 
-    resetForm();
-  } catch (erro) {
-    console.error("Erro ao salvar taxa:", erro);
-    alert("Não foi possível salvar o bairro.");
+
   }
+
+
+  renderizar();
+
+
 }
 
-async function onClickLista(event) {
-  const botao = event.target.closest("button[data-action]");
-  if (!botao) return;
 
-  const action = botao.dataset.action;
-  const id = botao.dataset.id;
 
-  const taxa = taxasCache.find((item) => item.id === id);
-  if (!taxa) return;
+async function salvar() {
 
-  if (action === "editar") {
-    preencherFormulario(taxa);
-    return;
-  }
 
-  if (action === "excluir") {
-    const confirmar = confirm(`Excluir o bairro "${taxa.nome}"?`);
-    if (!confirmar) return;
+  document
+    .querySelectorAll(".inputTaxa")
+    .forEach(input => {
 
-    try {
-      await excluirTaxaEntrega(id);
-      alert("Bairro excluído com sucesso!");
 
-      if (taxaEditandoId === id) {
-        resetForm();
+      const index =
+        Number(input.dataset.index);
+
+
+      faixas[index].taxa =
+        Number(input.value);
+
+
+
+    });
+
+
+
+  await setDoc(
+    REF,
+    {
+
+      delivery: {
+
+
+        configuracaoEntrega: {
+
+
+          tempo:
+            Number(
+              tempoEntrega.value
+            ),
+
+
+          raio:
+            Number(
+              raioMaximo.value
+            ),
+
+
+          faixas
+
+
+        }
+
+
       }
-    } catch (erro) {
-      console.error("Erro ao excluir bairro:", erro);
-      alert("Não foi possível excluir o bairro.");
+
+    },
+
+    {
+      merge: true
     }
+
+  );
+
+
+  alert(
+    "Configuração salva!"
+  );
+
+}
+
+btnAdicionarDistancia.addEventListener(
+  "click",
+  () => {
+
+    const distancia = prompt(
+      "Distância em km:"
+    );
+
+
+    if (!distancia) return;
+
+
+    const taxa = prompt(
+      "Valor da taxa:"
+    );
+
+
+    if (!taxa) return;
+
+
+    faixas.push({
+
+      limiteKm:
+        Number(distancia),
+
+      taxa:
+        Number(taxa)
+
+    });
+
+
+    faixas.sort(
+      (a, b) =>
+        a.limiteKm - b.limiteKm
+    );
+
+
+    renderizar();
+
   }
-}
+);
 
-function init() {
-  form.addEventListener("submit", onSubmit);
-  btnCancelarEdicao.addEventListener("click", resetForm);
-  listaTaxas.addEventListener("click", onClickLista);
 
-  ouvirTaxasEntrega(renderLista);
-}
 
-init();
+btnSalvar.addEventListener(
+  "click",
+  salvar
+);
+
+
+
+carregar();

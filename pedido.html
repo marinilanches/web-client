@@ -860,45 +860,24 @@
     }
 
     function calcularTaxaPorDistancia(distanciaKm) {
-      if (distanciaKm == null) return 0;
 
-      if (distanciaKm <= 2.0) {
-        return 9;
+      const faixas =
+        configuracoesLoja?.delivery?.configuracaoEntrega?.faixas || [];
+
+
+      for (const faixa of faixas) {
+
+        if (distanciaKm <= faixa.limiteKm) {
+
+          return faixa.taxa;
+
+        }
+
       }
 
-      if (distanciaKm <= 3.0) {
-        return 10;
-      }
-
-      if (distanciaKm <= 4.0) {
-        return 11;
-      }
-
-      if (distanciaKm <= 4.5) {
-        return 12;
-      }
-
-      if (distanciaKm <= 5.0) {
-        return 13;
-      }
-
-      if (distanciaKm <= 5.9) {
-        return 14;
-      }
-
-      if (distanciaKm <= 5.95) {
-        return 15;
-      }
-
-      if (distanciaKm <= 6.0) {
-        return 16;
-      }
-
-      if (distanciaKm <= 7.0) {
-        return 17;
-      }
 
       return null;
+
     }
 
     async function calcularTaxaEntregaAutomatica() {

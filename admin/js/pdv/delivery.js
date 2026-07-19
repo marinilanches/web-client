@@ -83,47 +83,24 @@ let enderecoEntrega = {
 ========================================================== */
 
 function calcularTaxaPorDistancia(distanciaKm) {
-  if (distanciaKm == null) {
-    return 0;
+
+  const faixas =
+    configuracoesLoja?.delivery?.configuracaoEntrega?.faixas || [];
+
+
+  for (const faixa of faixas) {
+
+    if (distanciaKm <= faixa.limiteKm) {
+
+      return faixa.taxa;
+
+    }
+
   }
 
-  if (distanciaKm <= 1.9) {
-    return 9;
-  }
-
-  if (distanciaKm <= 3.1) {
-    return 10;
-  }
-
-  if (distanciaKm <= 4.9) {
-    return 11;
-  }
-
-  if (distanciaKm <= 5.1) {
-    return 12;
-  }
-
-  if (distanciaKm <= 5.3) {
-    return 13;
-  }
-
-  if (distanciaKm <= 6.0) {
-    return 14;
-  }
-
-  if (distanciaKm <= 6.1) {
-    return 15;
-  }
-
-  if (distanciaKm <= 6.2) {
-    return 16;
-  }
-
-  if (distanciaKm <= 7.0) {
-    return 17;
-  }
 
   return null;
+
 }
 
 /* ==========================================================
