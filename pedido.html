@@ -862,35 +862,35 @@
     function calcularTaxaPorDistancia(distanciaKm) {
       if (distanciaKm == null) return 0;
 
-      if (distanciaKm <= 1.9) {
+      if (distanciaKm <= 2.0) {
         return 9;
       }
 
-      if (distanciaKm <= 3.1) {
+      if (distanciaKm <= 3.0) {
         return 10;
       }
 
-      if (distanciaKm <= 4.9) {
+      if (distanciaKm <= 4.0) {
         return 11;
       }
 
-      if (distanciaKm <= 5.1) {
+      if (distanciaKm <= 4.5) {
         return 12;
       }
 
-      if (distanciaKm <= 5.3) {
+      if (distanciaKm <= 5.0) {
         return 13;
       }
 
-      if (distanciaKm <= 6.0) {
+      if (distanciaKm <= 5.9) {
         return 14;
       }
 
-      if (distanciaKm <= 6.1) {
+      if (distanciaKm <= 5.95) {
         return 15;
       }
 
-      if (distanciaKm <= 6.2) {
+      if (distanciaKm <= 6.0) {
         return 16;
       }
 
@@ -898,7 +898,6 @@
         return 17;
       }
 
-      // acima de 7 km
       return null;
     }
 
