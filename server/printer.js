@@ -534,32 +534,27 @@ async function imprimirPedido(pedido) {
         cupom += CMD.BOLD_OFF;
 
 
-        if (pedido.bairro) {
-            cupom += `BAIRRO: ${pedido.bairro}\n`;
-        }
-
-
         if (pedido.endereco) {
 
             cupom += CMD.DOUBLE;
 
-            cupom += "ENDEREÇO:\n";
+            cupom += "ENDEREÇO:\n\n";
 
             if (typeof pedido.endereco === "object") {
 
                 const e = pedido.endereco;
 
-                cupom += `${e.rua || ""}`;
+                let linhaEndereco = e.rua || "";
 
                 if (e.numero) {
-                    cupom += `, ${e.numero}`;
+                    linhaEndereco += `, ${e.numero}`;
                 }
-
-                cupom += "\n";
 
                 if (e.bairro) {
-                    cupom += `${e.bairro}\n`;
+                    linhaEndereco += ` ${e.bairro}`;
                 }
+
+                cupom += `${linhaEndereco}\n`;
 
                 if (e.cep) {
                     cupom += `CEP: ${e.cep}\n`;
@@ -576,13 +571,6 @@ async function imprimirPedido(pedido) {
             }
 
             cupom += CMD.NORMAL;
-
-        }
-
-
-        if (pedido.referencia) {
-
-            cupom += `REFERENCIA: ${pedido.referencia}\n`;
 
         }
 
