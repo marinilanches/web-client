@@ -598,7 +598,25 @@ async function imprimirPedido(pedido) {
     }
 
 
-    cupom += linha() + "\n";
+    if (pedido.observacoes) {
+
+        cupom += CMD.BOLD_ON;
+
+        cupom += "OBSERVAÇÕES\n";
+
+        cupom += CMD.BOLD_OFF;
+
+        quebrarLinha(pedido.observacoes.toUpperCase()).forEach((linha) => {
+            cupom += linha + "\n";
+        });
+
+        cupom += linha() + "\n";
+
+    } else {
+
+        cupom += linha() + "\n";
+
+    }
 
 
 
