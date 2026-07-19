@@ -561,7 +561,16 @@ async function imprimirPedido(pedido) {
                 }
 
                 if (e.complemento) {
-                    cupom += `Complemento: ${e.complemento}\n`;
+
+                    const linhas = quebrarLinha(
+                        `Complemento: ${e.complemento}`,
+                        LARGURA
+                    );
+
+                    linhas.forEach((linha) => {
+                        cupom += linha + "\n";
+                    });
+
                 }
 
             } else {
