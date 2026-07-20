@@ -1,0 +1,58 @@
+Exce��o ao chamar "Open" com "0" argumento(s): "O acesso � porta 'COM3' foi negado."
+No C:\Users\Usu�rio\MesaFacilPrinter\raw-print.ps1:29 caractere:5
++     $serial.Open()
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : UnauthorizedAccessException
+ 
+
+Erro ao imprimir pedido:
+Error: Command failed: powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\Usuário\MesaFacilPrinter\raw-print.ps1 C:\Users\Usuário\MesaFacilPrinter\cupom.raw
+Exce��o ao chamar "Open" com "0" argumento(s): "O acesso � porta 'COM3' foi negado."
+No C:\Users\Usu�rio\MesaFacilPrinter\raw-print.ps1:29 caractere:5
++     $serial.Open()
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : UnauthorizedAccessException
+ 
+
+    at ChildProcess.exithandler (node:child_process:422:12)
+    at ChildProcess.emit (node:events:517:28)
+    at maybeClose (node:internal/child_process:1098:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:303:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\\Users\\Usuário\\MesaFacilPrinter\\raw-print.ps1 C:\\Users\\Usuário\\MesaFacilPrinter\\cupom.raw'
+}
+Exce��o ao chamar "Open" com "0" argumento(s): "O nome de porta especificado n�o � iniciado por COM/com ou n�o � 
+resolvido para uma porta serial v�lida.
+Nome do par�metro: portName"
+No C:\Users\Usu�rio\MesaFacilPrinter\raw-print.ps1:29 caractere:5
++     $serial.Open()
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : ArgumentException
+ 
+
+Erro ao imprimir pedido:
+Error: Command failed: powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\Usuário\MesaFacilPrinter\raw-print.ps1 C:\Users\Usuário\MesaFacilPrinter\cupom.raw
+Exce��o ao chamar "Open" com "0" argumento(s): "O nome de porta especificado n�o � iniciado por COM/com ou n�o � 
+resolvido para uma porta serial v�lida.
+Nome do par�metro: portName"
+No C:\Users\Usu�rio\MesaFacilPrinter\raw-print.ps1:29 caractere:5
++     $serial.Open()
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : ArgumentException
+ 
+
+    at ChildProcess.exithandler (node:child_process:422:12)
+    at ChildProcess.emit (node:events:517:28)
+    at maybeClose (node:internal/child_process:1098:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:303:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\\Users\\Usuário\\MesaFacilPrinter\\raw-print.ps1 C:\\Users\\Usuário\\MesaFacilPrinter\\cupom.raw'
+}

@@ -1,0 +1,2126 @@
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Fácil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "TEST001",
+  "cliente": "Cliente Teste 1",
+  "valorSubtotal": 30,
+  "numeroPedido": "TEST001",
+  "taxaEntrega": 0,
+  "atualizadoEm": {
+    "seconds": 1784328913,
+    "nanoseconds": 485000000
+  },
+  "status": "RECEBIDO",
+  "valorTotal": 30,
+  "origem": "TESTE",
+  "tipo": "Retirada",
+  "itens": [
+    {
+      "adicionais": [],
+      "quantidade": 1,
+      "nome": "X-Bacon",
+      "valorUnitario": 30
+    }
+  ],
+  "pagamentoMetodo": "PIX",
+  "telefone": "(19)99999-9991",
+  "criadoEm": {
+    "seconds": 1784328913,
+    "nanoseconds": 485000000
+  },
+  "impresso": false
+}
+typeof endereco: undefined
+endereco: undefined
+==============================
+RAW enviado:
+654 bytes
+
+RAW enviado:
+1226 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "nenjHnAyT4SjAHLgFYf2",
+  "valorTotal": 26.5,
+  "bairro": "",
+  "valorSubtotal": 26.5,
+  "referencia": "",
+  "mesaId": null,
+  "pagamentoStatus": "PENDENTE",
+  "telefoneWhatsapp": "5519992396553",
+  "endereco": {
+    "numero": "",
+    "bairro": "",
+    "rua": "",
+    "cep": "",
+    "complemento": ""
+  },
+  "ultimoStatusNotificado": null,
+  "status": "RECEBIDO",
+  "observacoes": "",
+  "bairroLabel": "",
+  "tipo": "Retirada",
+  "origem": "CLIENTE_WEB",
+  "impressoEm": null,
+  "clienteId": "Kj1EW45scYZ4HzGipxfuxs2qifG2",
+  "longitude": null,
+  "itens": [
+    {
+      "precoBase": 26.5,
+      "subtotal": 26.5,
+      "personalizados": {
+        "observacao": "Sem alface e sem tomate",
+        "adicionais": []
+      },
+      "nome": "X-Tudo",
+      "produtoId": "UJbYu7Yqdr18MnuAdGIs",
+      "observacaoItem": "Sem alface e sem tomate",
+      "valorUnitario": 26.5,
+      "quantidade": 1,
+      "acrescimoAdicionais": 0,
+      "adicionais": []
+    }
+  ],
+  "bairroId": null,
+  "cliente": "Hallan",
+  "impresso": false,
+  "telefone": "+55 (19) 99239-6553",
+  "trocoPara": null,
+  "latitude": null,
+  "pagamentoMetodo": "CARTAO",
+  "numeroPedido": "609959",
+  "atualizadoEm": {
+    "seconds": 1784329610,
+    "nanoseconds": 588000000
+  },
+  "taxaEntrega": 0,
+  "criadoEm": {
+    "seconds": 1784329610,
+    "nanoseconds": 588000000
+  }
+}
+typeof endereco: object
+endereco: { numero: '', bairro: '', rua: '', cep: '', complemento: '' }
+==============================
+RAW enviado:
+698 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "TESTE-001",
+  "trocoPara": 100,
+  "taxaEntrega": 8,
+  "telefone": "(19) 99999-9999",
+  "origem": "TESTE",
+  "observacoes": "Sem cebola, sem pimentão, atenção à entrega rápida",
+  "telefoneWhatsapp": "5519999999999",
+  "impresso": false,
+  "status": "RECEBIDO",
+  "atualizadoEm": {
+    "seconds": 1784329699,
+    "nanoseconds": 248000000
+  },
+  "criadoEm": {
+    "seconds": 1784329699,
+    "nanoseconds": 248000000
+  },
+  "ultimoStatusNotificado": "RECEBIDO",
+  "itens": [
+    {
+      "valorUnitario": 19.95,
+      "observacaoItem": "Sem tomate, sem cebola, adicionar molho especial",
+      "nome": "X-Búrguer Especial com Queijo",
+      "quantidade": 2,
+      "adicionais": [
+        {
+          "valor": 5,
+          "nome": "Hambúrguer Grande"
+        },
+        {
+          "nome": "Queijo Muçarela",
+          "valor": 3
+        },
+        {
+          "valor": 7,
+          "nome": "Coração de Frango à Milanesa"
+        },
+        {
+          "nome": "Pimentão Vermelho",
+          "valor": 2
+        }
+      ],
+      "subtotal": 39.9
+    },
+    {
+      "subtotal": 5.9,
+      "adicionais": [],
+      "valorUnitario": 5.9,
+      "observacaoItem": "Entregar bem gelada",
+      "nome": "Coca-Cola 2L Gelada",
+      "quantidade": 1
+    },
+    {
+      "subtotal": 12.5,
+      "adicionais": [
+        {
+          "valor": 2,
+          "nome": "Leite Condensado"
+        },
+        {
+          "valor": 1.5,
+          "nome": "Granola Crocante"
+        }
+      ],
+      "valorUnitario": 12.5,
+      "observacaoItem": "Pouco açúcar",
+      "quantidade": 1,
+      "nome": "Açaí com Banana e Morango"
+    }
+  ],
+  "notificacaoWhatsappEm": {
+    "seconds": 1784329705,
+    "nanoseconds": 671000000
+  },
+  "endereco": {
+    "numero": "150",
+    "cep": "13360-000",
+    "bairro": "Centro",
+    "rua": "Rua XV de Novembro",
+    "complemento": "Casa"
+  },
+  "numeroPedido": "271385",
+  "pagamentoMetodo": "PIX",
+  "cliente": "João José da Silva Ávila",
+  "valorTotal": 47.9,
+  "valorSubtotal": 39.9,
+  "bairro": "Centro",
+  "tipo": "Delivery",
+  "referencia": "Portão preto",
+  "pagamentoStatus": "PENDENTE"
+}
+typeof endereco: object
+endereco: {
+  numero: '150',
+  cep: '13360-000',
+  bairro: 'Centro',
+  rua: 'Rua XV de Novembro',
+  complemento: 'Casa'
+}
+==============================
+RAW enviado:
+1217 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "QTLndSMQMAq6RClohMTX",
+  "valorTotal": 30,
+  "impressoEm": null,
+  "origem": "PDV",
+  "ultimoStatusNotificado": null,
+  "telefoneWhatsapp": "557996301855",
+  "observacoes": "",
+  "criadoEm": {
+    "seconds": 1784332979,
+    "nanoseconds": 258000000
+  },
+  "bairro": "",
+  "itens": [
+    {
+      "personalizacoes": [],
+      "observacao": "",
+      "produtoId": "vqHhh4ZaJgdHpfVcipoI",
+      "valorUnitario": 30,
+      "categoria": "Hambúrgueres",
+      "nome": "X-Tudo + Um Pouco",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "valorTotal": 30,
+      "quantidade": 1,
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067141/mesa-facil/produtos/x-tudo-um-pouco-1784067139905.avif",
+      "idCarrinho": "6fb0cb1a-98a1-4ed2-a997-bfe786042f25"
+    }
+  ],
+  "status": "RECEBIDO",
+  "latitude": null,
+  "mesaId": null,
+  "pagamentoMetodo": "DINHEIRO",
+  "numeroPedido": 2163,
+  "pagamentoStatus": "PENDENTE",
+  "referencia": "",
+  "telefone": "+55 (79) 96301-855",
+  "tipo": "RETIRADA",
+  "atualizadoEm": {
+    "seconds": 1784332979,
+    "nanoseconds": 258000000
+  },
+  "clienteId": "JdkBxzI4jApttv1Jwua9",
+  "endereco": {
+    "rua": "",
+    "numero": "",
+    "complemento": "",
+    "bairro": ""
+  },
+  "taxaEntrega": 0,
+  "bairroLabel": "",
+  "impresso": false,
+  "longitude": null,
+  "valorSubtotal": 30,
+  "bairroId": null,
+  "cliente": "Fabinho Santos",
+  "trocoPara": null
+}
+typeof endereco: object
+endereco: { rua: '', numero: '', complemento: '', bairro: '' }
+==============================
+RAW enviado:
+698 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "CLSlSetQWhrKfXEICUzt",
+  "pagamentoMetodo": "DINHEIRO",
+  "status": "RECEBIDO",
+  "mesaId": null,
+  "trocoPara": null,
+  "bairroId": null,
+  "taxaEntrega": 0,
+  "latitude": null,
+  "endereco": {
+    "complemento": "",
+    "rua": "",
+    "bairro": "",
+    "numero": ""
+  },
+  "longitude": null,
+  "valorTotal": 44.5,
+  "valorSubtotal": 44.5,
+  "itens": [
+    {
+      "imagem": "",
+      "nome": "Calaburguer",
+      "personalizacoes": [],
+      "categoria": "Salames e embutidos",
+      "observacao": "",
+      "produtoId": "1eHtYED4577wq857aUcL",
+      "valorUnitario": 23.5,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "valorTotal": 23.5,
+      "quantidade": 1,
+      "idCarrinho": "828288b6-f074-4239-95e9-bf3f28ec0a29"
+    },
+    {
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067191/mesa-facil/produtos/salsichao-especial-1784067190219.avif",
+      "observacao": "",
+      "produtoId": "lBJ4wgavIc2iaUY7YLsQ",
+      "categoria": "Cachorros-quentes",
+      "nome": "Salsichão Especial",
+      "personalizacoes": [],
+      "idCarrinho": "7251aa54-cde6-4d74-97ff-c3e048c3de62",
+      "quantidade": 1,
+      "valorUnitario": 21,
+      "valorTotal": 21,
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      }
+    }
+  ],
+  "impresso": false,
+  "telefone": "+55 (19) 99427-6287",
+  "observacoes": "",
+  "cliente": "Rodrigo Eibeiro",
+  "origem": "PDV",
+  "bairro": "",
+  "referencia": "",
+  "bairroLabel": "",
+  "impressoEm": null,
+  "telefoneWhatsapp": "5519994276287",
+  "numeroPedido": 1203,
+  "atualizadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "criadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "tipo": "RETIRADA",
+  "ultimoStatusNotificado": null,
+  "pagamentoStatus": "PENDENTE",
+  "clienteId": "vf5cvnUeYCuP2XGv2Iy9"
+}
+typeof endereco: object
+endereco: { complemento: '', rua: '', bairro: '', numero: '' }
+==============================
+RAW enviado:
+750 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "CLSlSetQWhrKfXEICUzt",
+  "telefoneWhatsapp": "5519994276287",
+  "pagamentoStatus": "PENDENTE",
+  "trocoPara": null,
+  "ultimoStatusNotificado": null,
+  "impresso": false,
+  "endereco": {
+    "numero": "",
+    "bairro": "",
+    "rua": "",
+    "complemento": ""
+  },
+  "origem": "PDV",
+  "telefone": "+55 (19) 99427-6287",
+  "taxaEntrega": 0,
+  "criadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "bairroId": null,
+  "longitude": null,
+  "impressoEm": null,
+  "tipo": "RETIRADA",
+  "latitude": null,
+  "referencia": "",
+  "valorTotal": 44.5,
+  "observacoes": "",
+  "atualizadoEm": {
+    "seconds": 1784335509,
+    "nanoseconds": 430000000
+  },
+  "bairro": "",
+  "clienteId": "vf5cvnUeYCuP2XGv2Iy9",
+  "cliente": "Rodrigo Eibeiro",
+  "pagamentoMetodo": "DINHEIRO",
+  "mesaId": null,
+  "numeroPedido": 1203,
+  "status": "PRONTO",
+  "itens": [
+    {
+      "nome": "Calaburguer",
+      "idCarrinho": "828288b6-f074-4239-95e9-bf3f28ec0a29",
+      "observacao": "",
+      "valorUnitario": 23.5,
+      "valorTotal": 23.5,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "produtoId": "1eHtYED4577wq857aUcL",
+      "categoria": "Salames e embutidos",
+      "personalizacoes": [],
+      "quantidade": 1,
+      "imagem": ""
+    },
+    {
+      "idCarrinho": "7251aa54-cde6-4d74-97ff-c3e048c3de62",
+      "nome": "Salsichão Especial",
+      "observacao": "",
+      "valorTotal": 21,
+      "valorUnitario": 21,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "produtoId": "lBJ4wgavIc2iaUY7YLsQ",
+      "categoria": "Cachorros-quentes",
+      "personalizacoes": [],
+      "quantidade": 1,
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067191/mesa-facil/produtos/salsichao-especial-1784067190219.avif"
+    }
+  ],
+  "valorSubtotal": 44.5,
+  "bairroLabel": ""
+}
+typeof endereco: object
+endereco: { numero: '', bairro: '', rua: '', complemento: '' }
+==============================
+RAW enviado:
+711 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "CLSlSetQWhrKfXEICUzt",
+  "referencia": "",
+  "atualizadoEm": {
+    "seconds": 1784335509,
+    "nanoseconds": 430000000
+  },
+  "telefone": "+55 (19) 99427-6287",
+  "criadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "cliente": "Rodrigo Eibeiro",
+  "bairro": "",
+  "taxaEntrega": 0,
+  "impresso": false,
+  "valorTotal": 44.5,
+  "origem": "PDV",
+  "mesaId": null,
+  "telefoneWhatsapp": "5519994276287",
+  "ultimoStatusNotificado": null,
+  "status": "PRONTO",
+  "latitude": null,
+  "bairroId": null,
+  "pagamentoMetodo": "DINHEIRO",
+  "longitude": null,
+  "clienteId": "vf5cvnUeYCuP2XGv2Iy9",
+  "impressoEm": null,
+  "endereco": {
+    "complemento": "",
+    "numero": "",
+    "rua": "",
+    "bairro": ""
+  },
+  "pagamentoStatus": "PENDENTE",
+  "itens": [
+    {
+      "valorTotal": 23.5,
+      "categoria": "Salames e embutidos",
+      "quantidade": 1,
+      "nome": "Calaburguer",
+      "valorUnitario": 23.5,
+      "observacao": "",
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "idCarrinho": "828288b6-f074-4239-95e9-bf3f28ec0a29",
+      "imagem": "",
+      "personalizacoes": [],
+      "produtoId": "1eHtYED4577wq857aUcL"
+    },
+    {
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067191/mesa-facil/produtos/salsichao-especial-1784067190219.avif",
+      "produtoId": "lBJ4wgavIc2iaUY7YLsQ",
+      "personalizacoes": [],
+      "observacao": "",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "idCarrinho": "7251aa54-cde6-4d74-97ff-c3e048c3de62",
+      "categoria": "Cachorros-quentes",
+      "valorUnitario": 21,
+      "nome": "Salsichão Especial",
+      "quantidade": 1,
+      "valorTotal": 21
+    }
+  ],
+  "trocoPara": null,
+  "bairroLabel": "",
+  "tipo": "RETIRADA",
+  "numeroPedido": 1203,
+  "valorSubtotal": 44.5,
+  "observacoes": ""
+}
+typeof endereco: object
+endereco: { complemento: '', numero: '', rua: '', bairro: '' }
+==============================
+RAW enviado:
+711 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "CLSlSetQWhrKfXEICUzt",
+  "ultimoStatusNotificado": null,
+  "bairro": "",
+  "latitude": null,
+  "status": "PRONTO",
+  "bairroLabel": "",
+  "impresso": false,
+  "bairroId": null,
+  "observacoes": "",
+  "pagamentoStatus": "PENDENTE",
+  "valorSubtotal": 44.5,
+  "longitude": null,
+  "taxaEntrega": 0,
+  "endereco": {
+    "complemento": "",
+    "bairro": "",
+    "numero": "",
+    "rua": ""
+  },
+  "origem": "PDV",
+  "valorTotal": 44.5,
+  "mesaId": null,
+  "numeroPedido": 1203,
+  "cliente": "Rodrigo Eibeiro",
+  "pagamentoMetodo": "DINHEIRO",
+  "referencia": "",
+  "tipo": "RETIRADA",
+  "atualizadoEm": {
+    "seconds": 1784335509,
+    "nanoseconds": 430000000
+  },
+  "itens": [
+    {
+      "observacao": "",
+      "valorUnitario": 23.5,
+      "produtoId": "1eHtYED4577wq857aUcL",
+      "categoria": "Salames e embutidos",
+      "personalizacoes": [],
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "valorTotal": 23.5,
+      "quantidade": 1,
+      "imagem": "",
+      "idCarrinho": "828288b6-f074-4239-95e9-bf3f28ec0a29",
+      "nome": "Calaburguer"
+    },
+    {
+      "quantidade": 1,
+      "idCarrinho": "7251aa54-cde6-4d74-97ff-c3e048c3de62",
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067191/mesa-facil/produtos/salsichao-especial-1784067190219.avif",
+      "nome": "Salsichão Especial",
+      "produtoId": "lBJ4wgavIc2iaUY7YLsQ",
+      "observacao": "",
+      "valorUnitario": 21,
+      "personalizacoes": [],
+      "categoria": "Cachorros-quentes",
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "valorTotal": 21
+    }
+  ],
+  "impressoEm": null,
+  "telefoneWhatsapp": "5519994276287",
+  "criadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "clienteId": "vf5cvnUeYCuP2XGv2Iy9",
+  "trocoPara": null,
+  "telefone": "+55 (19) 99427-6287"
+}
+typeof endereco: object
+endereco: { complemento: '', bairro: '', numero: '', rua: '' }
+==============================
+RAW enviado:
+711 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "TdN7T5poqNT8zPjZ4M4V",
+  "bairroId": null,
+  "bairro": "",
+  "pagamentoStatus": "PENDENTE",
+  "pagamentoMetodo": "DINHEIRO",
+  "impressoEm": null,
+  "clienteId": null,
+  "numeroPedido": 1283,
+  "observacoes": "",
+  "bairroLabel": "",
+  "atualizadoEm": {
+    "seconds": 1784337200,
+    "nanoseconds": 788000000
+  },
+  "telefoneWhatsapp": "",
+  "criadoEm": {
+    "seconds": 1784337200,
+    "nanoseconds": 788000000
+  },
+  "cliente": "",
+  "tipo": "RETIRADA",
+  "status": "RECEBIDO",
+  "valorTotal": 22,
+  "trocoPara": null,
+  "origem": "PDV",
+  "endereco": {
+    "numero": "",
+    "rua": "",
+    "complemento": "",
+    "bairro": ""
+  },
+  "impresso": false,
+  "longitude": null,
+  "valorSubtotal": 22,
+  "ultimoStatusNotificado": null,
+  "itens": [
+    {
+      "valorTotal": 22,
+      "nome": "Americano",
+      "imagem": "",
+      "quantidade": 1,
+      "idCarrinho": "b2ab69f2-b9ac-45f4-948a-7d8667d0ea24",
+      "valorUnitario": 22,
+      "produtoId": "IotLh7zHU0JbDoxyPax1",
+      "observacao": "",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "categoria": "Hambúrgueres",
+      "personalizacoes": []
+    }
+  ],
+  "referencia": "",
+  "latitude": null,
+  "taxaEntrega": 0,
+  "telefone": "",
+  "mesaId": null
+}
+typeof endereco: object
+endereco: { numero: '', rua: '', complemento: '', bairro: '' }
+==============================
+RAW enviado:
+627 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "CLSlSetQWhrKfXEICUzt",
+  "bairroId": null,
+  "bairro": "",
+  "pagamentoMetodo": "DINHEIRO",
+  "pagamentoStatus": "PENDENTE",
+  "clienteId": "vf5cvnUeYCuP2XGv2Iy9",
+  "impressoEm": null,
+  "numeroPedido": 1203,
+  "bairroLabel": "",
+  "observacoes": "",
+  "atualizadoEm": {
+    "seconds": 1784335509,
+    "nanoseconds": 430000000
+  },
+  "criadoEm": {
+    "seconds": 1784334436,
+    "nanoseconds": 16000000
+  },
+  "cliente": "Rodrigo Eibeiro",
+  "tipo": "RETIRADA",
+  "telefoneWhatsapp": "5519994276287",
+  "valorTotal": 44.5,
+  "status": "PRONTO",
+  "origem": "PDV",
+  "trocoPara": null,
+  "endereco": {
+    "rua": "",
+    "complemento": "",
+    "numero": "",
+    "bairro": ""
+  },
+  "impresso": false,
+  "longitude": null,
+  "valorSubtotal": 44.5,
+  "itens": [
+    {
+      "personalizacoes": [],
+      "categoria": "Salames e embutidos",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "observacao": "",
+      "produtoId": "1eHtYED4577wq857aUcL",
+      "valorUnitario": 23.5,
+      "idCarrinho": "828288b6-f074-4239-95e9-bf3f28ec0a29",
+      "quantidade": 1,
+      "nome": "Calaburguer",
+      "imagem": "",
+      "valorTotal": 23.5
+    },
+    {
+      "categoria": "Cachorros-quentes",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "personalizacoes": [],
+      "produtoId": "lBJ4wgavIc2iaUY7YLsQ",
+      "observacao": "",
+      "valorUnitario": 21,
+      "idCarrinho": "7251aa54-cde6-4d74-97ff-c3e048c3de62",
+      "quantidade": 1,
+      "valorTotal": 21,
+      "nome": "Salsichão Especial",
+      "imagem": "https://res.cloudinary.com/mikxwjs6/image/upload/v1784067191/mesa-facil/produtos/salsichao-especial-1784067190219.avif"
+    }
+  ],
+  "ultimoStatusNotificado": null,
+  "referencia": "",
+  "latitude": null,
+  "telefone": "+55 (19) 99427-6287",
+  "taxaEntrega": 0,
+  "mesaId": null
+}
+typeof endereco: object
+endereco: { rua: '', complemento: '', numero: '', bairro: '' }
+==============================
+RAW enviado:
+749 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "IoRtXKNsBkxeZAY1UcqZ",
+  "tipo": "DELIVERY",
+  "bairroLabel": "",
+  "taxaEntrega": 0,
+  "observacoes": "",
+  "atualizadoEm": {
+    "seconds": 1784337459,
+    "nanoseconds": 135000000
+  },
+  "pagamentoMetodo": "DINHEIRO",
+  "numeroPedido": 8403,
+  "valorSubtotal": 32,
+  "impressoEm": null,
+  "trocoPara": null,
+  "valorTotal": 32,
+  "pagamentoStatus": "PENDENTE",
+  "impresso": false,
+  "telefone": "5519991521322",
+  "status": "RECEBIDO",
+  "itens": [
+    {
+      "valorUnitario": 22,
+      "valorTotal": 22,
+      "categoria": "Hambúrgueres",
+      "quantidade": 1,
+      "personalizacoes": [],
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "imagem": "",
+      "idCarrinho": "490113be-3702-4679-9cd7-41282174415d",
+      "nome": "Americano",
+      "produtoId": "IotLh7zHU0JbDoxyPax1",
+      "observacao": ""
+    }
+  ],
+  "latitude": null,
+  "ultimoStatusNotificado": null,
+  "endereco": "João Dias da Silva, 203, Conjunto Habitacional Porto Alegre",
+  "longitude": null,
+  "cliente": "Matheus",
+  "mesaId": null,
+  "clienteId": "6yxZ1X7l9SYvS4xLOybKUSxNjYp1",
+  "bairro": "Conjunto Habitacional Porto Alegre",
+  "referencia": "",
+  "telefoneWhatsapp": "5519991521322",
+  "origem": "PDV",
+  "criadoEm": {
+    "seconds": 1784337459,
+    "nanoseconds": 135000000
+  },
+  "bairroId": null
+}
+typeof endereco: string
+endereco: João Dias da Silva, 203, Conjunto Habitacional Porto Alegre
+==============================
+RAW enviado:
+814 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "IoRtXKNsBkxeZAY1UcqZ",
+  "status": "PREPARANDO",
+  "bairroLabel": "",
+  "cliente": "Matheus",
+  "pagamentoMetodo": "DINHEIRO",
+  "bairro": "Conjunto Habitacional Porto Alegre",
+  "pagamentoStatus": "PENDENTE",
+  "impresso": true,
+  "telefone": "5519991521322",
+  "trocoPara": null,
+  "ultimoStatusNotificado": null,
+  "latitude": null,
+  "endereco": "João Dias da Silva, 203, Conjunto Habitacional Porto Alegre",
+  "atualizadoEm": {
+    "seconds": 1784337462,
+    "nanoseconds": 686000000
+  },
+  "observacoes": "",
+  "numeroPedido": 8403,
+  "valorTotal": 32,
+  "valorSubtotal": 32,
+  "tipo": "DELIVERY",
+  "bairroId": null,
+  "origem": "PDV",
+  "itens": [
+    {
+      "valorTotal": 22,
+      "quantidade": 1,
+      "nome": "Americano",
+      "observacao": "",
+      "valorUnitario": 22,
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "idCarrinho": "490113be-3702-4679-9cd7-41282174415d",
+      "personalizacoes": [],
+      "produtoId": "IotLh7zHU0JbDoxyPax1",
+      "categoria": "Hambúrgueres",
+      "imagem": ""
+    }
+  ],
+  "criadoEm": {
+    "seconds": 1784337459,
+    "nanoseconds": 135000000
+  },
+  "mesaId": null,
+  "longitude": null,
+  "taxaEntrega": 0,
+  "telefoneWhatsapp": "5519991521322",
+  "referencia": "",
+  "impressoEm": {
+    "seconds": 1784337465,
+    "nanoseconds": 303000000
+  },
+  "clienteId": "6yxZ1X7l9SYvS4xLOybKUSxNjYp1"
+}
+typeof endereco: string
+endereco: João Dias da Silva, 203, Conjunto Habitacional Porto Alegre
+==============================
+RAW enviado:
+814 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "srLu0sp9ew15X4SBIOWj",
+  "bairroId": null,
+  "bairroLabel": "",
+  "ultimoStatusNotificado": null,
+  "tipo": "DELIVERY",
+  "mesaId": null,
+  "longitude": null,
+  "valorSubtotal": 22,
+  "cliente": "",
+  "numeroPedido": 3397,
+  "telefoneWhatsapp": "",
+  "status": "RECEBIDO",
+  "valorTotal": 32,
+  "pagamentoStatus": "PENDENTE",
+  "trocoPara": null,
+  "criadoEm": {
+    "seconds": 1784338711,
+    "nanoseconds": 993000000
+  },
+  "referencia": "",
+  "itens": [
+    {
+      "imagem": "",
+      "valorTotal": 22,
+      "categoria": "Hambúrgueres",
+      "produtoId": "IotLh7zHU0JbDoxyPax1",
+      "valorUnitario": 22,
+      "personalizacoes": [],
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "nome": "Americano",
+      "idCarrinho": "d8ea8406-cafa-496a-aebc-8312eb1c753e",
+      "quantidade": 1,
+      "observacao": ""
+    }
+  ],
+  "pagamentoMetodo": "DINHEIRO",
+  "observacoes": "",
+  "bairro": "Conjunto Habitacional Porto Alegre",
+  "origem": "PDV",
+  "latitude": null,
+  "taxaEntrega": 10,
+  "atualizadoEm": {
+    "seconds": 1784338711,
+    "nanoseconds": 993000000
+  },
+  "impresso": false,
+  "impressoEm": null,
+  "endereco": "João Dias da Silva, 203, Conjunto Habitacional Porto Alegre",
+  "telefone": "",
+  "clienteId": null
+}
+typeof endereco: string
+endereco: João Dias da Silva, 203, Conjunto Habitacional Porto Alegre
+==============================
+RAW enviado:
+795 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "iIlYy4Wobg128biETc0n",
+  "origem": "CLIENTE_WEB",
+  "ultimoStatusNotificado": null,
+  "endereco": {
+    "numero": "245",
+    "cep": "13360-560",
+    "rua": "Rua Luiz Tognin",
+    "complemento": "",
+    "bairro": "Jardim Residencial Tarsila"
+  },
+  "status": "RECEBIDO",
+  "referencia": "",
+  "criadoEm": {
+    "seconds": 1784424815,
+    "nanoseconds": 412000000
+  },
+  "telefoneWhatsapp": "5519991667196",
+  "itens": [
+    {
+      "produtoId": "RzlgfpkgYcCBfBz0lqMr",
+      "precoBase": 22.5,
+      "valorUnitario": 22.5,
+      "observacaoItem": "",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "acrescimoAdicionais": 0,
+      "adicionais": [],
+      "subtotal": 22.5,
+      "nome": "X-Bacon",
+      "quantidade": 1
+    },
+    {
+      "observacaoItem": "",
+      "precoBase": 24,
+      "produtoId": "mlIMZ6OMChASa0AIxEiT",
+      "valorUnitario": 24,
+      "adicionais": [],
+      "subtotal": 24,
+      "nome": "X-Bacon Especial",
+      "quantidade": 1,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "acrescimoAdicionais": 0
+    }
+  ],
+  "atualizadoEm": {
+    "seconds": 1784424815,
+    "nanoseconds": 412000000
+  },
+  "mesaId": null,
+  "taxaEntrega": 9,
+  "impresso": false,
+  "valorSubtotal": 46.5,
+  "bairroId": null,
+  "pagamentoStatus": "PENDENTE",
+  "tipo": "Delivery",
+  "trocoPara": null,
+  "clienteId": "Gci47J03xpV6LwlRVojUnD160OI3",
+  "observacoes": "",
+  "bairroLabel": "",
+  "cliente": "Jeanine",
+  "valorTotal": 55.5,
+  "pagamentoMetodo": "PIX",
+  "bairro": "Jardim Residencial Tarsila",
+  "impressoEm": null,
+  "numeroPedido": "813250",
+  "latitude": -23.0028177,
+  "telefone": "+55 (19) 99166-7196",
+  "longitude": -47.5260984
+}
+typeof endereco: object
+endereco: {
+  numero: '245',
+  cep: '13360-560',
+  rua: 'Rua Luiz Tognin',
+  complemento: '',
+  bairro: 'Jardim Residencial Tarsila'
+}
+==============================
+RAW enviado:
+808 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "vtu2xZBz2GUCCVCExgyG",
+  "telefone": "+55 (19) 99581-9996",
+  "itens": [
+    {
+      "observacaoItem": "",
+      "precoBase": 22.5,
+      "valorUnitario": 22.5,
+      "adicionais": [],
+      "subtotal": 45,
+      "nome": "X-Bacon",
+      "quantidade": 2,
+      "acrescimoAdicionais": 0,
+      "produtoId": "RzlgfpkgYcCBfBz0lqMr",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      }
+    }
+  ],
+  "observacoes": "",
+  "endereco": {
+    "cep": "",
+    "numero": "",
+    "rua": "",
+    "bairro": "",
+    "complemento": ""
+  },
+  "criadoEm": {
+    "seconds": 1784499473,
+    "nanoseconds": 946000000
+  },
+  "latitude": null,
+  "valorSubtotal": 45,
+  "longitude": null,
+  "trocoPara": null,
+  "tipo": "Retirada",
+  "bairroId": null,
+  "telefoneWhatsapp": "5519995819996",
+  "bairro": "",
+  "atualizadoEm": {
+    "seconds": 1784499473,
+    "nanoseconds": 946000000
+  },
+  "pagamentoStatus": "PENDENTE",
+  "referencia": "",
+  "status": "RECEBIDO",
+  "impresso": false,
+  "origem": "CLIENTE_WEB",
+  "impressoEm": null,
+  "cliente": "Larissa",
+  "mesaId": null,
+  "taxaEntrega": 0,
+  "pagamentoMetodo": "CREDITO",
+  "numeroPedido": "472426",
+  "valorTotal": 45,
+  "ultimoStatusNotificado": null,
+  "bairroLabel": "",
+  "clienteId": "6ivRvfnBvGWzVQ9nsfMzE4CAx8t1"
+}
+typeof endereco: object
+endereco: { cep: '', numero: '', rua: '', bairro: '', complemento: '' }
+==============================
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "L0hgoK23a7H2nmOwHO4k",
+  "status": "RECEBIDO",
+  "atualizadoEm": {
+    "seconds": 1784499472,
+    "nanoseconds": 847000000
+  },
+  "referencia": "",
+  "pagamentoStatus": "PENDENTE",
+  "bairroId": null,
+  "bairro": "",
+  "telefoneWhatsapp": "5519995819996",
+  "trocoPara": null,
+  "tipo": "Retirada",
+  "longitude": null,
+  "telefone": "+55 (19) 99581-9996",
+  "itens": [
+    {
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "produtoId": "RzlgfpkgYcCBfBz0lqMr",
+      "acrescimoAdicionais": 0,
+      "quantidade": 2,
+      "nome": "X-Bacon",
+      "subtotal": 45,
+      "adicionais": [],
+      "valorUnitario": 22.5,
+      "precoBase": 22.5,
+      "observacaoItem": ""
+    }
+  ],
+  "observacoes": "",
+  "endereco": {
+    "rua": "",
+    "bairro": "",
+    "complemento": "",
+    "numero": "",
+    "cep": ""
+  },
+  "criadoEm": {
+    "seconds": 1784499472,
+    "nanoseconds": 847000000
+  },
+  "latitude": null,
+  "valorSubtotal": 45,
+  "valorTotal": 45,
+  "numeroPedido": "469787",
+  "pagamentoMetodo": "CREDITO",
+  "clienteId": "6ivRvfnBvGWzVQ9nsfMzE4CAx8t1",
+  "bairroLabel": "",
+  "ultimoStatusNotificado": null,
+  "taxaEntrega": 0,
+  "impressoEm": null,
+  "origem": "CLIENTE_WEB",
+  "mesaId": null,
+  "cliente": "Larissa",
+  "impresso": false
+}
+typeof endereco: object
+endereco: { rua: '', bairro: '', complemento: '', numero: '', cep: '' }
+==============================
+RAW enviado:
+638 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "osUF4zQ6d0YHbe66mRH1",
+  "mesaId": null,
+  "referencia": "",
+  "trocoPara": null,
+  "bairro": "",
+  "bairroLabel": "",
+  "numeroPedido": "781062",
+  "bairroId": null,
+  "impressoEm": null,
+  "latitude": null,
+  "origem": "CLIENTE_WEB",
+  "criadoEm": {
+    "seconds": 1784499780,
+    "nanoseconds": 405000000
+  },
+  "endereco": {
+    "numero": "",
+    "rua": "",
+    "cep": "",
+    "complemento": "",
+    "bairro": ""
+  },
+  "ultimoStatusNotificado": null,
+  "telefoneWhatsapp": "5519991064903",
+  "clienteId": "Dx2nleBC5ecRjaik1Q104QaS3am1",
+  "valorSubtotal": 26.5,
+  "taxaEntrega": 0,
+  "atualizadoEm": {
+    "seconds": 1784499780,
+    "nanoseconds": 405000000
+  },
+  "status": "RECEBIDO",
+  "longitude": null,
+  "itens": [
+    {
+      "precoBase": 26.5,
+      "nome": "X-Tudo",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "produtoId": "UJbYu7Yqdr18MnuAdGIs",
+      "observacaoItem": "",
+      "quantidade": 1,
+      "acrescimoAdicionais": 0,
+      "subtotal": 26.5,
+      "adicionais": [],
+      "valorUnitario": 26.5
+    }
+  ],
+  "valorTotal": 26.5,
+  "impresso": false,
+  "pagamentoMetodo": "DEBITO",
+  "tipo": "Retirada",
+  "telefone": "+55 (19) 99106-4903",
+  "observacoes": "Sem tomate",
+  "cliente": "Mateus",
+  "pagamentoStatus": "PENDENTE"
+}
+typeof endereco: object
+endereco: { numero: '', rua: '', cep: '', complemento: '', bairro: '' }
+==============================
+RAW enviado:
+636 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "osUF4zQ6d0YHbe66mRH1",
+  "telefone": "+55 (19) 99106-4903",
+  "bairro": "",
+  "itens": [
+    {
+      "observacaoItem": "",
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "quantidade": 1,
+      "subtotal": 26.5,
+      "valorUnitario": 26.5,
+      "produtoId": "UJbYu7Yqdr18MnuAdGIs",
+      "nome": "X-Tudo",
+      "acrescimoAdicionais": 0,
+      "adicionais": [],
+      "precoBase": 26.5
+    }
+  ],
+  "origem": "CLIENTE_WEB",
+  "tipo": "Retirada",
+  "impressoEm": null,
+  "referencia": "",
+  "mesaId": null,
+  "bairroLabel": "",
+  "observacoes": "Sem tomate",
+  "criadoEm": {
+    "seconds": 1784499780,
+    "nanoseconds": 405000000
+  },
+  "atualizadoEm": {
+    "seconds": 1784499785,
+    "nanoseconds": 533000000
+  },
+  "ultimoStatusNotificado": null,
+  "valorSubtotal": 26.5,
+  "numeroPedido": "781062",
+  "endereco": {
+    "numero": "",
+    "rua": "",
+    "bairro": "",
+    "complemento": "",
+    "cep": ""
+  },
+  "valorTotal": 26.5,
+  "pagamentoMetodo": "DEBITO",
+  "clienteId": "Dx2nleBC5ecRjaik1Q104QaS3am1",
+  "telefoneWhatsapp": "5519991064903",
+  "taxaEntrega": 0,
+  "trocoPara": null,
+  "bairroId": null,
+  "impresso": false,
+  "status": "PREPARANDO",
+  "cliente": "Mateus",
+  "pagamentoStatus": "PENDENTE",
+  "longitude": null,
+  "latitude": null
+}
+typeof endereco: object
+endereco: { numero: '', rua: '', bairro: '', complemento: '', cep: '' }
+==============================
+RAW enviado:
+665 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "271385",
+  "impresso": false,
+  "origem": "TESTE",
+  "criadoEm": {
+    "seconds": 1784501348,
+    "nanoseconds": 401000000
+  },
+  "endereco": {
+    "numero": "150",
+    "rua": "Rua XV de Novembro",
+    "bairro": "Centro",
+    "complemento": "Casa",
+    "cep": "13360-000"
+  },
+  "cliente": "João José da Silva Ávila",
+  "telefone": "(19) 99999-9999",
+  "telefoneWhatsapp": "5519999999999",
+  "trocoPara": 100,
+  "numeroPedido": "271385",
+  "tipo": "Delivery",
+  "bairro": "Centro",
+  "referencia": "Portão preto",
+  "itens": [
+    {
+      "quantidade": 2,
+      "subtotal": 39.9,
+      "observacaoItem": "Sem tomate, sem cebola, adicionar molho especial",
+      "nome": "X-Búrguer Especial com Queijo",
+      "valorUnitario": 19.95,
+      "adicionais": [
+        {
+          "nome": "Hambúrguer Grande",
+          "valor": 5
+        },
+        {
+          "valor": 3,
+          "nome": "Queijo Muçarela"
+        },
+        {
+          "valor": 7,
+          "nome": "Coração de Frango à Milanesa"
+        },
+        {
+          "valor": 2,
+          "nome": "Pimentão Vermelho"
+        }
+      ]
+    },
+    {
+      "observacaoItem": "Entregar bem gelada",
+      "subtotal": 5.9,
+      "quantidade": 1,
+      "adicionais": [],
+      "valorUnitario": 5.9,
+      "nome": "Coca-Cola 2L Gelada"
+    },
+    {
+      "observacaoItem": "Pouco açúcar",
+      "subtotal": 12.5,
+      "quantidade": 1,
+      "valorUnitario": 12.5,
+      "nome": "Açaí com Banana e Morango",
+      "adicionais": [
+        {
+          "valor": 2,
+          "nome": "Leite Condensado"
+        },
+        {
+          "valor": 1.5,
+          "nome": "Granola Crocante"
+        }
+      ]
+    }
+  ],
+  "pagamentoMetodo": "PIX",
+  "atualizadoEm": {
+    "seconds": 1784501348,
+    "nanoseconds": 401000000
+  },
+  "valorTotal": 47.9,
+  "taxaEntrega": 8,
+  "observacoes": "Sem cebola, sem pimentão, atenção à entrega rápida",
+  "pagamentoStatus": "PENDENTE",
+  "status": "RECEBIDO",
+  "valorSubtotal": 39.9
+}
+typeof endereco: object
+endereco: {
+  numero: '150',
+  rua: 'Rua XV de Novembro',
+  bairro: 'Centro',
+  complemento: 'Casa',
+  cep: '13360-000'
+}
+==============================
+RAW enviado:
+1287 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "ivENhWF5fbhuieSGB0hv",
+  "latitude": -22.9944664,
+  "taxaEntrega": 11,
+  "mesaId": null,
+  "valorSubtotal": 30,
+  "pagamentoMetodo": "PIX",
+  "itens": [
+    {
+      "precoBase": 30,
+      "nome": "X-Tudo + Um Pouco",
+      "acrescimoAdicionais": 0,
+      "observacaoItem": "",
+      "subtotal": 30,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "produtoId": "vqHhh4ZaJgdHpfVcipoI",
+      "quantidade": 1,
+      "adicionais": [],
+      "valorUnitario": 30
+    }
+  ],
+  "telefone": "+55 (19) 97117-8933",
+  "endereco": {
+    "cep": "13366-194",
+    "complemento": "Casa em frente a lombada",
+    "bairro": "Parque Residencial Santa Rita",
+    "rua": "Rua Misael Franchi",
+    "numero": "560"
+  },
+  "cliente": "Mateus",
+  "telefoneWhatsapp": "5519971178933",
+  "trocoPara": null,
+  "criadoEm": {
+    "seconds": 1784501720,
+    "nanoseconds": 746000000
+  },
+  "ultimoStatusNotificado": null,
+  "origem": "CLIENTE_WEB",
+  "longitude": -47.4909316,
+  "valorTotal": 41,
+  "atualizadoEm": {
+    "seconds": 1784501720,
+    "nanoseconds": 746000000
+  },
+  "status": "RECEBIDO",
+  "pagamentoStatus": "PENDENTE",
+  "observacoes": "",
+  "impressoEm": null,
+  "bairro": "Parque Residencial Santa Rita",
+  "referencia": "Casa em frente a lombada",
+  "bairroLabel": "",
+  "bairroId": null,
+  "clienteId": "TF6IqhmsydP8rHMzxF991PmEysF2",
+  "tipo": "Delivery",
+  "numeroPedido": "719564",
+  "impresso": false
+}
+typeof endereco: object
+endereco: {
+  cep: '13366-194',
+  complemento: 'Casa em frente a lombada',
+  bairro: 'Parque Residencial Santa Rita',
+  rua: 'Rua Misael Franchi',
+  numero: '560'
+}
+==============================
+RAW enviado:
+842 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "LRhezf2pEmF7kF48nmjy",
+  "tipo": "Delivery",
+  "pagamentoStatus": "PENDENTE",
+  "trocoPara": null,
+  "clienteId": "xTpTtvp4pZVJ3iTASZ6mZUUCEOv1",
+  "valorSubtotal": 90,
+  "bairroId": null,
+  "valorTotal": 107,
+  "bairroLabel": "",
+  "observacoes": "",
+  "cliente": "Kleber fernando de oliveira Oliveira",
+  "impressoEm": null,
+  "pagamentoMetodo": "DEBITO",
+  "bairro": "Jardim do Bosque",
+  "longitude": null,
+  "telefone": "+55 (19) 99597-6316",
+  "numeroPedido": "225293",
+  "latitude": null,
+  "ultimoStatusNotificado": null,
+  "origem": "CLIENTE_WEB",
+  "criadoEm": {
+    "seconds": 1784502225,
+    "nanoseconds": 239000000
+  },
+  "telefoneWhatsapp": "5519995976316",
+  "itens": [
+    {
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "acrescimoAdicionais": 0,
+      "nome": "Salsichão Rodeio",
+      "adicionais": [],
+      "subtotal": 90,
+      "quantidade": 5,
+      "precoBase": 18,
+      "produtoId": "pJrxaSKyrOk1zuybGCqL",
+      "valorUnitario": 18,
+      "observacaoItem": ""
+    }
+  ],
+  "endereco": {
+    "rua": "Rua Leonel Teixeira da Rocha",
+    "complemento": "Casa",
+    "bairro": "Jardim do Bosque",
+    "numero": "244",
+    "cep": "13365-318"
+  },
+  "status": "RECEBIDO",
+  "referencia": "Casa",
+  "mesaId": null,
+  "taxaEntrega": 17,
+  "atualizadoEm": {
+    "seconds": 1784502225,
+    "nanoseconds": 239000000
+  },
+  "impresso": false
+}
+typeof endereco: object
+endereco: {
+  rua: 'Rua Leonel Teixeira da Rocha',
+  complemento: 'Casa',
+  bairro: 'Jardim do Bosque',
+  numero: '244',
+  cep: '13365-318'
+}
+==============================
+RAW enviado:
+820 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "ivENhWF5fbhuieSGB0hv",
+  "pagamentoMetodo": "PIX",
+  "bairro": "Parque Residencial Santa Rita",
+  "impressoEm": null,
+  "numeroPedido": "719564",
+  "latitude": -22.9944664,
+  "longitude": -47.4909316,
+  "telefone": "+55 (19) 97117-8933",
+  "valorSubtotal": 30,
+  "bairroId": null,
+  "tipo": "Delivery",
+  "pagamentoStatus": "PENDENTE",
+  "clienteId": "TF6IqhmsydP8rHMzxF991PmEysF2",
+  "trocoPara": null,
+  "cliente": "Mateus",
+  "observacoes": "",
+  "bairroLabel": "",
+  "valorTotal": 41,
+  "atualizadoEm": {
+    "seconds": 1784502844,
+    "nanoseconds": 138000000
+  },
+  "mesaId": null,
+  "taxaEntrega": 11,
+  "impresso": false,
+  "origem": "CLIENTE_WEB",
+  "ultimoStatusNotificado": null,
+  "endereco": {
+    "cep": "13366-194",
+    "numero": "560",
+    "bairro": "Parque Residencial Santa Rita",
+    "rua": "Rua Misael Franchi",
+    "complemento": "Casa em frente a lombada"
+  },
+  "status": "ENTREGUE",
+  "referencia": "Casa em frente a lombada",
+  "criadoEm": {
+    "seconds": 1784501720,
+    "nanoseconds": 746000000
+  },
+  "telefoneWhatsapp": "5519971178933",
+  "itens": [
+    {
+      "valorUnitario": 30,
+      "produtoId": "vqHhh4ZaJgdHpfVcipoI",
+      "precoBase": 30,
+      "observacaoItem": "",
+      "acrescimoAdicionais": 0,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "quantidade": 1,
+      "subtotal": 30,
+      "nome": "X-Tudo + Um Pouco",
+      "adicionais": []
+    }
+  ]
+}
+typeof endereco: object
+endereco: {
+  cep: '13366-194',
+  numero: '560',
+  bairro: 'Parque Residencial Santa Rita',
+  rua: 'Rua Misael Franchi',
+  complemento: 'Casa em frente a lombada'
+}
+==============================
+RAW enviado:
+768 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "ivENhWF5fbhuieSGB0hv",
+  "latitude": -22.9944664,
+  "referencia": "Casa em frente a lombada",
+  "bairroLabel": "",
+  "taxaEntrega": 11,
+  "ultimoStatusNotificado": null,
+  "longitude": -47.4909316,
+  "cliente": "Mateus",
+  "trocoPara": null,
+  "bairro": "Parque Residencial Santa Rita",
+  "mesaId": null,
+  "telefone": "+55 (19) 97117-8933",
+  "pagamentoMetodo": "PIX",
+  "observacoes": "",
+  "valorSubtotal": 30,
+  "clienteId": "TF6IqhmsydP8rHMzxF991PmEysF2",
+  "telefoneWhatsapp": "5519971178933",
+  "origem": "CLIENTE_WEB",
+  "bairroId": null,
+  "pagamentoStatus": "PENDENTE",
+  "tipo": "Delivery",
+  "itens": [
+    {
+      "valorUnitario": 30,
+      "nome": "X-Tudo + Um Pouco",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "subtotal": 30,
+      "produtoId": "vqHhh4ZaJgdHpfVcipoI",
+      "precoBase": 30,
+      "observacaoItem": "",
+      "acrescimoAdicionais": 0,
+      "adicionais": [],
+      "quantidade": 1
+    }
+  ],
+  "valorTotal": 41,
+  "impresso": false,
+  "endereco": {
+    "cep": "13366-194",
+    "complemento": "Casa em frente a lombada",
+    "numero": "560",
+    "bairro": "Parque Residencial Santa Rita",
+    "rua": "Rua Misael Franchi"
+  },
+  "impressoEm": null,
+  "atualizadoEm": {
+    "seconds": 1784502844,
+    "nanoseconds": 138000000
+  },
+  "status": "ENTREGUE",
+  "criadoEm": {
+    "seconds": 1784501720,
+    "nanoseconds": 746000000
+  },
+  "numeroPedido": "719564"
+}
+typeof endereco: object
+endereco: {
+  cep: '13366-194',
+  complemento: 'Casa em frente a lombada',
+  numero: '560',
+  bairro: 'Parque Residencial Santa Rita',
+  rua: 'Rua Misael Franchi'
+}
+==============================
+RAW enviado:
+768 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "ivENhWF5fbhuieSGB0hv",
+  "taxaEntrega": 11,
+  "valorSubtotal": 30,
+  "impressoEm": null,
+  "telefoneWhatsapp": "5519971178933",
+  "bairroId": null,
+  "longitude": -47.4909316,
+  "bairroLabel": "",
+  "numeroPedido": "719564",
+  "clienteId": "TF6IqhmsydP8rHMzxF991PmEysF2",
+  "referencia": "Casa em frente a lombada",
+  "cliente": "Mateus",
+  "tipo": "Delivery",
+  "status": "ENTREGUE",
+  "pagamentoStatus": "PENDENTE",
+  "impresso": false,
+  "itens": [
+    {
+      "adicionais": [],
+      "produtoId": "vqHhh4ZaJgdHpfVcipoI",
+      "acrescimoAdicionais": 0,
+      "valorUnitario": 30,
+      "precoBase": 30,
+      "nome": "X-Tudo + Um Pouco",
+      "quantidade": 1,
+      "subtotal": 30,
+      "personalizados": {
+        "observacao": "",
+        "adicionais": []
+      },
+      "observacaoItem": ""
+    }
+  ],
+  "bairro": "Parque Residencial Santa Rita",
+  "pagamentoMetodo": "PIX",
+  "valorTotal": 41,
+  "mesaId": null,
+  "ultimoStatusNotificado": null,
+  "telefone": "+55 (19) 97117-8933",
+  "atualizadoEm": {
+    "seconds": 1784502844,
+    "nanoseconds": 138000000
+  },
+  "trocoPara": null,
+  "criadoEm": {
+    "seconds": 1784501720,
+    "nanoseconds": 746000000
+  },
+  "observacoes": "",
+  "origem": "CLIENTE_WEB",
+  "endereco": {
+    "complemento": "Casa em frente a lombada",
+    "rua": "Rua Misael Franchi",
+    "numero": "560",
+    "bairro": "Parque Residencial Santa Rita",
+    "cep": "13366-194"
+  },
+  "latitude": -22.9944664
+}
+typeof endereco: object
+endereco: {
+  complemento: 'Casa em frente a lombada',
+  rua: 'Rua Misael Franchi',
+  numero: '560',
+  bairro: 'Parque Residencial Santa Rita',
+  cep: '13366-194'
+}
+==============================
+RAW enviado:
+768 bytes
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "QhJhMyKJHuIXC4D7CZPg",
+  "itens": [
+    {
+      "nome": "Havaí",
+      "acrescimoAdicionais": 0,
+      "precoBase": 25.5,
+      "valorUnitario": 25.5,
+      "adicionais": [],
+      "produtoId": "CMbJyHoUh3mdSZa2DHAk",
+      "quantidade": 1,
+      "observacaoItem": "",
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "subtotal": 25.5
+    }
+  ],
+  "impresso": false,
+  "mesaId": null,
+  "bairro": "Jardim dos Poetas",
+  "valorTotal": 34.5,
+  "pagamentoMetodo": "PIX",
+  "atualizadoEm": {
+    "seconds": 1784504990,
+    "nanoseconds": 454000000
+  },
+  "ultimoStatusNotificado": null,
+  "telefone": "+55 (19) 99212-4938",
+  "criadoEm": {
+    "seconds": 1784504990,
+    "nanoseconds": 454000000
+  },
+  "trocoPara": null,
+  "observacoes": "",
+  "origem": "CLIENTE_WEB",
+  "latitude": -23.0074079,
+  "endereco": {
+    "complemento": "",
+    "bairro": "Jardim dos Poetas",
+    "cep": "13360-414",
+    "rua": "Rua Carmelindo Luis de Souza",
+    "numero": "156"
+  },
+  "impressoEm": null,
+  "taxaEntrega": 9,
+  "valorSubtotal": 25.5,
+  "telefoneWhatsapp": "5519992124938",
+  "bairroId": null,
+  "bairroLabel": "",
+  "numeroPedido": "988710",
+  "clienteId": "Gqu1LGxl5PVTuXyojU8urEmWBAF3",
+  "longitude": -47.5195018,
+  "referencia": "",
+  "tipo": "Delivery",
+  "status": "RECEBIDO",
+  "cliente": "Pablo Felipe",
+  "pagamentoStatus": "PENDENTE"
+}
+typeof endereco: object
+endereco: {
+  complemento: '',
+  bairro: 'Jardim dos Poetas',
+  cep: '13360-414',
+  rua: 'Rua Carmelindo Luis de Souza',
+  numero: '156'
+}
+==============================
+RAW enviado:
+733 bytes
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+======================================
+ NOVO PRINTER.JS - ESC/POS 
+======================================
+SERVIDOR NOVO INICIADO
+
+======================================
+ Mesa Facil - Printer Service
+======================================
+Servidor : http://localhost:3002
+Impressora : ELGIN i9(COM3)
+Status : ONLINE
+======================================
+
+TESTE RESTART AUTOMATICO
+==============================
+JSON RECEBIDO:
+{
+  "id": "QhJhMyKJHuIXC4D7CZPg",
+  "observacoes": "",
+  "criadoEm": {
+    "seconds": 1784504990,
+    "nanoseconds": 454000000
+  },
+  "trocoPara": null,
+  "latitude": -23.0074079,
+  "endereco": {
+    "bairro": "Jardim dos Poetas",
+    "cep": "13360-414",
+    "rua": "Rua Carmelindo Luis de Souza",
+    "numero": "156",
+    "complemento": ""
+  },
+  "origem": "CLIENTE_WEB",
+  "mesaId": null,
+  "valorTotal": 34.5,
+  "pagamentoMetodo": "PIX",
+  "bairro": "Jardim dos Poetas",
+  "itens": [
+    {
+      "nome": "Havaí",
+      "produtoId": "CMbJyHoUh3mdSZa2DHAk",
+      "adicionais": [],
+      "acrescimoAdicionais": 0,
+      "precoBase": 25.5,
+      "valorUnitario": 25.5,
+      "quantidade": 1,
+      "personalizados": {
+        "adicionais": [],
+        "observacao": ""
+      },
+      "observacaoItem": "",
+      "subtotal": 25.5
+    }
+  ],
+  "impresso": true,
+  "atualizadoEm": {
+    "seconds": 1784505000,
+    "nanoseconds": 561000000
+  },
+  "telefone": "+55 (19) 99212-4938",
+  "ultimoStatusNotificado": "PREPARANDO",
+  "clienteId": "Gqu1LGxl5PVTuXyojU8urEmWBAF3",
+  "numeroPedido": "988710",
+  "bairroLabel": "",
+  "longitude": -47.5195018,
+  "bairroId": null,
+  "notificacaoWhatsappEm": {
+    "seconds": 1784505334,
+    "nanoseconds": 504000000
+  },
+  "pagamentoStatus": "PENDENTE",
+  "status": "PREPARANDO",
+  "tipo": "Delivery",
+  "cliente": "Pablo Felipe",
+  "referencia": "",
+  "telefoneWhatsapp": "5519992124938",
+  "impressoEm": {
+    "seconds": 1784505004,
+    "nanoseconds": 52000000
+  },
+  "taxaEntrega": 9,
+  "valorSubtotal": 25.5
+}
+typeof endereco: object
+endereco: {
+  bairro: 'Jardim dos Poetas',
+  cep: '13360-414',
+  rua: 'Rua Carmelindo Luis de Souza',
+  numero: '156',
+  complemento: ''
+}
+==============================

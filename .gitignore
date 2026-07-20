@@ -1,0 +1,17 @@
+node_modules/
+
+.wwebjs_auth/
+.wwebjs_auth_backup/
+.wwebjs_cache/
+
+*.raw
+*.txt
+
+serviceAccountKey.json
+
+.env
+
+teste*.js
+teste*.ps1
+teste*.txt
+teste*.raw
