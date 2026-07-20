@@ -27,6 +27,34 @@ function normalizarNomeBairro(nome = "") {
   return String(nome).trim().replace(/\s+/g, " ");
 }
 
+function distanciaLevenshtein(a, b) {
+  const matriz = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matriz[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matriz[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matriz[i][j] = matriz[i - 1][j - 1];
+      } else {
+        matriz[i][j] = Math.min(
+          matriz[i - 1][j - 1] + 1,
+          matriz[i][j - 1] + 1,
+          matriz[i - 1][j] + 1,
+        );
+      }
+    }
+  }
+
+  return matriz[b.length][a.length];
+}
+
 function ordenarTaxas(lista = []) {
   return [...lista].sort((a, b) => {
     const ordemA = Number(a.ordem || 0);
@@ -48,6 +76,9 @@ function ordenarTaxas(lista = []) {
 ========================================================== */
 
 export async function criarTaxaEntrega(dados) {
+
+  console.log("DADOS RECEBIDOS PARA CRIAR:", dados);
+
   const nome = normalizarNomeBairro(dados.nome);
 
   const payload = {
@@ -66,7 +97,13 @@ export async function criarTaxaEntrega(dados) {
     atualizadoEm: serverTimestamp(),
   };
 
-  return await addDoc(taxasEntregaRef, payload);
+  console.log("PAYLOAD FIRESTORE:", payload);
+
+  const ref = await addDoc(taxasEntregaRef, payload);
+
+  console.log("CRIADO COM ID:", ref.id);
+
+  return ref;
 }
 
 /* ==========================================================
@@ -171,17 +208,79 @@ export function ouvirTaxasEntrega(callback) {
 }
 
 export async function buscarBairroPorNome(nome) {
-  const busca = normalizarNomeBairro(nome).toLowerCase();
+
+  const busca = normalizarNomeBairro(nome)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
   const taxas = await listarTaxasEntrega();
 
-  return (
-    taxas.find((bairro) => {
-      return (
-        normalizarNomeBairro(bairro.nome).toLowerCase() === busca
-      );
-    }) || null
+  if (!busca) return null;
+
+
+  // 1) tenta encontrar exatamente
+  const exato = taxas.find((bairro) => {
+
+    const nomeBanco = normalizarNomeBairro(bairro.nome)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    return nomeBanco === busca;
+
+  });
+
+
+  if (exato) return exato;
+
+
+  // 2) tenta encontrar por aproximação
+  let melhor = null;
+  let menorDistancia = Infinity;
+
+
+  for (const bairro of taxas) {
+
+    const nomeBanco = normalizarNomeBairro(bairro.nome)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+
+    const distancia = distanciaLevenshtein(
+      busca,
+      nomeBanco
+    );
+
+
+    if (distancia < menorDistancia) {
+      menorDistancia = distancia;
+      melhor = bairro;
+    }
+  }
+
+
+  // aceita até 35% de diferença
+  const limite = Math.max(
+    2,
+    Math.floor(melhor.nome.length * 0.35)
   );
+
+
+  if (melhor && menorDistancia <= limite) {
+
+    console.log("Bairro encontrado por aproximação:", {
+      digitado: nome,
+      encontrado: melhor.nome,
+      distancia: menorDistancia,
+    });
+
+    return melhor;
+  }
+
+
+  return null;
 }
 
 export async function buscarBairrosPorNome(nome) {
@@ -190,19 +289,28 @@ export async function buscarBairrosPorNome(nome) {
   const taxas = await listarTaxasEntrega();
 
   return taxas.filter((bairro) =>
-    normalizarNomeBairro(bairro.nome)
-      .toLowerCase()
-      .includes(busca),
+    normalizarNomeBairro(bairro.nome).toLowerCase().includes(busca),
   );
 }
 
-export async function cadastrarBairroAutomaticamente(
-  nome,
-  taxa,
-) {
+export async function cadastrarBairroAutomaticamente(nome, taxa, rua) {
+  console.log("CADASTRAR BAIRRO AUTOMATICAMENTE:", {
+    nome,
+    taxa,
+    rua,
+  });
   const existente = await buscarBairroPorNome(nome);
+  console.log("BAIRRO EXISTENTE:", existente);
 
   if (existente) {
+    if (rua && !existente.ruas?.includes(rua)) {
+      const novoArray = [...(existente.ruas || []), rua];
+
+      await editarTaxaEntrega(existente.id, {
+        ruas: novoArray,
+      });
+    }
+
     return existente;
   }
 
@@ -212,13 +320,14 @@ export async function cadastrarBairroAutomaticamente(
     (maior, item) => Math.max(maior, Number(item.ordem || 0)),
     0,
   );
+  console.log("CRIANDO NOVO BAIRRO NO FIRESTORE");
 
   await criarTaxaEntrega({
     nome,
     taxa,
     ativo: true,
     ordem: maiorOrdem + 1,
-    ruas: [],
+    ruas: rua ? [rua] : [],
   });
 
   return null;
