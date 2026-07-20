@@ -554,7 +554,9 @@ async function imprimirPedido(pedido) {
                     linhaEndereco += ` ${e.bairro}`;
                 }
 
-                cupom += `${linhaEndereco}\n`;
+                quebrarLinha(linhaEndereco, LARGURA).forEach((linha) => {
+                    cupom += linha + "\n";
+                });
 
                 if (e.cep) {
                     cupom += `CEP: ${e.cep}\n`;
