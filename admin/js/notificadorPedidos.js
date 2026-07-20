@@ -37,20 +37,32 @@ ouvirPedidos((pedidos) => {
 
             pedidosRecebidos.add(pedido.id);
 
-
             audioNovoPedido.currentTime = 0;
 
             audioNovoPedido.play()
-                .catch(() => {});
-
+                .catch(() => { });
 
             toast(
                 `🔔 Novo pedido recebido<br>
-                 Pedido #${pedido.numeroPedido}`,
+             Pedido #${pedido.numeroPedido}`,
                 "success"
             );
         }
 
     });
+
+
+    const existePedidoRecebido = pedidos.some(
+        (pedido) => pedido.status === "RECEBIDO"
+    );
+
+    if (!existePedidoRecebido) {
+
+        audioNovoPedido.pause();
+        audioNovoPedido.currentTime = 0;
+
+        pedidosRecebidos.clear();
+
+    }
 
 });
