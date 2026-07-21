@@ -161,6 +161,17 @@ function renderPedidos(pedidos) {
                 ${pedido.tipo || "-"}
             </p>
 
+            ${
+              pedido.tipo === "MESA"
+                ? `
+                  <p>
+                    <strong>Mesa:</strong>
+                    ${pedido.numeroMesa || pedido.mesaId || "-"}
+                  </p>
+                `
+                : ""
+            }
+
             <p>
                 <strong>Total:</strong>
                 R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
