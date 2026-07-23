@@ -1,180 +1,122 @@
 <!doctype html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taxas de Entrega • Mesa Fácil</title>
+    <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
 
-  <title>Taxas de Entrega • Mesa Fácil</title>
-  <link rel="icon" type="image/png" href="../assets/admin-icon.png">
+    <link rel="stylesheet" href="css/admin.css" />
 
-  <link rel="stylesheet" href="css/admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-</head>
+  <body>
+    <div class="layout">
+      <aside id="sidebar"></aside>
 
-<body>
+      <main class="content">
+        <header id="header"></header>
 
-  <div class="layout">
+        <section class="dashboard taxas-page">
+          <h1>Configuração de Entrega</h1>
 
-    <aside id="sidebar"></aside>
+          <p class="subtitle">
+            Configure automaticamente a taxa de entrega por distância.
+          </p>
 
-    <main class="content">
+          <section class="panel taxas-card">
+            <div class="taxas-modos">
+              <button
+                type="button"
+                id="btnEntregaPropria"
+                class="btn btn-modo ativo"
+              >
+                🚚 Entrega própria
+              </button>
 
-      <header id="header"></header>
-
-
-      <section class="dashboard taxas-page">
-
-        <h1>Configuração de Entrega</h1>
-
-        <p class="subtitle">
-          Configure automaticamente a taxa de entrega por distância.
-        </p>
-
-
-        <section class="panel taxas-card">
-
-          <div class="panel-title">
-            🚚 Entrega própria
-          </div>
-
-
-          <div class="taxas-grid">
-
-            <div class="taxas-campo">
-              <label>
-                Tempo médio de entrega
-              </label>
-
-              <input type="number" id="tempoEntrega" value="50" />
+              <button type="button" id="btnSobDemanda" class="btn btn-modo">
+                🛵 Sob demanda
+              </button>
             </div>
 
+            <br />
 
-            <div class="taxas-campo">
-              <label>
-                Raio máximo (km)
-              </label>
+            <div class="taxas-grid">
+              <div class="taxas-campo">
+                <label> Tempo médio de entrega </label>
 
-              <input type="number" id="raioMaximo" value="7" step="0.1" />
+                <input type="number" id="tempoEntrega" value="50" />
+              </div>
+
+              <div class="taxas-campo">
+                <label> Raio máximo (km) </label>
+
+                <input type="number" id="raioMaximo" value="7" step="0.1" />
+              </div>
             </div>
+          </section>
 
+          <section class="panel taxas-card">
+            <div class="panel-title">📍 Faixas de distância</div>
 
+            <button type="button" class="btn" id="btnAdicionarDistancia">
+              ➕ Adicionar distância
+            </button>
+
+            <br /><br />
+
+            <table class="taxas-table">
+              <thead>
+                <tr>
+                  <th>Distância</th>
+
+                  <th>Tempo</th>
+
+                  <th>Taxa</th>
+
+                  <th>Ações</th>
+                </tr>
+              </thead>
+
+              <tbody id="listaDistancias"></tbody>
+            </table>
+          </section>
+
+          <section class="panel taxas-card">
+            <div class="panel-title">🗺️ Mapa</div>
+
+            <div
+              id="mapaEntrega"
+              style="
+                height: 400px;
+                border-radius: 12px;
+                background: #eee;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              Mapa de entrega
+            </div>
+          </section>
+
+          <div class="toolbar">
+            <button id="btnSalvar" class="btn">💾 Salvar</button>
           </div>
-
-
         </section>
+      </main>
+    </div>
 
+    <script type="module" src="js/app.js"></script>
 
-
-        <section class="panel taxas-card">
-
-          <div class="panel-title">
-            📍 Faixas de distância
-          </div>
-
-
-          <button type="button" class="btn" id="btnAdicionarDistancia">
-            ➕ Adicionar distância
-          </button>
-
-
-          <br><br>
-
-
-          <table class="taxas-table">
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  Distância
-                </th>
-
-                <th>
-                  Tempo
-                </th>
-
-                <th>
-                  Taxa
-                </th>
-
-                <th>
-                  Ações
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody id="listaDistancias">
-
-            </tbody>
-
-
-          </table>
-
-
-
-        </section>
-
-
-        <section class="panel taxas-card">
-
-
-          <div class="panel-title">
-            🗺️ Mapa
-          </div>
-
-
-          <div id="mapaEntrega" style="
-          height:400px;
-          border-radius:12px;
-          background:#eee;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          ">
-
-            Mapa de entrega
-
-          </div>
-
-
-        </section>
-
-
-
-        <div class="toolbar">
-
-          <button id="btnSalvar" class="btn">
-            💾 Salvar
-          </button>
-
-
-        </div>
-
-
-      </section>
-
-
-    </main>
-
-
-  </div>
-
-
-  <script type="module" src="js/app.js"></script>
-
-  <script type="module" src="js/pages/taxas.js"></script>
-
-
-</body>
-
+    <script type="module" src="js/pages/taxas.js"></script>
+  </body>
 </html>

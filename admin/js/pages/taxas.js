@@ -6,107 +6,40 @@ import {
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const REF = doc(db, "configuracoes", "geral");
 
-const REF = doc(
-  db,
-  "configuracoes",
-  "geral"
-);
+const lista = document.getElementById("listaDistancias");
 
+const btnSalvar = document.getElementById("btnSalvar");
 
+const btnAdicionarDistancia = document.getElementById("btnAdicionarDistancia");
 
-const lista = document.getElementById(
-  "listaDistancias"
-);
+const tempoEntrega = document.getElementById("tempoEntrega");
 
-const btnSalvar = document.getElementById(
-  "btnSalvar"
-);
+const raioMaximo = document.getElementById("raioMaximo");
 
-const btnAdicionarDistancia = document.getElementById(
-  "btnAdicionarDistancia"
-);
+let modoEntrega = "PROPRIA";
 
-
-const tempoEntrega = document.getElementById(
-  "tempoEntrega"
-);
-
-const raioMaximo = document.getElementById(
-  "raioMaximo"
-);
-
-
-
-let faixas = [
-
-  {
-    limiteKm: 0.5,
-    taxa: 9
+let configuracoesEntrega = {
+  PROPRIA: {
+    tempo: 50,
+    raio: 7,
+    faixas: [],
   },
 
-  {
-    limiteKm: 1,
-    taxa: 9
+  SOB_DEMANDA: {
+    tempo: 50,
+    raio: 7,
+    faixas: [],
   },
+};
 
-  {
-    limiteKm: 1.5,
-    taxa: 9
-  },
-
-  {
-    limiteKm: 2,
-    taxa: 9
-  },
-
-  {
-    limiteKm: 2.5,
-    taxa: 10
-  },
-
-  {
-    limiteKm: 3,
-    taxa: 10
-  },
-
-  {
-    limiteKm: 3.5,
-    taxa: 11
-  },
-
-  {
-    limiteKm: 4,
-    taxa: 11
-  },
-
-  {
-    limiteKm: 5,
-    taxa: 13
-  },
-
-  {
-    limiteKm: 6,
-    taxa: 14
-  },
-
-  {
-    limiteKm: 7,
-    taxa: 17
-  }
-
-];
-
-
+let faixas = [];
 
 function renderizar() {
-
   lista.innerHTML = "";
 
-
   faixas.forEach((item, index) => {
-
-
     lista.innerHTML += `
 
     <tr>
@@ -152,212 +85,150 @@ function renderizar() {
     </tr>
 
     `;
-
-
   });
 
+  document.querySelectorAll(".btnRemoverDistancia").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const index = Number(botao.dataset.index);
 
-  document
-    .querySelectorAll(".btnRemoverDistancia")
-    .forEach(botao => {
+      faixas.splice(index, 1);
 
-      botao.addEventListener(
-        "click",
-        () => {
-
-          const index =
-            Number(botao.dataset.index);
-
-
-          faixas.splice(
-            index,
-            1
-          );
-
-
-          renderizar();
-
-        }
-      );
-
+      renderizar();
     });
-
-
+  });
 }
 
+function aplicarModo() {
+  const config = configuracoesEntrega[modoEntrega];
 
+  if (!config) return;
 
-async function carregar() {
+  tempoEntrega.value = config.tempo ?? 50;
 
+  raioMaximo.value = config.raio ?? 7;
 
-  const snap = await getDoc(REF);
+  faixas = structuredClone(config.faixas || []);
 
+  document
+    .getElementById("btnEntregaPropria")
+    .classList.toggle("ativo", modoEntrega === "PROPRIA");
 
-  if (
-    snap.exists()
-  ) {
-
-    const dados = snap.data();
-
-
-    const entrega =
-      dados.delivery?.configuracaoEntrega;
-
-
-    if (entrega) {
-
-      tempoEntrega.value =
-        entrega.tempo || 50;
-
-
-      raioMaximo.value =
-        entrega.raio || 7;
-
-
-      faixas =
-        (entrega.faixas || faixas)
-          .map((item) => ({
-            limiteKm:
-              item.limiteKm ?? item.distancia,
-
-            taxa:
-              item.taxa
-          }))
-          .filter(
-            (item, index, array) =>
-              array.findIndex(
-                (f) => f.limiteKm === item.limiteKm
-              ) === index
-          );
-
-    }
-
-
-  }
-
+  document
+    .getElementById("btnSobDemanda")
+    .classList.toggle("ativo", modoEntrega === "SOB_DEMANDA");
 
   renderizar();
-
-
 }
 
+async function carregar() {
+  const snap = await getDoc(REF);
 
+  if (snap.exists()) {
+    const dados = snap.data();
+
+    const delivery = dados.delivery || {};
+
+    modoEntrega = delivery.modoEntrega || "PROPRIA";
+
+    configuracoesEntrega.PROPRIA = delivery.configuracaoEntregaPropria ||
+      delivery.configuracaoEntrega || {
+        tempo: 50,
+        raio: 7,
+        faixas: [],
+      };
+
+    configuracoesEntrega.SOB_DEMANDA =
+      delivery.configuracaoEntregaSobDemanda || {
+        tempo: 50,
+        raio: 7,
+        faixas: [],
+      };
+
+    aplicarModo();
+  }
+
+  renderizar();
+}
 
 async function salvar() {
+  document.querySelectorAll(".inputTaxa").forEach((input) => {
+    const index = Number(input.dataset.index);
 
+    faixas[index].taxa = Number(input.value);
+  });
 
-  document
-    .querySelectorAll(".inputTaxa")
-    .forEach(input => {
-
-
-      const index =
-        Number(input.dataset.index);
-
-
-      faixas[index].taxa =
-        Number(input.value);
-
-
-
-    });
-
-
+  configuracoesEntrega[modoEntrega] = {
+    tempo: Number(tempoEntrega.value),
+    raio: Number(raioMaximo.value),
+    faixas: structuredClone(faixas),
+  };
 
   await setDoc(
     REF,
     {
-
       delivery: {
+        modoEntrega,
 
+        configuracaoEntrega: configuracoesEntrega[modoEntrega],
 
-        configuracaoEntrega: {
+        configuracaoEntregaPropria: configuracoesEntrega.PROPRIA,
 
-
-          tempo:
-            Number(
-              tempoEntrega.value
-            ),
-
-
-          raio:
-            Number(
-              raioMaximo.value
-            ),
-
-
-          faixas
-
-
-        }
-
-
-      }
-
+        configuracaoEntregaSobDemanda: configuracoesEntrega.SOB_DEMANDA,
+      },
     },
 
     {
-      merge: true
-    }
-
+      merge: true,
+    },
   );
 
-
-  alert(
-    "Configuração salva!"
-  );
-
+  alert("Configuração salva!");
 }
 
-btnAdicionarDistancia.addEventListener(
-  "click",
-  () => {
+btnAdicionarDistancia.addEventListener("click", () => {
+  const distancia = prompt("Distância em km:");
 
-    const distancia = prompt(
-      "Distância em km:"
-    );
+  if (!distancia) return;
 
+  const taxa = prompt("Valor da taxa:");
 
-    if (!distancia) return;
+  if (!taxa) return;
 
+  faixas.push({
+    limiteKm: Number(distancia),
 
-    const taxa = prompt(
-      "Valor da taxa:"
-    );
+    taxa: Number(taxa),
+  });
 
+  faixas.sort((a, b) => a.limiteKm - b.limiteKm);
 
-    if (!taxa) return;
+  renderizar();
+});
 
+btnSalvar.addEventListener("click", salvar);
 
-    faixas.push({
+document.getElementById("btnEntregaPropria").addEventListener("click", () => {
+  configuracoesEntrega[modoEntrega] = {
+    tempo: Number(tempoEntrega.value),
+    raio: Number(raioMaximo.value),
+    faixas: structuredClone(faixas),
+  };
 
-      limiteKm:
-        Number(distancia),
+  modoEntrega = "PROPRIA";
 
-      taxa:
-        Number(taxa)
+  aplicarModo();
+});
 
-    });
+document.getElementById("btnSobDemanda").addEventListener("click", () => {
+  configuracoesEntrega[modoEntrega] = {
+    tempo: Number(tempoEntrega.value),
+    raio: Number(raioMaximo.value),
+    faixas: structuredClone(faixas),
+  };
 
+  modoEntrega = "SOB_DEMANDA";
 
-    faixas.sort(
-      (a, b) =>
-        a.limiteKm - b.limiteKm
-    );
-
-
-    renderizar();
-
-  }
-);
-
-
-
-btnSalvar.addEventListener(
-  "click",
-  salvar
-);
-
-
+  aplicarModo();
+});
 
 carregar();
