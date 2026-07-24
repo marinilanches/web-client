@@ -177,7 +177,10 @@ export async function criarPedido(dados) {
     bairroLabel: dados.bairroLabel || "",
 
     latitude: dados.latitude ?? null,
+
     longitude: dados.longitude ?? null,
+
+    distanciaEntrega: Number(dados.distanciaEntrega ?? 0),
 
     itens,
 
@@ -441,99 +444,47 @@ export function contarPedidos(pedidos) {
 export async function buscarPedidosPorPeriodo(
   dataInicial,
   dataFinal,
-  formaPagamento = "TODOS"
+  formaPagamento = "TODOS",
 ) {
-
   const inicio = new Date(dataInicial);
 
-  inicio.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
+  inicio.setHours(0, 0, 0, 0);
 
   const fim = new Date(dataFinal);
 
-  fim.setHours(
-    23,
-    59,
-    59,
-    999
-  );
-
+  fim.setHours(23, 59, 59, 999);
 
   const q = query(
-
     pedidosRef,
 
-    where(
-      "criadoEm",
-      ">=",
-      Timestamp.fromDate(inicio)
-    ),
+    where("criadoEm", ">=", Timestamp.fromDate(inicio)),
 
-    where(
-      "criadoEm",
-      "<=",
-      Timestamp.fromDate(fim)
-    ),
+    where("criadoEm", "<=", Timestamp.fromDate(fim)),
 
-    orderBy(
-      "criadoEm",
-      "desc"
-    )
-
+    orderBy("criadoEm", "desc"),
   );
-
 
   const snapshot = await getDocs(q);
 
-
   let pedidos = [];
 
-
-  snapshot.forEach((docItem)=>{
-
+  snapshot.forEach((docItem) => {
     pedidos.push({
-
       id: docItem.id,
 
-      ...docItem.data()
-
+      ...docItem.data(),
     });
-
   });
 
-
-  if(
-    formaPagamento &&
-    formaPagamento !== "TODOS"
-  ){
-
-    pedidos =
-    pedidos.filter(
-
-      pedido =>
-
-      String(
-        pedido.pagamentoMetodo || ""
-      )
-      .toUpperCase()
-      ===
-      String(
-        formaPagamento
-      )
-      .toUpperCase()
-
+  if (formaPagamento && formaPagamento !== "TODOS") {
+    pedidos = pedidos.filter(
+      (pedido) =>
+        String(pedido.pagamentoMetodo || "").toUpperCase() ===
+        String(formaPagamento).toUpperCase(),
     );
-
   }
 
-
   return pedidos;
-
 }
 
 /* ==========================================================

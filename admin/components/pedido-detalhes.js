@@ -1,69 +1,33 @@
-import {
-  abrirModal,
-  fecharModal
-} from "./modal.js";
+import { abrirModal, fecharModal } from "./modal.js";
 
+import { toast } from "./toast.js";
 
-import {
-  toast
-} from "./toast.js";
+import { atualizarEntregadorPedido } from "../../js/services/orders.js";
 
+import { solicitarEntregador } from "../../js/services/bee-delivery.js";
 
-import {
-  atualizarEntregadorPedido
-} from "../../js/services/orders.js";
-
-
-import {
-  solicitarEntregador
-} from "../../js/services/bee-delivery.js";
-
-
-
-export function abrirDetalhesPedido(pedido){
-
-
-  if(!pedido){
-
-    toast(
-      "Pedido não encontrado"
-    );
+export function abrirDetalhesPedido(pedido) {
+  if (!pedido) {
+    toast("Pedido não encontrado");
 
     return;
-
   }
 
+  const itensHTML = (pedido.itens || [])
 
+    .map((item) => {
+      const adicionais = (item.adicionais || [])
 
+        .map(
+          (adicional) =>
+            `${adicional.nome} (+R$ ${Number(adicional.preco || 0).toFixed(
+              2,
+            )})`,
+        )
 
+        .join("<br>");
 
-  const itensHTML =
-
-  (pedido.itens || [])
-
-  .map(item=>{
-
-
-    const adicionais =
-
-    (item.adicionais || [])
-
-    .map(
-
-      adicional =>
-
-      `${adicional.nome} (+R$ ${Number(
-        adicional.preco || 0
-      ).toFixed(2)})`
-
-    )
-
-    .join("<br>");
-
-
-
-
-    return `
+      return `
 
       <div class="item-pedido">
 
@@ -93,9 +57,7 @@ export function abrirDetalhesPedido(pedido){
 
           R$
 
-          ${Number(
-            item.valorUnitario || 0
-          ).toFixed(2)}
+          ${Number(item.valorUnitario || 0).toFixed(2)}
 
         </p>
 
@@ -104,10 +66,7 @@ export function abrirDetalhesPedido(pedido){
 
         ${
           adicionais
-
-          ?
-
-          `
+            ? `
 
           <p>
 
@@ -124,11 +83,7 @@ export function abrirDetalhesPedido(pedido){
           </p>
 
           `
-
-          :
-
-          ""
-
+            : ""
         }
 
 
@@ -138,10 +93,7 @@ export function abrirDetalhesPedido(pedido){
 
         ${
           item.observacaoItem
-
-          ?
-
-          `
+            ? `
 
           <p>
 
@@ -158,11 +110,7 @@ export function abrirDetalhesPedido(pedido){
           </p>
 
           `
-
-          :
-
-          ""
-
+            : ""
         }
 
 
@@ -173,23 +121,12 @@ export function abrirDetalhesPedido(pedido){
       </div>
 
     `;
+    })
 
-
-  })
-
-  .join("");
-
-
-
-
-
-
+    .join("");
 
   abrirModal(
-
     `Pedido #${pedido.numeroPedido || "-"}`,
-
-
 
     `
 
@@ -248,10 +185,7 @@ export function abrirDetalhesPedido(pedido){
 
       ${
         pedido.tipo === "Delivery"
-
-        ?
-
-        `
+          ? `
 
         <h3>
 
@@ -265,10 +199,7 @@ export function abrirDetalhesPedido(pedido){
 
         ${
           pedido.entrega
-
-          ?
-
-          `
+            ? `
 
           <h3>
 
@@ -289,11 +220,7 @@ export function abrirDetalhesPedido(pedido){
 
             <br>
 
-            ${
-              pedido.entrega.statusDescricao ||
-              pedido.entrega.status ||
-              "-"
-            }
+            ${pedido.entrega.statusDescricao || pedido.entrega.status || "-"}
 
 
           </p>
@@ -311,9 +238,7 @@ export function abrirDetalhesPedido(pedido){
 
             <br>
 
-            ${
-              pedido.entrega.id || "-"
-            }
+            ${pedido.entrega.id || "-"}
 
 
           </p>
@@ -334,15 +259,8 @@ export function abrirDetalhesPedido(pedido){
 
             ${
               pedido.entrega.previsaoMinutos
-
-              ?
-
-              `${pedido.entrega.previsaoMinutos} min`
-
-              :
-
-              "-"
-
+                ? `${pedido.entrega.previsaoMinutos} min`
+                : "-"
             }
 
 
@@ -363,10 +281,7 @@ export function abrirDetalhesPedido(pedido){
             <br>
 
 
-            ${
-              pedido.entrega.entregador?.nome ||
-              "-"
-            }
+            ${pedido.entrega.entregador?.nome || "-"}
 
 
           </p>
@@ -385,10 +300,7 @@ export function abrirDetalhesPedido(pedido){
             <br>
 
 
-            ${
-              pedido.entrega.entregador?.telefone ||
-              "-"
-            }
+            ${pedido.entrega.entregador?.telefone || "-"}
 
 
           </p>
@@ -399,10 +311,7 @@ export function abrirDetalhesPedido(pedido){
 
           ${
             pedido.entrega.trackingUrl
-
-            ?
-
-            `
+              ? `
 
             <p>
 
@@ -421,21 +330,13 @@ export function abrirDetalhesPedido(pedido){
             </p>
 
             `
-
-            :
-
-            ""
-
+              : ""
           }
 
 
 
           `
-
-          :
-
-          ""
-
+            : ""
         }
 
 
@@ -454,15 +355,30 @@ export function abrirDetalhesPedido(pedido){
           <br>
 
 
-          ${
-            pedido.bairro ||
-            "-"
-          }
+          ${pedido.bairro || "-"}
 
 
         </p>
 
+        ${
+          pedido.distanciaEntrega
+            ? `
+              <p>
 
+                <strong>
+
+                Distância:
+
+                </strong>
+
+                <br>
+
+                ${Number(pedido.distanciaEntrega).toFixed(2)} km
+
+              </p>
+            `
+            : ""
+        }
 
 
 
@@ -477,10 +393,7 @@ export function abrirDetalhesPedido(pedido){
           <br>
 
 
-          ${
-            pedido.endereco?.cep ||
-            "-"
-          }
+          ${pedido.endereco?.cep || "-"}
 
 
         </p>
@@ -501,24 +414,10 @@ export function abrirDetalhesPedido(pedido){
           <br>
 
 
-          ${
-            pedido.endereco?.rua ||
-            "-"
-          }
+          ${pedido.endereco?.rua || "-"}
 
 
-          ${
-            pedido.endereco?.numero
-
-            ?
-
-            `, ${pedido.endereco.numero}`
-
-            :
-
-            ""
-
-          }
+          ${pedido.endereco?.numero ? `, ${pedido.endereco.numero}` : ""}
 
 
         </p>
@@ -539,24 +438,14 @@ export function abrirDetalhesPedido(pedido){
           <br>
 
 
-          ${
-            pedido.endereco?.complemento ||
-            pedido.referencia ||
-            "—"
-
-          }
+          ${pedido.endereco?.complemento || pedido.referencia || "—"}
 
 
         </p>
 
 
         `
-
-
-        :
-
-        ""
-
+          : ""
       }
 
 
@@ -574,10 +463,7 @@ export function abrirDetalhesPedido(pedido){
 
 
 
-      ${
-        itensHTML ||
-        "Nenhum item"
-      }
+      ${itensHTML || "Nenhum item"}
 
 
 
@@ -598,10 +484,7 @@ export function abrirDetalhesPedido(pedido){
 
         Método:
 
-        ${
-          pedido.pagamentoMetodo ||
-          "-"
-        }
+        ${pedido.pagamentoMetodo || "-"}
 
 
       </p>
@@ -613,10 +496,7 @@ export function abrirDetalhesPedido(pedido){
 
         Status:
 
-        ${
-          pedido.pagamentoStatus ||
-          "-"
-        }
+        ${pedido.pagamentoStatus || "-"}
 
 
       </p>
@@ -629,10 +509,7 @@ export function abrirDetalhesPedido(pedido){
 
       ${
         pedido.pagamentoMetodo === "DINHEIRO"
-
-        ?
-
-        `
+          ? `
 
         <p>
 
@@ -646,12 +523,7 @@ export function abrirDetalhesPedido(pedido){
 
           R$
 
-          ${
-            Number(
-              pedido.trocoPara || 0
-            ).toFixed(2)
-
-          }
+          ${Number(pedido.trocoPara || 0).toFixed(2)}
 
 
         </p>
@@ -671,26 +543,16 @@ export function abrirDetalhesPedido(pedido){
 
           R$
 
-          ${
-            (
-              Number(pedido.trocoPara || 0)
-              -
-              Number(pedido.valorTotal || 0)
-
-            ).toFixed(2)
-
-          }
+          ${(
+            Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
+          ).toFixed(2)}
 
 
         </p>
 
 
         `
-
-        :
-
-        ""
-
+          : ""
       }
 
 
@@ -711,12 +573,7 @@ export function abrirDetalhesPedido(pedido){
 
         R$
 
-        ${
-          Number(
-            pedido.valorTotal || 0
-          ).toFixed(2)
-
-        }
+        ${Number(pedido.valorTotal || 0).toFixed(2)}
 
 
       </h2>
@@ -728,10 +585,7 @@ export function abrirDetalhesPedido(pedido){
 
       ${
         pedido.observacoes
-
-        ?
-
-        `
+          ? `
 
         <h3>
 
@@ -747,11 +601,7 @@ export function abrirDetalhesPedido(pedido){
         </p>
 
         `
-
-        :
-
-        ""
-
+          : ""
       }
 
 
@@ -767,10 +617,7 @@ export function abrirDetalhesPedido(pedido){
 
       ${
         pedido.tipo === "Delivery" && !pedido.entrega
-
-        ?
-
-        `
+          ? `
 
         <button
 
@@ -786,11 +633,7 @@ export function abrirDetalhesPedido(pedido){
 
 
         `
-
-        :
-
-        ""
-
+          : ""
       }
 
 
@@ -818,200 +661,74 @@ export function abrirDetalhesPedido(pedido){
 
     </div>
 
-    `
-
+    `,
   );
-
-
-
-
-
-
 
   document
 
-  .getElementById(
-    "btnImprimirComanda"
-  )
+    .getElementById("btnImprimirComanda")
 
-  ?.addEventListener(
+    ?.addEventListener(
+      "click",
 
-    "click",
-
-    ()=>{
-
-      enviarParaImpressora(
-        pedido
-      );
-
-    }
-
-  );
-
-
-
-
-
-
+      () => {
+        enviarParaImpressora(pedido);
+      },
+    );
 
   document
 
-  .getElementById(
-    "btnSolicitarEntregador"
-  )
+    .getElementById("btnSolicitarEntregador")
 
-  ?.addEventListener(
+    ?.addEventListener(
+      "click",
 
-    "click",
+      async () => {
+        try {
+          const resposta = await solicitarEntregador(pedido);
 
-    async()=>{
+          if (resposta.success) {
+            await atualizarEntregadorPedido(
+              pedido.id,
 
+              resposta.entrega,
+            );
 
-      try{
+            toast("🚚 Entregador solicitado!");
 
+            fecharModal();
+          }
+        } catch (erro) {
+          console.error(erro);
 
-        const resposta =
-
-        await solicitarEntregador(
-          pedido
-        );
-
-
-
-        if(resposta.success){
-
-
-
-          await atualizarEntregadorPedido(
-
-            pedido.id,
-
-            resposta.entrega
-
-          );
-
-
-
-          toast(
-            "🚚 Entregador solicitado!"
-          );
-
-
-
-          fecharModal();
-
-
+          toast("Erro ao solicitar entregador.");
         }
-
-
-
-      }
-
-      catch(erro){
-
-
-        console.error(
-          erro
-        );
-
-
-        toast(
-          "Erro ao solicitar entregador."
-        );
-
-
-      }
-
-
-    }
-
-  );
-
-
-
+      },
+    );
 }
 
+async function enviarParaImpressora(pedido) {
+  try {
+    const resposta = await fetch("http://localhost:3002/print/order", {
+      method: "POST",
 
+      headers: {
+        "Content-Type": "application/json",
+      },
 
+      body: JSON.stringify(pedido),
+    });
 
+    const data = await resposta.json();
 
-
-
-
-async function enviarParaImpressora(pedido){
-
-
-  try{
-
-
-    const resposta =
-
-    await fetch(
-      "http://localhost:3002/print/order",
-      {
-
-        method:"POST",
-
-        headers:{
-
-          "Content-Type":
-          "application/json"
-
-        },
-
-
-        body:
-        JSON.stringify(
-          pedido
-        )
-
-
-      }
-
-    );
-
-
-
-    const data =
-    await resposta.json();
-
-
-
-
-    if(!data.success){
-
-      throw new Error(
-        data.message
-      );
-
+    if (!data.success) {
+      throw new Error(data.message);
     }
 
+    toast("Pedido enviado para impressora");
+  } catch (erro) {
+    console.error("Erro impressão:", erro);
 
-
-    toast(
-      "Pedido enviado para impressora"
-    );
-
-
-
+    toast("Erro ao imprimir");
   }
-
-
-  catch(erro){
-
-
-    console.error(
-      "Erro impressão:",
-      erro
-    );
-
-
-    toast(
-      "Erro ao imprimir"
-    );
-
-
-  }
-
-
 }
