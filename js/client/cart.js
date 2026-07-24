@@ -586,24 +586,33 @@ function addItemCustomizado(produto, adicionais = [], observacao = "") {
   );
 
   const item = {
-    ...produto,
-
     key,
 
     id: produto.id,
     nome: produto.nome,
+    imagem: produto.imagem || "",
 
-    preco: produto.precoPromocional ?? produto.precoBase ?? produto.preco,
+    precoBase,
 
-    precoBase: produto.precoPromocional ?? produto.precoBase ?? produto.preco,
+    valorAdicionais,
+
+    valorUnitario: precoBase + valorAdicionais,
+
+    preco: precoBase + valorAdicionais,
 
     quantidade: 1,
 
     promocao: produto.promocao ?? false,
+    regrasPromocao: produto.regrasPromocao ?? {},
+    precoOriginal: produto.precoOriginal ?? precoBase,
 
-    precoOriginal: produto.precoOriginal ?? null,
+    gruposPersonalizacao: produto.gruposPersonalizacao || [],
+    adicionaisDisponiveis: produto.adicionais || [],
 
-    precoPromocional: produto.precoPromocional ?? null,
+    personalizados: {
+      adicionais,
+      observacao: observacaoNormalizada,
+    },
   };
 
   const existente = carrinho.find(
@@ -792,7 +801,7 @@ function obterPrecoAtual(item) {
     return Number(item.precoOriginal || item.preco);
   }
 
-  return Number(item.preco);
+  return Number(item.valorUnitario ?? item.preco);
 }
 
 function atualizarResumo() {

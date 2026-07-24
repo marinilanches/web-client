@@ -1101,3 +1101,33 @@ color:var(--mf-primary);
 font-size:1.3rem;
 font-weight:900;
 }
+
+.menu-search{
+    position:relative;
+}
+
+.menu-search .form-control{
+    padding-left:48px;
+    min-height:54px;
+    border-radius:16px;
+}
+
+.menu-search-icon{
+    position:absolute;
+    left:18px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--mf-text-soft);
+    font-size:1rem;
+    pointer-events:none;
+}
+
+.menu-empty-search{
+    padding:48px 24px;
+    text-align:center;
+    color:var(--mf-text-soft);
+    background:#fff;
+    border:1px solid var(--mf-border);
+    border-radius:20px;
+    box-shadow:var(--mf-shadow-sm);
+}

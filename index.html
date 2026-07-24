@@ -202,6 +202,29 @@
                 </div>
               </div>
 
+              <div class="menu-search mb-4">
+                <i class="bi bi-search menu-search-icon"></i>
+
+                <input
+                  id="buscarProduto"
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar por nome, descrição ou categoria..."
+                  autocomplete="off"
+                />
+              </div>
+
+              <div
+                id="nenhumProdutoEncontrado"
+                class="menu-empty-search d-none"
+              >
+                <i class="bi bi-search fs-1"></i>
+
+                <h4>Nenhum produto encontrado</h4>
+
+                <p>Tente pesquisar por outro nome, descrição ou categoria.</p>
+              </div>
+
               <!-- products.js renderiza aqui -->
               <div id="produtos" class="row g-3"></div>
             </section>

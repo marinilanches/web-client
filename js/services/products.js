@@ -354,15 +354,33 @@ export async function listarProdutosMaisVendidos(limite = 3) {
   }
 }
 
+let produtosCache = [];
+
+let termoBusca = "";
+
 /* ==========================================================
    CLIENTE: CARREGAR PRODUTOS NA TELA
 ========================================================== */
 
 export async function loadProducts() {
+  ouvirProdutos((produtos) => {
+    produtosCache = produtos.filter((p) => p.ativo !== false);
+
+    aplicarBusca();
+  });
+
+  const inputBusca = document.getElementById("buscarProduto");
+
+  inputBusca?.addEventListener("input", (e) => {
+    termoBusca = e.target.value;
+
+    aplicarBusca();
+  });
+}
+
+function renderizarProdutos(produtos = produtosCache) {
   const container = document.getElementById("produtos");
   if (!container) return;
-
-  const produtos = await listarProdutos();
 
   if (!produtos.length) {
     container.innerHTML = `
@@ -511,6 +529,32 @@ export async function loadProducts() {
     .join("");
 }
 
+function aplicarBusca() {
+  const termo = termoBusca.trim().toLowerCase();
+
+  const lista = !termo
+    ? produtosCache
+    : produtosCache.filter((produto) => {
+        const nome = (produto.nome || "").toLowerCase();
+
+        const descricao = (produto.descricao || "").toLowerCase();
+
+        const categoria = (produto.categoria || "").toLowerCase();
+
+        return (
+          nome.includes(termo) ||
+          descricao.includes(termo) ||
+          categoria.includes(termo)
+        );
+      });
+
+  renderizarProdutos(lista);
+
+  document
+    .getElementById("nenhumProdutoEncontrado")
+    ?.classList.toggle("d-none", lista.length > 0);
+}
+
 /* ==========================================================
    PRODUTOS MAIS PEDIDOS
 ========================================================== */
@@ -519,9 +563,7 @@ export async function loadMaisPedidos() {
   const container = document.getElementById("produtosMaisPedidos");
   if (!container) return;
 
-  const produtos = await listarProdutos();
-
-  const maisPedidos = produtos
+  const maisPedidos = produtosCache
     .filter((produto) => {
       const categoria = (produto.categoria || "")
         .toLowerCase()
