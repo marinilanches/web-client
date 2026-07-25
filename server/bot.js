@@ -1,12 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
+const fs = require("fs");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const serviceAccount = require("./serviceAccountKey.json");
 const { solicitarEntregador } = require("./bee/bee.orders");
+
+async function limparLockWhatsapp() {
+  const caminho =
+    "./.wwebjs_auth/session-mesa-facil/SingletonLock";
+
+  if (fs.existsSync(caminho)) {
+    try {
+      fs.unlinkSync(caminho);
+      console.log("[BOT] Lock antigo removido");
+    } catch (erro) {
+      console.log(
+        "[BOT] Não conseguiu remover lock:",
+        erro.message
+      );
+    }
+  }
+}
 
 /* ==========================================================
    FIREBASE ADMIN
@@ -410,6 +428,7 @@ function limparFilaWhatsapp() {
 
 async function reconectarWhatsapp() {
   if (reconectando) {
+    console.log("[BOT] Reconexão já em andamento.");
     return;
   }
 
@@ -423,29 +442,79 @@ async function reconectarWhatsapp() {
   pedidosListenerIniciado = false;
 
   try {
+
+    console.log("[BOT] Iniciando limpeza para reconexão...");
+
     await aguardar(3000);
 
     limparFilaWhatsapp();
 
+
     if (client) {
+
+      console.log("[BOT] Destruindo cliente WhatsApp antigo...");
+
       try {
-        await client.destroy();
+
+        await client.logout();
+
       } catch (e) {
-        console.log("[BOT] Erro destruindo cliente:", e.message);
+
+        console.log(
+          "[BOT] Logout ignorado:",
+          e.message
+        );
+
       }
 
+
+      try {
+
+        await client.destroy();
+
+        console.log(
+          "[BOT] Cliente destruído."
+        );
+
+      } catch (e) {
+
+        console.log(
+          "[BOT] Erro destroy:",
+          e.message
+        );
+
+      }
+
+
       client = null;
+
     }
 
+
+    await limparLockWhatsapp();
+
+
     await criarClienteWhatsapp();
+
+
   } catch (e) {
-    console.error("[BOT] Erro na reconexão:", e.message);
+
+    console.error(
+      "[BOT] Erro na reconexão:",
+      e.message
+    );
+
   } finally {
+
     reconectando = false;
+
   }
 }
 
 async function criarClienteWhatsapp() {
+
+  await limparLockWhatsapp();
+
   if (inicializandoCliente) {
     console.log("[BOT] Cliente já está sendo inicializado.");
     return;
@@ -482,24 +551,29 @@ async function criarClienteWhatsapp() {
   }
 
   client = new Client({
-    authStrategy: new LocalAuth({
-      clientId: "mesa-facil",
-    }),
+   authStrategy: new LocalAuth({
+  clientId: "mesa-facil",
+  dataPath: "./.wwebjs_auth",
+}),
     puppeteer: {
-      headless: true,
+  headless: true,
 
-      executablePath:
-        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  executablePath:
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
 
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-      ],
-    },
+  userDataDir:
+    "C:\\Users\\Usuário\\temp-web\\server\\.wwebjs_cache\\chrome",
+
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--no-first-run",
+    "--no-zygote",
+    "--disable-background-networking",
+  ],
+},
   });
 
   client.on("qr", async (qr) => {
@@ -631,18 +705,35 @@ async function criarClienteWhatsapp() {
     console.warn("[BOT] WhatsApp desconectado:", reason);
 
     if (clienteDesconectado) {
-      try {
-        try {
-          if (clienteDesconectado && clienteDesconectado.pupBrowser) {
-            await clienteDesconectado.destroy();
-          }
-        } catch (e) {
-          console.log("[BOT] Erro destruindo sessão:", e.message);
-        }
-      } catch (e) {
-        console.warn("[BOT] Erro ao destruir cliente:", e.message);
-      }
+
+  try {
+
+    console.log("[BOT] Encerrando navegador antigo...");
+
+
+    if (clienteDesconectado.pupBrowser) {
+
+      await clienteDesconectado.destroy();
+
+      console.log(
+        "[BOT] Navegador encerrado."
+      );
+
     }
+
+  } catch (e) {
+
+    console.log(
+      "[BOT] Erro destruindo sessão:",
+      e.message
+    );
+
+  }
+
+}
+
+
+await limparLockWhatsapp();
 
     if (client === clienteDesconectado) {
       client = null;
