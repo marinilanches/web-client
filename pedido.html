@@ -933,6 +933,21 @@
 
         console.table(configuracoesLoja.delivery.configuracaoEntrega.faixas);
 
+        if (distancia > configuracoesLoja.delivery.raioMaximoKm) {
+
+          console.warn(
+            "Fora da área de entrega:",
+            distancia
+          );
+
+          entregaDisponivel = false;
+          taxaEntrega = 0;
+
+          recalcularTotal();
+
+          return;
+        }
+
         const taxa = calcularTaxaPorDistancia(distancia);
 
         console.log({
@@ -984,19 +999,30 @@
       cep,
       numero = ""
     ) {
+
       const consultas = [
+
+        // tentativa completa
         `${rua}, ${numero}, ${cidade}, ${estado}, ${cep}, Brasil`,
+
+        // sem número
         `${rua}, ${cidade}, ${estado}, ${cep}, Brasil`,
-        `${rua}, ${cidade}, ${estado}, Brasil`,
+
+        // usando bairro
+        `${bairro}, ${cidade}, ${estado}, Brasil`
+
       ];
 
 
       for (const endereco of consultas) {
 
+        console.log(
+          "ENDEREÇO BUSCADO:",
+          endereco
+        );
+
+
         try {
-
-          console.log("Tentando geocoding:", endereco);
-
 
           const resposta = await fetch(
             "https://nominatim.openstreetmap.org/search?" +
@@ -1004,19 +1030,54 @@
               format: "json",
               q: endereco,
               limit: 1,
-              countrycodes: "br"
+              countrycodes: "br",
+              addressdetails: 1
             })
           );
 
 
           const dados = await resposta.json();
 
+          console.log(
+            "RESPOSTA NOMINATIM:",
+            dados
+          );
+
 
           if (dados.length) {
 
+            const resultado = dados[0];
+
+            console.log(
+              "RETORNO NOMINATIM:",
+              resultado
+            );
+
+
+            // rejeita resultados muito genéricos
+            if (
+              [
+                "city",
+                "town",
+                "village",
+                "municipality",
+                "administrative",
+                "boundary"
+              ].includes(resultado.type)
+            ) {
+
+              console.warn(
+                "Resultado genérico descartado:",
+                resultado.display_name
+              );
+
+              continue;
+            }
+
+
             const coordenadas = {
-              latitude: Number(dados[0].lat),
-              longitude: Number(dados[0].lon)
+              latitude: Number(resultado.lat),
+              longitude: Number(resultado.lon)
             };
 
 
@@ -1024,21 +1085,15 @@
             longitudeCliente = coordenadas.longitude;
 
 
-            console.log(
-              "Coordenadas encontradas:",
-              coordenadas
-            );
-
-
             return coordenadas;
           }
 
 
-        } catch (erro) {
+        } catch (error) {
 
           console.error(
             "Erro no geocoding:",
-            erro
+            error
           );
 
         }
@@ -1048,7 +1103,7 @@
 
       console.error(
         "Não foi possível encontrar coordenadas:",
-        consultas[0]
+        consultas
       );
 
 
@@ -1079,16 +1134,43 @@
       ruaEl.value = dados.logradouro || "";
       bairroEl.value = dados.bairro || "";
 
-      numeroEl.value = "";
+      let coordenadas = null;
 
-      const coordenadas = await buscarCoordenadasEndereco(
-        dados.logradouro,
-        dados.bairro,
-        dados.localidade,
-        dados.uf,
-        numeroCEP,
-        numeroEl.value
-      );
+
+      if (
+        dados.logradouro &&
+        dados.logradouro.toLowerCase() !== "área rural"
+      ) {
+
+        coordenadas = await buscarCoordenadasEndereco(
+          dados.logradouro,
+          dados.bairro,
+          dados.localidade,
+          dados.uf,
+          numeroCEP,
+          numeroEl.value
+        );
+
+      } else {
+
+        console.warn(
+          "CEP rural sem coordenada exata:",
+          {
+            cep: numeroCEP,
+            bairro: dados.bairro,
+            cidade: dados.localidade
+          }
+        );
+
+
+        alert(
+          "Este CEP não possui localização exata. Use o botão 'Usar localização atual'."
+        );
+
+
+        return;
+
+      }
 
 
       if (!coordenadas) {
@@ -1204,6 +1286,54 @@
       const clienteAuth = await garantirClienteAuth();
 
       const tipo = tipoPedidoEl.value;
+
+
+      // VALIDAÇÃO DELIVERY - EXIGE COORDENADAS
+      if (tipo === "Delivery") {
+
+        if (
+          latitudeCliente == null ||
+          longitudeCliente == null
+        ) {
+
+          console.error(
+            "Delivery sem coordenadas:",
+            {
+              latitudeCliente,
+              longitudeCliente,
+              rua: ruaEl.value,
+              cep: cepEl.value
+            }
+          );
+
+          alert(
+            "Não foi possível localizar seu endereço. Use o botão 'Usar localização atual'."
+          );
+
+          return;
+        }
+
+
+        if (!distanciaEntrega || distanciaEntrega <= 0) {
+
+          console.error(
+            "Delivery sem distância calculada:",
+            {
+              distanciaEntrega,
+              latitudeCliente,
+              longitudeCliente
+            }
+          );
+
+          alert(
+            "A distância de entrega ainda não foi calculada."
+          );
+
+          return;
+        }
+
+      }
+
 
       const telefoneWhatsapp = normalizarTelefone(telefoneEl.value.trim());
 
@@ -1364,6 +1494,11 @@
           longitudeCliente,
           endereco: pedido.endereco,
         });
+
+        console.log(
+          "PEDIDO FINAL:",
+          pedido
+        );
 
         const docRef = await criarPedido(pedido);
 
