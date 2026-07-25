@@ -64,9 +64,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          adicionais
-            ? `
+        ${adicionais
+          ? `
 
           <p>
 
@@ -83,7 +82,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-            : ""
+          : ""
         }
 
 
@@ -91,9 +90,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          item.observacaoItem
-            ? `
+        ${item.observacaoItem
+          ? `
 
           <p>
 
@@ -110,7 +108,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-            : ""
+          : ""
         }
 
 
@@ -183,9 +181,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.tipo === "Delivery"
-          ? `
+      ${pedido.tipo === "Delivery"
+      ? `
 
         <h3>
 
@@ -197,9 +194,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          pedido.entrega
-            ? `
+        ${pedido.entrega
+        ? `
 
           <h3>
 
@@ -257,11 +253,10 @@ export function abrirDetalhesPedido(pedido) {
             <br>
 
 
-            ${
-              pedido.entrega.previsaoMinutos
-                ? `${pedido.entrega.previsaoMinutos} min`
-                : "-"
-            }
+            ${pedido.entrega.previsaoMinutos
+          ? `${pedido.entrega.previsaoMinutos} min`
+          : "-"
+        }
 
 
           </p>
@@ -309,9 +304,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-          ${
-            pedido.entrega.trackingUrl
-              ? `
+          ${pedido.entrega.trackingUrl
+          ? `
 
             <p>
 
@@ -330,14 +324,14 @@ export function abrirDetalhesPedido(pedido) {
             </p>
 
             `
-              : ""
-          }
+          : ""
+        }
 
 
 
           `
-            : ""
-        }
+        : ""
+      }
 
 
 
@@ -360,25 +354,36 @@ export function abrirDetalhesPedido(pedido) {
 
         </p>
 
-        ${
-          pedido.distanciaEntrega
-            ? `
-              <p>
+        ${pedido.distanciaEntrega != null
+          ? `
+            <p>
+              <strong>
+              Distância:
+              </strong>
 
-                <strong>
+              <br>
 
-                Distância:
+              ${Number(pedido.distanciaEntrega).toFixed(2)} km
 
-                </strong>
-
-                <br>
-
-                ${Number(pedido.distanciaEntrega).toFixed(2)} km
-
-              </p>
-            `
-            : ""
+            </p>
+          `
+          : ""
         }
+
+
+        <p>
+
+          <strong>
+
+          Taxa de entrega:
+
+          </strong>
+
+          <br>
+
+          R$ ${Number(pedido.taxaEntrega || 0).toFixed(2)}
+
+        </p>
 
 
 
@@ -445,8 +450,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -507,9 +512,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.pagamentoMetodo === "DINHEIRO"
-          ? `
+      ${pedido.pagamentoMetodo === "DINHEIRO"
+      ? `
 
         <p>
 
@@ -544,16 +548,16 @@ export function abrirDetalhesPedido(pedido) {
           R$
 
           ${(
-            Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
-          ).toFixed(2)}
+        Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
+      ).toFixed(2)}
 
 
         </p>
 
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -583,9 +587,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.observacoes
-          ? `
+      ${pedido.observacoes
+      ? `
 
         <h3>
 
@@ -601,8 +604,8 @@ export function abrirDetalhesPedido(pedido) {
         </p>
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -615,9 +618,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.tipo === "Delivery" && !pedido.entrega
-          ? `
+      ${pedido.tipo === "Delivery" && !pedido.entrega
+      ? `
 
         <button
 
@@ -633,8 +635,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 

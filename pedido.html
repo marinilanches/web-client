@@ -616,6 +616,9 @@
         linhaTaxa.style.display = "block";
       }
 
+      taxaEntrega = Number(taxaEntrega || 0);
+      valorSubtotal = Number(valorSubtotal || 0);
+
       valorTotal = valorSubtotal + taxaEntrega;
 
       subtotalEl.innerText = valorSubtotal.toFixed(2);
@@ -957,7 +960,26 @@
           taxa,
         });
 
-        taxaEntrega = taxa;
+
+        if (taxa == null) {
+
+          console.warn(
+            "Não fazemos entrega nessa distância:",
+            distancia
+          );
+
+
+          entregaDisponivel = false;
+          taxaEntrega = 0;
+
+          recalcularTotal();
+
+          return;
+
+        }
+
+
+        taxaEntrega = Number(taxa);
         entregaDisponivel = taxa != null;
 
         recalcularTotal();
@@ -1001,16 +1023,9 @@
     ) {
 
       const consultas = [
-
-        // tentativa completa
-        `${rua}, ${numero}, ${cidade}, ${estado}, ${cep}, Brasil`,
-
-        // sem número
-        `${rua}, ${cidade}, ${estado}, ${cep}, Brasil`,
-
-        // usando bairro
-        `${bairro}, ${cidade}, ${estado}, Brasil`
-
+        `${rua}, ${numero}, ${cep}, Brasil`,
+        `${rua}, ${cep}, Brasil`,
+        `${rua}, ${bairro}, Brasil`
       ];
 
 
@@ -1536,7 +1551,6 @@
         const cliente = await buscarCliente();
 
         if (cliente) {
-          bairroEl.value = cliente.endereco?.bairro || "";
 
           clienteEl.value = cliente.nome || "";
 
@@ -1548,16 +1562,63 @@
 
           numeroEl.value = cliente.endereco?.numero || "";
 
+
+          // Recupera bairro salvo
+          bairroEl.value = cliente.endereco?.bairro || "";
+
+
+          // Caso não tenha bairro salvo, busca pelo CEP
           if (
-            ruaEl.value &&
+            !bairroEl.value &&
             cepEl.value
           ) {
+
+            try {
+
+              const cepLimpo = cepEl.value.replace(/\D/g, "");
+
+              const resposta = await fetch(
+                `https://viacep.com.br/ws/${cepLimpo}/json/`
+              );
+
+              const dadosCEP = await resposta.json();
+
+
+              if (!dadosCEP.erro) {
+
+                bairroEl.value = dadosCEP.bairro || "";
+
+                console.log(
+                  "BAIRRO RECUPERADO PELO CEP:",
+                  bairroEl.value
+                );
+
+              }
+
+            } catch (erro) {
+
+              console.error(
+                "Erro ao buscar bairro pelo CEP:",
+                erro
+              );
+
+            }
+
+          }
+
+          if (
+            ruaEl.value &&
+            cepEl.value &&
+            tipoPedidoEl.value === "Delivery"
+          ) {
+
+            console.log("Buscando coordenadas do cliente salvo...");
 
             const coordenadas = await buscarCoordenadasEndereco(
               ruaEl.value,
               bairroEl.value,
-              cliente.endereco?.cidade || "",
-              cliente.endereco?.estado || "",
+              "",
+              "",
               cepEl.value.replace(/\D/g, ""),
               numeroEl.value
             );
@@ -1568,12 +1629,23 @@
               latitudeCliente = coordenadas.latitude;
               longitudeCliente = coordenadas.longitude;
 
+
               console.log("COORDENADAS CLIENTE CARREGADO:", {
                 latitudeCliente,
                 longitudeCliente
               });
 
+
+              await calcularTaxaEntregaAutomatica();
+
+            } else {
+
+              console.warn(
+                "Cliente possui endereço, mas não foi possível encontrar coordenadas."
+              );
+
             }
+
           }
 
           referenciaEl.value = cliente.endereco?.complemento || "";
