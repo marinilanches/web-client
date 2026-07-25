@@ -551,30 +551,26 @@ async function criarClienteWhatsapp() {
   }
 
   client = new Client({
-   authStrategy: new LocalAuth({
-  clientId: "mesa-facil",
-  dataPath: "./.wwebjs_auth",
-}),
-    puppeteer: {
-  headless: true,
+  authStrategy: new LocalAuth({
+    clientId: "mesa-facil",
+  }),
 
-  executablePath:
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  puppeteer: {
+    headless: true,
 
-  userDataDir:
-    "C:\\Users\\Usuário\\temp-web\\server\\.wwebjs_cache\\chrome",
+    executablePath:
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
 
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-first-run",
-    "--no-zygote",
-    "--disable-background-networking",
-  ],
-},
-  });
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+    ],
+  },
+});
 
   client.on("qr", async (qr) => {
     try {
@@ -748,6 +744,9 @@ await limparLockWhatsapp();
   });
 
   try {
+
+console.log("[BOT] Chamando initialize do WhatsApp...");
+
     await client.initialize();
   } catch (erro) {
     console.error("[BOT] Erro ao inicializar:", erro.message);
@@ -821,4 +820,6 @@ app.listen(PORT, () => {
   console.log(`🚀 API do WhatsApp rodando em http://localhost:${PORT}`);
 });
 
-criarClienteWhatsapp();
+criarClienteWhatsapp().catch((erro) => {
+  console.error("[BOT] Erro fatal ao criar cliente WhatsApp:", erro);
+});
