@@ -385,33 +385,13 @@
 
           numeroEl.value = "";
 
-          try {
-            const detalhes = await buscarDetalhesEndereco(
-              item.latitude,
-              item.longitude,
-            );
+          // Mantém o bairro digitado pelo cliente
+          // Não altera bairroEl.value
 
-            console.log("Detalhes endereço:", detalhes);
+          // Mantém o CEP para o cliente preencher
+          cepEl.value = "";
 
-            // preenche somente bairro
-            bairroEl.value = detalhes.bairro || item.bairro || "";
-
-            const bairroEncontrado = encontrarBairro(
-              detalhes.bairro || item.bairro,
-            );
-
-            if (bairroEncontrado) {
-              bairroEl.value = bairroEncontrado.nome;
-            }
-
-            // mantém CEP manual
-            cepEl.value = "";
-
-            // calcula a taxa imediatamente usando a coordenada da rua
-            await calcularTaxaEntregaAutomatica();
-          } catch (erro) {
-            console.error("Erro detalhes endereço:", erro);
-          }
+          await calcularTaxaEntregaAutomatica();
 
           fecharSugestoesRua();
 
@@ -818,14 +798,6 @@
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .trim();
-    }
-
-    function encontrarBairro(nomeBairro) {
-      if (!nomeBairro) return null;
-
-      return {
-        nome: nomeBairro.trim(),
-      };
     }
 
     function calcularDistancia(lat1, lon1, lat2, lon2) {
