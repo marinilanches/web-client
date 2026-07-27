@@ -3,6 +3,8 @@ import { toast } from "../components/toast.js";
 
 import { abrirDetalhesPedido } from "../components/pedido-detalhes.js";
 
+import { renderBoard } from "../components/pedido-column.js";
+
 import {
   ouvirPedidos,
   criarPedido,
@@ -19,6 +21,7 @@ import {
 const listaPedidos = document.getElementById("listaPedidos");
 const btnNovoPedido = document.getElementById("novoPedido");
 const filtroStatus = document.getElementById("filtroStatus");
+const filtroTipo = document.getElementById("filtroTipo");
 const buscarPedido = document.getElementById("buscarPedido");
 
 /* ==========================================
@@ -44,35 +47,84 @@ ouvirPedidos((pedidos) => {
 ========================================== */
 
 filtroStatus?.addEventListener("change", aplicarFiltros);
+
+filtroTipo?.addEventListener("change", aplicarFiltros);
+
 buscarPedido?.addEventListener("input", aplicarFiltros);
 
 function aplicarFiltros() {
-  let pedidos = [...pedidosCache];
 
-  pedidos = pedidos.filter((p) => String(p.numeroPedido) !== "2600");
+    let pedidos = [...pedidosCache];
 
-  const statusSelecionado = filtroStatus?.value?.trim() || "";
-  const termoBusca = buscarPedido?.value?.trim().toLowerCase() || "";
+    pedidos = pedidos.filter(
+        (p) => String(p.numeroPedido) !== "2600"
+    );
 
-  if (statusSelecionado) {
-    pedidos = pedidos.filter((p) => p.status === statusSelecionado);
-  }
+    const status = filtroStatus?.value || "";
 
-  if (termoBusca) {
-    pedidos = pedidos.filter((p) => {
-      const cliente = (p.cliente || "").toLowerCase();
-      const telefone = (p.telefone || "").toLowerCase();
-      const tipo = (p.tipo || "").toLowerCase();
+    const tipo = filtroTipo?.value || "";
 
-      return (
-        cliente.includes(termoBusca) ||
-        telefone.includes(termoBusca) ||
-        tipo.includes(termoBusca)
-      );
+    const busca = buscarPedido?.value
+        ?.trim()
+        .toLowerCase() || "";
+
+    if (status) {
+
+        pedidos = pedidos.filter(
+            (p) => p.status === status
+        );
+
+    }
+
+    if (tipo) {
+
+        pedidos = pedidos.filter(
+            (p) => p.tipo === tipo
+        );
+
+    }
+
+    if (busca) {
+
+        pedidos = pedidos.filter((p) => {
+
+            return (
+
+                (p.cliente || "")
+                    .toLowerCase()
+                    .includes(busca)
+
+                ||
+
+                (p.telefone || "")
+                    .toLowerCase()
+                    .includes(busca)
+
+                ||
+
+                String(p.numeroPedido || "")
+                    .includes(busca)
+
+                ||
+
+                (p.tipo || "")
+                    .toLowerCase()
+                    .includes(busca)
+
+            );
+
+        });
+
+    }
+
+    renderBoard(pedidos, {
+
+        onDetalhes: abrirDetalhesPedido,
+
+        onAcao: tratarAcaoPedido
+
     });
-  }
 
-  renderPedidos(pedidos);
 }
 
 /* ==========================================
@@ -250,103 +302,67 @@ function renderPedidos(pedidos) {
   bindAcoesPedidos();
 }
 
-/* ==========================================
-   AÇÕES DOS PEDIDOS
-========================================== */
+async function tratarAcaoPedido(pedido) {
 
-function bindAcoesPedidos() {
-  document.querySelectorAll(".btn-detalhes").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const pedido = pedidosCache.find((p) => p.id === btn.dataset.id);
+    try {
 
-      abrirDetalhesPedido(pedido);
-    });
-  });
-  document.querySelectorAll(".btn-preparando").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        const pedido = pedidosCache.find((p) => p.id === btn.dataset.id);
+        switch (pedido.status) {
 
-        if (!pedido) {
-          toast("Pedido não encontrado");
-          return;
+            case "RECEBIDO":
+
+                await alterarStatus(
+                    pedido.id,
+                    "PREPARANDO"
+                );
+
+                if (!pedido.impresso) {
+
+                    await enviarParaImpressora(pedido);
+
+                    await marcarComoImpresso(
+                        pedido.id
+                    );
+
+                }
+
+                toast("Pedido em preparo");
+
+                break;
+
+            case "PREPARANDO":
+
+                await alterarStatus(
+                    pedido.id,
+                    "PRONTO"
+                );
+
+                toast("Pedido pronto");
+
+                break;
+
+            case "PRONTO":
+
+                await alterarStatus(
+                    pedido.id,
+                    "ENTREGUE"
+                );
+
+                toast("Pedido entregue");
+
+                break;
+
         }
 
-        // muda status
-        await alterarStatus(pedido.id, "PREPARANDO");
+    }
 
-        // imprime somente uma vez
-        if (!pedido.impresso) {
-          await enviarParaImpressora(pedido);
+    catch (erro) {
 
-          // marca como impresso no Firebase
-          await marcarComoImpresso(pedido.id);
-        }
-
-        toast("Pedido marcado como PREPARANDO");
-      } catch (erro) {
         console.error(erro);
 
-        toast("Erro ao preparar pedido.");
-      }
-    });
-  });
-
-  document.querySelectorAll(".btn-pronto").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        await alterarStatus(btn.dataset.id, "PRONTO");
-        toast("Pedido marcado como PRONTO");
-      } catch (erro) {
-        console.error(erro);
         toast("Erro ao atualizar pedido.");
-      }
-    });
-  });
 
-  document.querySelectorAll(".btn-entregue").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        await alterarStatus(btn.dataset.id, "ENTREGUE");
-        toast("Pedido marcado como ENTREGUE");
-      } catch (erro) {
-        console.error(erro);
-        toast("Erro ao atualizar pedido.");
-      }
-    });
-  });
+    }
 
-  document.querySelectorAll(".btn-cancelar").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        await cancelarPedido(btn.dataset.id);
-        toast("Pedido cancelado.");
-      } catch (erro) {
-        console.error(erro);
-        toast("Erro ao cancelar pedido.");
-      }
-    });
-  });
-
-  document.querySelectorAll(".btn-excluir").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const confirmar = confirm("Deseja realmente excluir este pedido?");
-
-      if (!confirmar) {
-        return;
-      }
-
-      try {
-        await excluirPedido(btn.dataset.id);
-
-        toast("Pedido excluído com sucesso.");
-      } catch (erro) {
-        console.error("Erro ao excluir pedido:", erro);
-
-        toast("Erro ao excluir pedido.");
-      }
-    });
-  });
 }
 
 /* ==========================================
