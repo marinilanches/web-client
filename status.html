@@ -1,132 +1,130 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Status do Pedido</title>
-    <link rel="icon" type="image/png" href="./assets/avatar.png" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <link rel="stylesheet" href="./css/styles.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Status do Pedido</title>
+  <link rel="icon" type="image/png" href="./assets/avatar.png" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="./css/pedido-status.css" />
-  </head>
+  <link rel="stylesheet" href="./css/styles.css" />
 
-  <body class="cliente-body">
-    <header class="store-header">
-      <div class="container py-3 py-lg-4">
-        <div class="store-hero card border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center gap-3">
-              <div class="store-logo">
-                <img src="./assets/avatar.png" alt="Logo do restaurante" />
-              </div>
+  <link rel="stylesheet" href="./css/pedido-status.css" />
+</head>
 
-              <div>
-                <p class="store-kicker mb-1">Acompanhe seu pedido</p>
+<body class="cliente-body">
+  <header class="store-header">
+    <div class="container py-3 py-lg-4">
+      <div class="store-hero card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="store-logo">
+              <img src="./assets/avatar.png" alt="Logo do restaurante" />
+            </div>
 
-                <h2 class="store-title">Seus pedidos</h2>
-              </div>
+            <div>
+              <p class="store-kicker mb-1">Acompanhe seu pedido</p>
+
+              <h2 class="store-title">Seus pedidos</h2>
             </div>
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main class="container py-3">
-      <section>
-        <div class="mb-4">
-          <h2 class="section-title">Seus pedidos</h2>
+  <main class="container py-3">
+    <section>
+      <div class="mb-4">
+        <h2 class="section-title">Seus pedidos</h2>
 
-          <p class="section-subtitle">
-            Acompanhe o andamento do seu pedido em tempo real.
-          </p>
+        <p class="section-subtitle">
+          Acompanhe o andamento do seu pedido em tempo real.
+        </p>
+      </div>
+
+      <div id="pedidoAtual"></div>
+
+      <div class="mt-4">
+        <h2 class="section-title">Seus pedidos</h2>
+        <p class="section-subtitle">Acompanhe seus pedidos recentes.</p>
+        <div id="listaPedidos">
+          <div class="status-card mb-3">Carregando...</div>
         </div>
+      </div>
+    </section>
+  </main>
 
-        <div id="pedidoAtual"></div>
+  <script type="module">
+    import {
+      ouvirPedidosCliente,
+      ouvirPedidoPorId,
+    } from "./js/services/orders.js";
 
-        <div class="mt-4">
-          <h2 class="section-title">Seus pedidos</h2>
-          <p class="section-subtitle">Acompanhe seus pedidos recentes.</p>
-          <div id="listaPedidos">
-            <div class="status-card mb-3">Carregando...</div>
-          </div>
-        </div>
-      </section>
-    </main>
+    import {
+      garantirClienteAuth,
+      buscarCliente,
+    } from "./js/services/customers.js";
 
-    <script type="module">
-      import {
-        ouvirPedidosCliente,
-        ouvirPedidoPorId,
-      } from "./js/services/orders.js";
+    const pedidoAtual = document.getElementById("pedidoAtual");
+    const listaPedidos = document.getElementById("listaPedidos");
 
-      import {
-        garantirClienteAuth,
-        buscarCliente,
-      } from "./js/services/customers.js";
+    function formatarMoeda(valor) {
+      return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+    }
 
-      const pedidoAtual = document.getElementById("pedidoAtual");
-      const listaPedidos = document.getElementById("listaPedidos");
+    function formatarData(data) {
+      if (!data) return "—";
 
-      function formatarMoeda(valor) {
-        return Number(valor || 0).toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        });
+      if (typeof data.toDate === "function") {
+        return data.toDate().toLocaleString("pt-BR");
       }
 
-      function formatarData(data) {
-        if (!data) return "—";
-
-        if (typeof data.toDate === "function") {
-          return data.toDate().toLocaleString("pt-BR");
-        }
-
-        try {
-          return new Date(data).toLocaleString("pt-BR");
-        } catch {
-          return "—";
-        }
+      try {
+        return new Date(data).toLocaleString("pt-BR");
+      } catch {
+        return "—";
       }
+    }
 
-      function renderMensagem(texto) {
-        pedidoAtual.innerHTML = `
+    function renderMensagem(texto) {
+      pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
         <p>${texto}</p>
       </div>
     `;
+    }
+    function getStatusLabel(status) {
+      switch (status) {
+        case "RECEBIDO":
+          return "🟡 Recebido";
+        case "PREPARANDO":
+          return "👨‍🍳 Em preparo";
+        case "PRONTO":
+          return "✅ Pronto";
+        case "ENTREGUE":
+          return "🚚 Entregue";
+        case "CANCELADO":
+          return "❌ Cancelado";
+        default:
+          return status || "—";
       }
-      function getStatusLabel(status) {
-        switch (status) {
-          case "RECEBIDO":
-            return "🟡 Recebido";
-          case "PREPARANDO":
-            return "👨‍🍳 Em preparo";
-          case "PRONTO":
-            return "✅ Pronto";
-          case "ENTREGUE":
-            return "🚚 Entregue";
-          case "CANCELADO":
-            return "❌ Cancelado";
-          default:
-            return status || "—";
-        }
-      }
+    }
 
-      function isPix(metodo) {
-        if (!metodo) return false;
-        const texto = String(metodo).toLowerCase().trim();
-        return texto === "pix" || texto.includes("pix");
-      }
+    function isPix(metodo) {
+      if (!metodo) return false;
+      const texto = String(metodo).toLowerCase().trim();
+      return texto === "pix" || texto.includes("pix");
+    }
 
-      function getPixHtml(pedido) {
-        if (!isPix(pedido.pagamentoMetodo)) return "";
+    function getPixHtml(pedido) {
+      if (!isPix(pedido.pagamentoMetodo)) return "";
 
-        return `
+      return `
       <div class="pix-box">
         <div class="pix-pago-topo">
           <h4>Pagamento via PIX</h4>
@@ -166,72 +164,72 @@
         </div>
       </div>
     `;
-      }
+    }
 
-      function ativarBotaoCopiarPix() {
-        const botao = document.getElementById("btnCopiarPix");
-        if (!botao) return;
+    function ativarBotaoCopiarPix() {
+      const botao = document.getElementById("btnCopiarPix");
+      if (!botao) return;
 
-        const chavePix = "(19) 99162-0881";
-        const telefoneComprovante = "5519992522781";
+      const chavePix = "(19) 99162-0881";
+      const telefoneComprovante = "5519992522781";
 
-        botao.addEventListener("click", async () => {
+      botao.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(chavePix);
+
+          const textoOriginal = botao.textContent;
+          botao.textContent = "Chave copiada!";
+
+          setTimeout(() => {
+            botao.textContent = textoOriginal;
+          }, 2000);
+        } catch {
+          alert(
+            "Não foi possível copiar automaticamente.\n\nChave PIX: " +
+            chavePix,
+          );
+        }
+      });
+
+      const comprovante = document.getElementById("pixComprovante");
+
+      if (comprovante) {
+        comprovante.style.cursor = "pointer";
+        comprovante.title = "Clique para copiar";
+
+        comprovante.addEventListener("click", async () => {
           try {
-            await navigator.clipboard.writeText(chavePix);
+            await navigator.clipboard.writeText(telefoneComprovante);
 
-            const textoOriginal = botao.textContent;
-            botao.textContent = "Chave copiada!";
+            const textoOriginal = comprovante.textContent;
+            comprovante.textContent = "Copiado!";
 
             setTimeout(() => {
-              botao.textContent = textoOriginal;
-            }, 2000);
+              comprovante.textContent = textoOriginal;
+            }, 1500);
           } catch {
             alert(
-              "Não foi possível copiar automaticamente.\n\nChave PIX: " +
-                chavePix,
+              "Telefone para envio do comprovante: " + telefoneComprovante,
             );
           }
         });
-
-        const comprovante = document.getElementById("pixComprovante");
-
-        if (comprovante) {
-          comprovante.style.cursor = "pointer";
-          comprovante.title = "Clique para copiar";
-
-          comprovante.addEventListener("click", async () => {
-            try {
-              await navigator.clipboard.writeText(telefoneComprovante);
-
-              const textoOriginal = comprovante.textContent;
-              comprovante.textContent = "Copiado!";
-
-              setTimeout(() => {
-                comprovante.textContent = textoOriginal;
-              }, 1500);
-            } catch {
-              alert(
-                "Telefone para envio do comprovante: " + telefoneComprovante,
-              );
-            }
-          });
-        }
       }
+    }
 
-      function gerarProgresso(status) {
-        const etapas = [
-          { id: "RECEBIDO", nome: "Recebido", emoji: "📥" },
-          { id: "PREPARANDO", nome: "Preparando", emoji: "👨‍🍳" },
-          { id: "PRONTO", nome: "Pronto", emoji: "✅" },
-          { id: "ENTREGUE", nome: "Entregue", emoji: "🚚" },
-        ];
+    function gerarProgresso(status) {
+      const etapas = [
+        { id: "RECEBIDO", nome: "Recebido", emoji: "📥" },
+        { id: "PREPARANDO", nome: "Preparando", emoji: "👨‍🍳" },
+        { id: "PRONTO", nome: "Pronto", emoji: "✅" },
+        { id: "ENTREGUE", nome: "Entregue", emoji: "🚚" },
+      ];
 
-        const indiceAtual = etapas.findIndex((etapa) => etapa.id === status);
+      const indiceAtual = etapas.findIndex((etapa) => etapa.id === status);
 
-        const porcentagem =
-          indiceAtual < 0 ? 0 : (indiceAtual / (etapas.length - 1)) * 100;
+      const porcentagem =
+        indiceAtual < 0 ? 0 : (indiceAtual / (etapas.length - 1)) * 100;
 
-        return `
+      return `
       <div class="status-progresso">
         <div class="progresso-linha"></div>
         <div
@@ -241,44 +239,44 @@
 
         <div class="progresso-etapas">
           ${etapas
-            .map((etapa, index) => {
-              let classe = "";
+          .map((etapa, index) => {
+            let classe = "";
 
-              if (index <= indiceAtual) classe = "concluida";
+            if (index <= indiceAtual) classe = "concluida";
 
-              if (index === indiceAtual && status !== "ENTREGUE") {
-                classe = "ativa";
-              }
+            if (index === indiceAtual && status !== "ENTREGUE") {
+              classe = "ativa";
+            }
 
-              return `
+            return `
               <div class="progresso-etapa ${classe}">
                 <div class="progresso-bolinha">${etapa.emoji}</div>
                 <span>${etapa.nome}</span>
               </div>
             `;
-            })
-            .join("")}
+          })
+          .join("")}
         </div>
       </div>
     `;
-      }
+    }
 
-      function gerarMensagemWhatsappPedido(pedido, pedidoId) {
-        const itens = (pedido.itens || [])
-          .map((item) => {
-            const adicionais = (item.adicionais || [])
-              .map((a) => ` + ${a.nome}`)
-              .join("");
+    function gerarMensagemWhatsappPedido(pedido, pedidoId) {
+      const itens = (pedido.itens || [])
+        .map((item) => {
+          const adicionais = (item.adicionais || [])
+            .map((a) => ` + ${a.nome}`)
+            .join("");
 
-            return `${item.quantidade || 1}x ${item.nome}${adicionais}`;
-          })
-          .join("\n");
+          return `${item.quantidade || 1}x ${item.nome}${adicionais}`;
+        })
+        .join("\n");
 
-        const endereco = pedido.endereco || {};
+      const endereco = pedido.endereco || {};
 
-        const linkStatusPedido = `https://marinilanches.vercel.app/status.html?id=${pedidoId}`;
+      const linkStatusPedido = `https://marinilanches.vercel.app/status.html?id=${pedidoId}`;
 
-        let mensagem = `*Pedido feito pelo Lanches Marini*
+      let mensagem = `*Pedido feito pelo Lanches Marini*
 
       Pedido nº *${pedido.numeroPedido || pedidoId}*
 
@@ -295,15 +293,14 @@
       *Telefone*: ${pedido.telefone || ""}
       *Tipo*: ${pedido.tipo || ""}`;
 
-        if (pedido.tipo === "Delivery") {
-          mensagem += `
-
-      *Endereço*: ${endereco.rua || ""}, ${endereco.numero || ""} - ${
-        endereco.bairro || pedido.bairro || ""
-      } - ${endereco.cidade || ""}`;
-        }
-
+      if (pedido.tipo === "Delivery") {
         mensagem += `
+
+      *Endereço*: ${endereco.rua || ""}, ${endereco.numero || ""} - ${endereco.bairro || pedido.bairro || ""
+          } - ${endereco.cidade || ""}`;
+      }
+
+      mensagem += `
 
       *Forma de Pagamento*: ${pedido.pagamentoMetodo || ""}
 
@@ -312,17 +309,17 @@
       Confira aqui o andamento do seu pedido:
       ${linkStatusPedido}`;
 
-        return mensagem;
-      }
+      return mensagem;
+    }
 
-      function gerarComprovanteWhatsappHtml(pedido, pedidoId) {
-        const mensagem = encodeURIComponent(
-          gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
-        );
+    function gerarComprovanteWhatsappHtml(pedido, pedidoId) {
+      const mensagem = encodeURIComponent(
+        gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
+      );
 
-        const telefone = "5519992522781";
+      const telefone = "5519992522781";
 
-        return `
+      return `
         <div class="comprovante-box">
 
           <h4>📲 Enviar comprovante</h4>
@@ -342,39 +339,39 @@
 
         </div>
         `;
-      }
+    }
 
-      function abrirWhatsappPedido(pedido, pedidoId) {
-        const mensagem = encodeURIComponent(
-          gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
-        );
+    function abrirWhatsappPedido(pedido, pedidoId) {
+      const mensagem = encodeURIComponent(
+        gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
+      );
 
-        const telefone = "5519992522781";
+      const telefone = "5519992522781";
 
-        const url = `https://wa.me/${telefone}?text=${mensagem}`;
+      const url = `https://wa.me/${telefone}?text=${mensagem}`;
 
-        window.location.href = url;
-      }
+      window.location.href = url;
+    }
 
-      function renderPedido(pedido, pedidoId) {
-        const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+    function renderPedido(pedido, pedidoId) {
+      const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
 
-        const itensHtml = itens.length
-          ? itens
-              .map((item) => {
-                const quantidade = Number(item.quantidade || 1);
-                const valorUnitario = Number(
-                  item.valorUnitario || item.preco || 0,
-                );
-                const subtotal = Number(
-                  item.subtotal || quantidade * valorUnitario,
-                );
+      const itensHtml = itens.length
+        ? itens
+          .map((item) => {
+            const quantidade = Number(item.quantidade || 1);
+            const valorUnitario = Number(
+              item.valorUnitario || item.preco || 0,
+            );
+            const subtotal = Number(
+              item.subtotal || quantidade * valorUnitario,
+            );
 
-                const adicionais = (item.adicionais || [])
-                  .map((a) => `${a.nome} (+${formatarMoeda(a.preco)})`)
-                  .join("<br>");
+            const adicionais = (item.adicionais || [])
+              .map((a) => `${a.nome} (+${formatarMoeda(a.preco)})`)
+              .join("<br>");
 
-                return `
+            return `
             <div class="status-item-linha">
 
               <strong>${quantidade}x ${item.nome || "Item"}</strong>
@@ -383,54 +380,52 @@
 
               <div>Subtotal: ${formatarMoeda(subtotal)}</div>
 
-              ${
-                adicionais
-                  ? `
+              ${adicionais
+                ? `
                   <div class="mt-2">
                     <strong>Adicionais:</strong><br>
                     ${adicionais}
                   </div>
                   `
-                  : ""
+                : ""
               }
 
-              ${
-                item.observacaoItem
-                  ? `
+              ${item.observacaoItem
+                ? `
                   <div class="mt-2">
                     <strong>Obs:</strong><br>
                     ${item.observacaoItem}
                   </div>
                   `
-                  : ""
+                : ""
               }
 
             </div>
           `;
-              })
-              .join("")
-          : "<p>Nenhum item.</p>";
+          })
+          .join("")
+        : "<p>Nenhum item.</p>";
 
-        const isDelivery = pedido.tipo === "Delivery";
-        const blocoPix = getPixHtml(pedido);
+      const isDelivery = pedido.tipo === "Delivery";
+      const blocoPix = getPixHtml(pedido);
 
-        const endereco = pedido.endereco || {};
+      const endereco = pedido.endereco || {};
 
-        const blocoComprovanteWhatsapp =
-          pedido.status === "RECEBIDO"
-            ? gerarComprovanteWhatsappHtml(pedido, pedidoId)
-            : "";
-
-        const enderecoTexto = [endereco.rua, endereco.numero]
-          .filter(Boolean)
-          .join(", ");
-
-        const complementoTexto = endereco.complemento
-          ? ` - ${endereco.complemento}`
+      const blocoComprovanteWhatsapp =
+        pedido.status === "RECEBIDO"
+          ? gerarComprovanteWhatsappHtml(pedido, pedidoId)
           : "";
 
-        const blocoEntrega = isDelivery
-          ? `
+      const enderecoTexto = [endereco.rua, endereco.numero]
+        .filter(Boolean)
+        .join(", ");
+
+      const complementoTexto = endereco.complemento
+        ? ` - ${endereco.complemento}`
+        : "";
+
+      const blocoEntrega = isDelivery
+        ? `
             <div class="status-section">
               <h4>Entrega</h4>
 
@@ -451,9 +446,9 @@
 
             </div>
           `
-          : "";
+        : "";
 
-        pedidoAtual.innerHTML = `
+      pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
         <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
@@ -502,12 +497,12 @@
       </div>
     `;
 
-        ativarBotaoCopiarPix();
-      }
+      ativarBotaoCopiarPix();
+    }
 
-      function renderListaPedidos(pedidos, cliente) {
-        if (!pedidos.length) {
-          listaPedidos.innerHTML = `
+    function renderListaPedidos(pedidos, cliente) {
+      if (!pedidos.length) {
+        listaPedidos.innerHTML = `
         <div class="status-card mb-3">
           <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
           <p>Nenhum outro pedido encontrado.</p>
@@ -520,42 +515,40 @@
           Novo pedido
         </button>
       `;
-          return;
-        }
+        return;
+      }
 
-        listaPedidos.innerHTML = `
+      listaPedidos.innerHTML = `
       <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
 
       ${pedidos
-        .map(
-          (p) => `
+          .map(
+            (p) => `
         <div class="status-card mb-3">
           <h4>#${p.numeroPedido || p.id.slice(0, 6).toUpperCase()}</h4>
 
           <p>
           ${(p.itens || [])
-            .map((i) => {
-              const adicionais = (i.adicionais || [])
-                .map((a) => a.nome)
-                .join(", ");
+                .map((i) => {
+                  const adicionais = (i.adicionais || [])
+                    .map((a) => a.nome)
+                    .join(", ");
 
-              return `
+                  return `
                   <strong>${i.quantidade || 1}x ${i.nome}</strong>
 
-                  ${
-                    adicionais
+                  ${adicionais
                       ? `<br><small><strong>Adicionais:</strong> ${adicionais}</small>`
                       : ""
-                  }
+                    }
 
-                  ${
-                    i.observacaoItem
+                  ${i.observacaoItem
                       ? `<br><small><strong>Obs:</strong> ${i.observacaoItem}</small>`
                       : ""
-                  }
+                    }
               `;
-            })
-            .join("<hr>")}
+                })
+                .join("<hr>")}
           </p>
 
           <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
@@ -571,8 +564,8 @@
           </button>
         </div>
       `,
-        )
-        .join("")}
+          )
+          .join("")}
 
       <button
         class="btn btn-danger w-100 mt-3"
@@ -581,47 +574,55 @@
         Novo pedido
       </button>
     `;
+    }
+
+    async function carregarStatus() {
+      const params = new URLSearchParams(window.location.search);
+      const pedidoId = params.get("id");
+
+      const user = await garantirClienteAuth();
+      const cliente = await buscarCliente(user.uid);
+
+      // Mostra o pedido atual no topo, se vier ?id=
+      if (pedidoId) {
+        ouvirPedidoPorId(
+          pedidoId,
+          (pedido) => {
+            renderPedido(pedido, pedidoId);
+
+            const metodo = String(pedido.pagamentoMetodo || "")
+              .toLowerCase()
+              .trim();
+
+            if (
+              pedido.status === "RECEBIDO" &&
+              !metodo.includes("pix")
+            ) {
+              abrirWhatsappPedido(pedido, pedidoId);
+            }
+          },
+          () => {
+            renderMensagem("Pedido não encontrado.");
+          },
+        );
+      } else {
+        pedidoAtual.innerHTML = "";
       }
 
-      async function carregarStatus() {
-        const params = new URLSearchParams(window.location.search);
-        const pedidoId = params.get("id");
+      // Lista os demais pedidos, sem duplicar o que já está no topo
+      ouvirPedidosCliente(user.uid, (pedidos) => {
+        const pedidosFiltrados = pedidoId
+          ? pedidos.filter((p) => p.id !== pedidoId)
+          : pedidos;
 
-        const user = await garantirClienteAuth();
-        const cliente = await buscarCliente(user.uid);
+        renderListaPedidos(pedidosFiltrados, cliente);
+      });
+    }
 
-        // Mostra o pedido atual no topo, se vier ?id=
-        if (pedidoId) {
-          ouvirPedidoPorId(
-            pedidoId,
-            (pedido) => {
-              renderPedido(pedido, pedidoId);
+    carregarStatus();
+  </script>
 
-              if (pedido.status === "RECEBIDO") {
-                abrirWhatsappPedido(pedido, pedidoId);
-              }
-            },
-            () => {
-              renderMensagem("Pedido não encontrado.");
-            },
-          );
-        } else {
-          pedidoAtual.innerHTML = "";
-        }
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 
-        // Lista os demais pedidos, sem duplicar o que já está no topo
-        ouvirPedidosCliente(user.uid, (pedidos) => {
-          const pedidosFiltrados = pedidoId
-            ? pedidos.filter((p) => p.id !== pedidoId)
-            : pedidos;
-
-          renderListaPedidos(pedidosFiltrados, cliente);
-        });
-      }
-
-      carregarStatus();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
 </html>
