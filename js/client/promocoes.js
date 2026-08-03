@@ -40,6 +40,89 @@ function promocaoEstaValida(promo) {
   return true;
 }
 
+function gerarDescricaoRegras(regras = {}) {
+  const dias = regras.diasSemana || [];
+  const meses = regras.meses || [];
+  const pagamentos = regras.pagamentos || [];
+
+  const nomesDias = {
+    domingo: "domingos",
+    segunda: "segundas-feiras",
+    terca: "terças-feiras",
+    quarta: "quartas-feiras",
+    quinta: "quintas-feiras",
+    sexta: "sextas-feiras",
+    sabado: "sábados",
+  };
+
+  const nomesMeses = {
+    1: "janeiro",
+    2: "fevereiro",
+    3: "março",
+    4: "abril",
+    5: "maio",
+    6: "junho",
+    7: "julho",
+    8: "agosto",
+    9: "setembro",
+    10: "outubro",
+    11: "novembro",
+    12: "dezembro",
+  };
+
+  const partes = [];
+
+  if (dias.length) {
+    const textoDias = dias
+      .map(
+        (d) =>
+          nomesDias[
+            d
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace("-feira", "")
+          ] || d,
+      )
+      .join(", ");
+
+    partes.push(textoDias);
+  }
+
+  if (meses.length) {
+    const textoMeses = meses.map((m) => nomesMeses[m] || m).join(", ");
+
+    partes.push(`de ${textoMeses}`);
+  }
+
+  let texto = "";
+
+  if (partes.length) {
+    texto = `Válida para ${partes.join(" ")}.`;
+  }
+
+  if (pagamentos.length) {
+    const lista = pagamentos
+      .map((p) => {
+        switch (p) {
+          case "pix":
+            return "PIX";
+          case "dinheiro":
+            return "Dinheiro";
+          case "cartao":
+            return "Cartão";
+          default:
+            return p;
+        }
+      })
+      .join(" ou ");
+
+    texto = texto.replace(/\.$/, "");
+    texto += ` com pagamento no ${lista}.`;
+  }
+
+  return texto;
+}
+
 export async function carregarPromocoes() {
   if (!container) return;
 
@@ -130,9 +213,20 @@ export async function carregarPromocoes() {
     </h5>
 
 
-    <p class="text-secondary">
+    <p class="text-secondary mb-1">
       ${promo.descricao || ""}
     </p>
+
+    ${
+      gerarDescricaoRegras(promo.regras)
+        ? `
+          <small class="text-muted d-block mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            ${gerarDescricaoRegras(promo.regras)}
+          </small>
+        `
+        : ""
+    }
 
 
     <div class="d-flex justify-content-between align-items-center">

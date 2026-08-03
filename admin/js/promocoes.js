@@ -28,7 +28,11 @@ const diaSemana = document.getElementById("diaSemanaPromocao");
 
 const mesPromocao = document.getElementById("mesPromocao");
 
-const pagamento = document.getElementById("pagamentoPromocao");
+function getPagamento() {
+  return document.getElementById("pagamentoPromocao");
+}
+
+console.log(getPagamento());
 
 const salvar = document.getElementById("salvarPromocao");
 
@@ -322,7 +326,7 @@ btnNova?.addEventListener("click", () => {
   precoPromocional.value = "";
 
   diaSemana.value = "";
-  pagamento.value = "";
+  getPagamento().value = "";
   const mesAtual = new Date().getMonth() + 1;
 
   mesPromocao.value = new Date(2000, mesAtual - 1).toLocaleString("pt-BR", {
@@ -349,6 +353,14 @@ salvar?.addEventListener("click", async () => {
     return;
   }
 
+  console.log("Pagamento selecionado:", getPagamento().value);
+
+  console.log({
+    diasSemana: diaSemana.value,
+    mes: mesPromocao.dataset.numero,
+    pagamento: getPagamento().value,
+  });
+
   const dados = {
     produtoId: produto.id,
 
@@ -369,7 +381,9 @@ salvar?.addEventListener("click", async () => {
 
       meses: [Number(mesPromocao.dataset.numero)],
 
-      pagamentos: pagamento.value ? [pagamento.value] : [],
+      pagamentos: getPagamento().value
+        ? [getPagamento().value]
+        : ["pix", "dinheiro"],
     },
   };
 
@@ -405,7 +419,7 @@ window.editarPromocao = async function (id) {
 
   diaSemana.value = promo.regras?.diasSemana?.[0] || "";
 
-  pagamento.value = promo.regras?.pagamentos?.[0] || "";
+  getPagamento().value = promo.regras?.pagamentos?.[0] || "";
 
   const numeroMes = promo.regras?.meses?.[0] ?? new Date().getMonth() + 1;
 
