@@ -11,7 +11,6 @@ function promocaoEstaValida(promo) {
   const regras = promo.regras || {};
 
   const diasPermitidos = regras.diasSemana || [];
-
   const mesesPermitidos = regras.meses || [];
 
   const hoje = new Date();
@@ -27,13 +26,19 @@ function promocaoEstaValida(promo) {
 
   const mesAtual = hoje.getMonth() + 1;
 
-  // valida dia da semana
-  if (diasPermitidos.length && !diasPermitidos.includes(diaAtual)) {
+  // Valida dia da semana
+  if (
+    diasPermitidos.length &&
+    !diasPermitidos.includes(diaAtual)
+  ) {
     return false;
   }
 
-  // valida mês
-  if (mesesPermitidos.length && !mesesPermitidos.includes(mesAtual)) {
+  // Valida mês
+  if (
+    mesesPermitidos.length &&
+    !mesesPermitidos.includes(mesAtual)
+  ) {
     return false;
   }
 
@@ -127,34 +132,9 @@ export async function carregarPromocoes() {
   if (!container) return;
 
   try {
-    const promocoesBase = (await buscarPromocoes()).filter(promocaoEstaValida);
-
-    const hoje = new Date();
-
-    const diasSemana = [
-      "domingo",
-      "segunda",
-      "terça",
-      "quarta",
-      "quinta",
-      "sexta",
-      "sábado",
-    ];
-
-    const diaAtual = diasSemana[hoje.getDay()];
-
-    const promocoesValidas = promocoesBase.filter((promo) => {
-      if (!promo.ativo) return false;
-
-      const regras = promo.regras || {};
-
-      // Se não existir regra de dia, mantém a promoção
-      if (!regras.diasSemana || !regras.diasSemana.length) {
-        return true;
-      }
-
-      return regras.diasSemana.includes(diaAtual);
-    });
+    const promocoesValidas = (await buscarPromocoes()).filter(
+      promocaoEstaValida
+    );
 
     const promocoes = await Promise.all(
       promocoesValidas.map(async (promo) => {
