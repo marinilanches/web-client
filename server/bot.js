@@ -317,30 +317,56 @@ async function enviarMensagemPedido(pedidoId, pedido) {
 
     await aguardar(5000);
 
-    const estadoAntesEnvio = await clienteAtual.getState();
+    const estadoAntesEnvio =
+      await clienteAtual.getState();
 
-    console.log("[BOT] Estado final antes envio:", estadoAntesEnvio);
+    console.log(
+      "[BOT] Estado final antes envio:",
+      estadoAntesEnvio
+    );
 
     if (estadoAntesEnvio !== "CONNECTED") {
-      console.log("[BOT] Cancelando envio, WhatsApp reiniciando.");
+      console.log(
+        "[BOT] Cancelando envio, WhatsApp reiniciando."
+      );
+
       return;
     }
 
-    console.log("[BOT] Enviando para:", chatId);
-    console.log("[BOT] Tamanho mensagem:", mensagem.length);
-    console.log("[BOT] Status:", pedido.status);
+    console.log(
+      "[BOT] Enviando para:",
+      chatId
+    );
 
-    console.log("[BOT] CHAT ID:", chatId);
-    console.log("[BOT] STATUS:", pedido.status);
-    console.log("[BOT] PRIMEIROS 50 CARACTERES:", mensagem.substring(0, 50));
+    console.log(
+      "[BOT] Status:",
+      pedido.status
+    );
 
-    await clienteAtual.sendMessage(chatId, mensagem, {
-      sendSeen: false,
-    });
+    await clienteAtual.sendMessage(
+      chatId,
+      mensagem,
+      {
+        sendSeen: false,
+      }
+    );
 
-    console.log("[BOT] WhatsApp aceitou o envio.");
+    console.log(
+      "[BOT] WhatsApp aceitou o envio."
+    );
+
   } catch (e) {
-    console.error("[BOT] Erro envio:", e);
+
+    console.error(
+      "[BOT] Erro envio:",
+      e
+    );
+
+    /*
+     * MUITO IMPORTANTE:
+     * não marca como notificado se o envio falhou.
+     */
+    return;
   }
 
   await db.collection("pedidos").doc(pedidoId).update({
@@ -366,31 +392,130 @@ function iniciarListenerPedidos() {
 
   pedidosListenerIniciado = true;
 
+  let listenerInicializado = false;
+  const statusConhecidos = new Map();
+
   unsubscribePedidos = db.collection("pedidos").onSnapshot(
     async (snapshot) => {
-      for (const change of snapshot.docChanges()) {
-        if (change.type !== "added" && change.type !== "modified") continue;
+      /*
+       * PRIMEIRA LEITURA:
+       * Apenas registra os pedidos existentes.
+       *
+       * NÃO envia nenhuma mensagem.
+       * Isso impede que o bot mande mensagens para
+       * todos os pedidos antigos ao iniciar/reconectar.
+       */
+      if (!listenerInicializado) {
+        for (const doc of snapshot.docs) {
+          const pedido = doc.data();
 
+          statusConhecidos.set(
+            doc.id,
+            pedido.status || null
+          );
+        }
+
+        listenerInicializado = true;
+
+        console.log(
+          `[BOT] Listener inicializado. ${snapshot.size} pedidos existentes ignorados.`
+        );
+
+        return;
+      }
+
+      /*
+       * A partir daqui, só processamos alterações reais.
+       */
+      for (const change of snapshot.docChanges()) {
         const pedidoId = change.doc.id;
         const pedido = change.doc.data();
 
-        const chaveEnvio = `${pedidoId}_${pedido.status}`;
-
         const statusAtual = pedido.status || null;
-        const ultimoStatusNotificado = pedido.ultimoStatusNotificado || null;
+        const statusAnterior =
+          statusConhecidos.get(pedidoId) || null;
 
-        if (!statusAtual) continue;
-        if (statusAtual === ultimoStatusNotificado) continue;
+        /*
+         * Atualiza o cache imediatamente.
+         */
+        statusConhecidos.set(
+          pedidoId,
+          statusAtual
+        );
 
-        // só envia se o WhatsApp estiver conectado
-        if (!whatsappPronto || reconectando) {
-          console.log(`[BOT] WhatsApp offline. Pedido ${pedidoId} aguardando.`);
+        /*
+         * Pedido removido não gera mensagem.
+         */
+        if (change.type === "removed") {
+          statusConhecidos.delete(pedidoId);
+          continue;
+        }
+
+        /*
+         * Sem status não há mensagem.
+         */
+        if (!statusAtual) {
+          continue;
+        }
+
+        /*
+         * MODIFIED:
+         * Só envia se o STATUS realmente mudou.
+         *
+         * Alterações como:
+         * - endereço
+         * - pagamento
+         * - observação
+         * - valor
+         * - outros campos
+         *
+         * não vão disparar WhatsApp.
+         */
+        if (
+          change.type === "modified" &&
+          statusAtual === statusAnterior
+        ) {
+          console.log(
+            `[BOT] Pedido ${pedidoId} alterado sem mudança de status. Ignorando.`
+          );
 
           continue;
         }
 
-        if (enviando.has(chaveEnvio) || enviadosRecentemente.has(chaveEnvio)) {
-          console.log(`[BOT] Pedido ${chaveEnvio} já processado.`);
+        /*
+         * Proteção adicional.
+         */
+        if (
+          pedido.ultimoStatusNotificado === statusAtual
+        ) {
+          console.log(
+            `[BOT] Pedido ${pedidoId} já possui notificação para ${statusAtual}.`
+          );
+
+          continue;
+        }
+
+        /*
+         * WhatsApp precisa estar conectado.
+         */
+        if (!whatsappPronto || reconectando) {
+          console.log(
+            `[BOT] WhatsApp indisponível. Pedido ${pedidoId} aguardará nova alteração de status.`
+          );
+
+          continue;
+        }
+
+        const chaveEnvio =
+          `${pedidoId}_${statusAtual}`;
+
+        if (
+          enviando.has(chaveEnvio) ||
+          enviadosRecentemente.has(chaveEnvio)
+        ) {
+          console.log(
+            `[BOT] Pedido ${chaveEnvio} já está sendo processado.`
+          );
 
           continue;
         }
@@ -398,12 +523,18 @@ function iniciarListenerPedidos() {
         enviando.add(chaveEnvio);
 
         filaMensagens = filaMensagens
-          .catch(() => {})
+          .catch(() => { })
           .then(async () => {
             try {
-              await enviarMensagemPedido(pedidoId, pedido);
+              await enviarMensagemPedido(
+                pedidoId,
+                pedido
+              );
             } catch (erro) {
-              console.error(`[BOT] Erro pedido ${pedidoId}:`, erro.message);
+              console.error(
+                `[BOT] Erro pedido ${pedidoId}:`,
+                erro.message
+              );
             } finally {
               enviando.delete(chaveEnvio);
             }
@@ -411,11 +542,16 @@ function iniciarListenerPedidos() {
       }
     },
     (erro) => {
-      console.error("[BOT] Erro ao ouvir pedidos:", erro);
-    },
+      console.error(
+        "[BOT] Erro ao ouvir pedidos:",
+        erro
+      );
+    }
   );
 
-  console.log("[BOT] Listener de pedidos iniciado.");
+  console.log(
+    "[BOT] Listener de pedidos iniciado."
+  );
 
   enviandoMensagemAgora = false;
 }
@@ -551,26 +687,26 @@ async function criarClienteWhatsapp() {
   }
 
   client = new Client({
-  authStrategy: new LocalAuth({
-    clientId: "mesa-facil",
-  }),
+    authStrategy: new LocalAuth({
+      clientId: "mesa-facil",
+    }),
 
-  puppeteer: {
-    headless: true,
+    puppeteer: {
+      headless: true,
 
-    executablePath:
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      executablePath:
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
 
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--no-first-run",
-      "--no-zygote",
-    ],
-  },
-});
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-zygote",
+      ],
+    },
+  });
 
   client.on("qr", async (qr) => {
     try {
@@ -702,34 +838,34 @@ async function criarClienteWhatsapp() {
 
     if (clienteDesconectado) {
 
-  try {
+      try {
 
-    console.log("[BOT] Encerrando navegador antigo...");
+        console.log("[BOT] Encerrando navegador antigo...");
 
 
-    if (clienteDesconectado.pupBrowser) {
+        if (clienteDesconectado.pupBrowser) {
 
-      await clienteDesconectado.destroy();
+          await clienteDesconectado.destroy();
 
-      console.log(
-        "[BOT] Navegador encerrado."
-      );
+          console.log(
+            "[BOT] Navegador encerrado."
+          );
+
+        }
+
+      } catch (e) {
+
+        console.log(
+          "[BOT] Erro destruindo sessão:",
+          e.message
+        );
+
+      }
 
     }
 
-  } catch (e) {
 
-    console.log(
-      "[BOT] Erro destruindo sessão:",
-      e.message
-    );
-
-  }
-
-}
-
-
-await limparLockWhatsapp();
+    await limparLockWhatsapp();
 
     if (client === clienteDesconectado) {
       client = null;
@@ -745,7 +881,7 @@ await limparLockWhatsapp();
 
   try {
 
-console.log("[BOT] Chamando initialize do WhatsApp...");
+    console.log("[BOT] Chamando initialize do WhatsApp...");
 
     await client.initialize();
   } catch (erro) {
