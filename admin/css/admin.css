@@ -1055,18 +1055,13 @@ header h1{
 
 /* ============================= */
 
-.status-entregue{
-
-    background:#ebf5ff;
-
-    color:#2980b9;
-
+.status-saiu-para-entrega {
+    background: #ebf5ff;
+    color: #2980b9;
 }
 
-.status-entregue::before{
-
-    background:#3498db;
-
+.status-saiu-para-entrega::before {
+    background: #3498db;
 }
 
 /* ============================= */

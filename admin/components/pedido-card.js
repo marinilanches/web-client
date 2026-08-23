@@ -1,7 +1,9 @@
 function formatarHora(timestamp) {
   if (!timestamp?.seconds) return "--:--";
 
-  return new Date(timestamp.seconds * 1000).toLocaleTimeString("pt-BR", {
+  return new Date(
+    timestamp.seconds * 1000,
+  ).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -10,23 +12,33 @@ function formatarHora(timestamp) {
 function tempoDecorrido(timestamp) {
   if (!timestamp?.seconds) return "";
 
-  const segundos = Math.floor(Date.now() / 1000 - timestamp.seconds);
+  const segundos = Math.floor(
+    Date.now() / 1000 - timestamp.seconds,
+  );
 
-  if (segundos < 60) return "agora";
+  if (segundos < 60) {
+    return "agora";
+  }
 
-  const minutos = Math.floor(segundos / 60);
+  const minutos = Math.floor(
+    segundos / 60,
+  );
 
   if (minutos < 60) {
     return `há ${minutos} min`;
   }
 
-  const horas = Math.floor(minutos / 60);
+  const horas = Math.floor(
+    minutos / 60,
+  );
 
   if (horas < 24) {
     return `há ${horas} h`;
   }
 
-  const dias = Math.floor(horas / 24);
+  const dias = Math.floor(
+    horas / 24,
+  );
 
   return `há ${dias} dia${dias > 1 ? "s" : ""}`;
 }
@@ -42,8 +54,8 @@ function corStatus(status) {
     case "PRONTO":
       return "status-pronto";
 
-    case "ENTREGUE":
-      return "status-entregue";
+    case "SAIU_PARA_ENTREGA":
+      return "status-saiu-para-entrega";
 
     default:
       return "";
@@ -59,76 +71,89 @@ function textoBotao(status) {
       return "✅ Pedido pronto";
 
     case "PRONTO":
-      return "🚚 Entregar";
+      return "🚚 Sair para entrega";
 
     default:
       return null;
   }
 }
 
-export function criarCardPedido(pedido, eventos = {}) {
+export function criarCardPedido(
+  pedido,
+  eventos = {},
+) {
   const card = document.createElement("article");
 
   card.className = "pedido-card";
-
   card.dataset.id = pedido.id;
 
   card.innerHTML = `
-        <div class="pedido-header">
+    <div class="pedido-numero">
+      #${pedido.numeroPedido || pedido.id.slice(0, 6)}
+    </div>
 
-            <div class="pedido-numero">
-                #${pedido.numeroPedido || pedido.id.slice(0, 6)}
-            </div>
+    <span class="pedido-status ${corStatus(pedido.status)}">
+      ${pedido.status}
+    </span>
 
-            <span class="pedido-status ${corStatus(pedido.status)}">
-                ${pedido.status}
-            </span>
+    <div class="pedido-cliente">
+      ${pedido.cliente || "Cliente"}
+    </div>
 
-        </div>
+    <div class="pedido-tipo">
+      ${pedido.tipo || "-"}
+    </div>
 
-        <div class="pedido-cliente">
-            ${pedido.cliente || "Cliente"}
-        </div>
+    <div class="pedido-total">
+      R$ ${Number(
+        pedido.valorTotal || 0,
+      ).toFixed(2)}
+    </div>
 
-        <div class="pedido-tipo">
-            ${pedido.tipo || "-"}
-        </div>
+    <div class="pedido-footer">
 
-        <div class="pedido-total">
-            R$ ${Number(pedido.valorTotal || 0).toFixed(2)}
-        </div>
+      <span>
+        🕒 ${formatarHora(pedido.criadoEm)}
+      </span>
 
-        <div class="pedido-footer">
+      <span
+        class="pedido-tempo"
+        data-seconds="${
+          pedido.criadoEm?.seconds || ""
+        }"
+      >
+        ${tempoDecorrido(pedido.criadoEm)}
+      </span>
 
-            <span>
-                🕒 ${formatarHora(pedido.criadoEm)}
-            </span>
+    </div>
+  `;
 
-            <span class="pedido-tempo" data-seconds="${pedido.criadoEm?.seconds || ""}">
-                ${tempoDecorrido(pedido.criadoEm)}
-            </span>
+  card.addEventListener(
+    "click",
+    () => {
+      eventos.onDetalhes?.(pedido);
+    },
+  );
 
-        </div>
-    `;
-
-  card.addEventListener("click", () => {
-    eventos.onDetalhes?.(pedido);
-  });
-
-  const texto = textoBotao(pedido.status);
+  const texto = textoBotao(
+    pedido.status,
+  );
 
   if (texto) {
-    const botao = document.createElement("button");
+    const botao =
+      document.createElement("button");
 
     botao.className = "pedido-acao";
-
     botao.textContent = texto;
 
-    botao.addEventListener("click", (e) => {
-      e.stopPropagation();
+    botao.addEventListener(
+      "click",
+      (e) => {
+        e.stopPropagation();
 
-      eventos.onAcao?.(pedido);
-    });
+        eventos.onAcao?.(pedido);
+      },
+    );
 
     card.appendChild(botao);
   }
@@ -137,15 +162,22 @@ export function criarCardPedido(pedido, eventos = {}) {
 }
 
 export function atualizarTemposPedidos() {
-  document.querySelectorAll(".pedido-tempo").forEach((el) => {
-    const seconds = Number(el.dataset.seconds);
+  document
+    .querySelectorAll(".pedido-tempo")
+    .forEach((el) => {
+      const seconds = Number(
+        el.dataset.seconds,
+      );
 
-    if (!seconds) return;
+      if (!seconds) return;
 
-    el.textContent = tempoDecorrido({
-      seconds,
+      el.textContent = tempoDecorrido({
+        seconds,
+      });
     });
-  });
 }
 
-setInterval(atualizarTemposPedidos, 60000);
+setInterval(
+  atualizarTemposPedidos,
+  60000,
+);

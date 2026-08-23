@@ -102,14 +102,19 @@
       switch (status) {
         case "RECEBIDO":
           return "🟡 Recebido";
+
         case "PREPARANDO":
           return "👨‍🍳 Em preparo";
+
         case "PRONTO":
           return "✅ Pronto";
-        case "ENTREGUE":
-          return "🚚 Entregue";
+
+        case "SAIU_PARA_ENTREGA":
+          return "🚚 Saiu para entrega";
+
         case "CANCELADO":
           return "❌ Cancelado";
+
         default:
           return status || "—";
       }
@@ -218,47 +223,87 @@
 
     function gerarProgresso(status) {
       const etapas = [
-        { id: "RECEBIDO", nome: "Recebido", emoji: "📥" },
-        { id: "PREPARANDO", nome: "Preparando", emoji: "👨‍🍳" },
-        { id: "PRONTO", nome: "Pronto", emoji: "✅" },
-        { id: "ENTREGUE", nome: "Entregue", emoji: "🚚" },
+        {
+          id: "RECEBIDO",
+          nome: "Recebido",
+          emoji: "📥",
+        },
+
+        {
+          id: "PREPARANDO",
+          nome: "Preparando",
+          emoji: "👨‍🍳",
+        },
+
+        {
+          id: "PRONTO",
+          nome: "Pronto",
+          emoji: "✅",
+        },
+
+        {
+          id: "SAIU_PARA_ENTREGA",
+          nome: "Saiu para entrega",
+          emoji: "🚚",
+        },
       ];
 
-      const indiceAtual = etapas.findIndex((etapa) => etapa.id === status);
+      const indiceAtual =
+        etapas.findIndex(
+          (etapa) =>
+            etapa.id === status,
+        );
 
       const porcentagem =
-        indiceAtual < 0 ? 0 : (indiceAtual / (etapas.length - 1)) * 100;
+        indiceAtual < 0
+          ? 0
+          : (indiceAtual /
+            (etapas.length - 1)) *
+          100;
 
       return `
-      <div class="status-progresso">
-        <div class="progresso-linha"></div>
-        <div
-          class="progresso-linha-ativa"
-          style="--progresso:${porcentagem}"
-        ></div>
+        <div class="status-progresso">
 
-        <div class="progresso-etapas">
-          ${etapas
-          .map((etapa, index) => {
-            let classe = "";
+          <div class="progresso-linha"></div>
 
-            if (index <= indiceAtual) classe = "concluida";
+          <div
+            class="progresso-linha-ativa"
+            style="--progresso:${porcentagem}"
+          ></div>
 
-            if (index === indiceAtual && status !== "ENTREGUE") {
-              classe = "ativa";
-            }
+          <div class="progresso-etapas">
 
-            return `
-              <div class="progresso-etapa ${classe}">
-                <div class="progresso-bolinha">${etapa.emoji}</div>
-                <span>${etapa.nome}</span>
-              </div>
-            `;
-          })
-          .join("")}
+            ${etapas
+              .map((etapa, index) => {
+                let classe = "";
+
+                if (index < indiceAtual) {
+                  classe = "concluida";
+                }
+
+                if (index === indiceAtual) {
+                  classe = "ativa";
+                }
+
+                return `
+                  <div
+                    class="progresso-etapa ${classe}"
+                  >
+                    <div class="progresso-bolinha">
+                      ${etapa.emoji}
+                    </div>
+
+                    <span>
+                      ${etapa.nome}
+                    </span>
+                  </div>
+                `;
+              })
+              .join("")}
+
+          </div>
         </div>
-      </div>
-    `;
+      `;
     }
 
     function gerarMensagemWhatsappPedido(pedido, pedidoId) {

@@ -315,12 +315,9 @@
 
 }
 
-.status-entregue{
-
-    background:#edf5ff;
-
-    color:#2d73d5;
-
+.status-saiu-para-entrega {
+    background: #ebf5ff;
+    color: #2980b9;
 }
 
 .status-cancelado{

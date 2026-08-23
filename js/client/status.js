@@ -32,131 +32,77 @@ currency:"BRL"
 
 }
 
+function etapaStatus(status) {
+  const etapas = [
+    "RECEBIDO",
+    "PREPARANDO",
+    "PRONTO",
+    "SAIU_PARA_ENTREGA",
+  ];
 
+  const nomes = [
+    "Recebido",
+    "Preparando",
+    "Pronto",
+    "Saiu para entrega",
+  ];
 
-function etapaStatus(status){
+  const atual = etapas.indexOf(status);
 
-const etapas=[
-"RECEBIDO",
-"PREPARANDO",
-"PRONTO",
-"ENTREGUE"
-];
+  if (status === "CANCELADO") {
+    return `
+      <div class="status-cancelado">
+        ❌ Pedido cancelado
+      </div>
+    `;
+  }
 
-const nomes=[
-"Recebido",
-"Preparando",
-"Pronto",
-"Entregue"
-];
+  const saiuParaEntrega =
+    status === "SAIU_PARA_ENTREGA";
 
-const atual = etapas.indexOf(status);
+  const progresso =
+    saiuParaEntrega
+      ? 100
+      : atual <= 0
+        ? 0
+        : (atual / (etapas.length - 1)) *
+          100;
 
+  return `
+    <div class="status-progresso">
 
-if(status === "CANCELADO"){
+      ${etapas
+        .map((etapa, index) => {
+          let classe = "";
+          let icone = "⚪";
 
-return `
-<div class="status-cancelado">
-🔴 Pedido cancelado
-</div>
-`;
+          if (saiuParaEntrega) {
+            classe = "concluida";
+            icone = "🟢";
+          } else if (index < atual) {
+            classe = "concluida";
+            icone = "🟢";
+          } else if (index === atual) {
+            classe = "ativa";
+            icone = "🟢";
+          }
 
-}
+          return `
+            <div class="progresso-etapa ${classe}">
+              <div class="progresso-bolinha">
+                ${icone}
+              </div>
 
+              <span>
+                ${nomes[index]}
+              </span>
+            </div>
+          `;
+        })
+        .join("")}
 
-
-const entregue = status === "ENTREGUE";
-
-const progresso =
-entregue
-? 100
-: atual <= 0
-? 0
-: (atual / (etapas.length - 1)) * 100;
-
-
-
-return `
-
-<div class="status-progresso">
-
-<div class="progresso-linha"></div>
-
-<div 
-class="progresso-linha-ativa"
-style="width:${progresso}%">
-</div>
-
-
-<div class="progresso-etapas">
-
-${etapas.map(
-(etapa,index)=>{
-
-
-let classe="";
-
-let icone="⚪";
-
-
-
-// Pedido entregue:
-// todas as etapas concluídas
-if(entregue){
-
-classe="concluida";
-icone="🟢";
-
-}
-
-
-
-// etapas anteriores
-else if(index < atual){
-
-classe="concluida";
-icone="🟢";
-
-}
-
-
-
-// etapa atual
-else if(index === atual){
-
-classe="ativa";
-icone="🟢";
-
-}
-
-
-
-return `
-
-<div class="progresso-etapa ${classe}">
-
-<div class="progresso-bolinha">
-${icone}
-</div>
-
-<span>
-${nomes[index]}
-</span>
-
-</div>
-
-`;
-
-}
-
-).join("")}
-
-</div>
-
-</div>
-
-`;
-
+    </div>
+  `;
 }
 
 

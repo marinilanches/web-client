@@ -426,14 +426,43 @@ export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
 export function contarPedidos(pedidos) {
   return {
     total: pedidos.length,
-    recebidos: pedidos.filter((p) => p.status === "RECEBIDO").length,
-    preparando: pedidos.filter((p) => p.status === "PREPARANDO").length,
-    prontos: pedidos.filter((p) => p.status === "PRONTO").length,
-    entregues: pedidos.filter((p) => p.status === "ENTREGUE").length,
-    cancelados: pedidos.filter((p) => p.status === "CANCELADO").length,
+
+    recebidos: pedidos.filter(
+      (p) => p.status === "RECEBIDO",
+    ).length,
+
+    preparando: pedidos.filter(
+      (p) => p.status === "PREPARANDO",
+    ).length,
+
+    prontos: pedidos.filter(
+      (p) => p.status === "PRONTO",
+    ).length,
+
+    saiuParaEntrega: pedidos.filter(
+      (p) =>
+        p.status ===
+        "SAIU_PARA_ENTREGA",
+    ).length,
+
+    cancelados: pedidos.filter(
+      (p) => p.status === "CANCELADO",
+    ).length,
+
     faturamento: pedidos
-      .filter((p) => p.status === "ENTREGUE")
-      .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0),
+      .filter(
+        (p) =>
+          p.status ===
+          "SAIU_PARA_ENTREGA",
+      )
+      .reduce(
+        (total, pedido) =>
+          total +
+          Number(
+            pedido.valorTotal || 0,
+          ),
+        0,
+      ),
   };
 }
 

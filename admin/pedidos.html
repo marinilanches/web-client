@@ -1,117 +1,123 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Pedidos • Mesa Fácil</title>
-    <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="css/admin.css" />
-    <link rel="stylesheet" href="css/pedidos.css">
+  <title>Pedidos • Mesa Fácil</title>
+  <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/pedidos.css">
 
-  <body>
-    <div class="layout">
-      <!-- Sidebar -->
-      <aside id="sidebar"></aside>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+</head>
 
-      <!-- Conteúdo -->
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
 
-      <main class="content">
-        <!-- Header -->
+    <!-- Conteúdo -->
 
-        <header id="header"></header>
+    <main class="content">
+      <!-- Header -->
 
-        <section class="dashboard">
-          <div class="pedidos-header">
-            <div>
-              <h1>Pedidos</h1>
+      <header id="header"></header>
 
-              <p class="subtitle">Gerencie os pedidos em tempo real.</p>
+      <section class="dashboard">
+        <div class="pedidos-header">
+          <div>
+            <h1>Pedidos</h1>
+
+            <p class="subtitle">Gerencie os pedidos em tempo real.</p>
+          </div>
+        </div>
+
+        <div class="pedidos-filtros">
+          <input id="buscarPedido" type="text" placeholder="Pesquisar pedido..." />
+
+          <select id="filtroTipo">
+            <option value="">Todos os tipos</option>
+
+            <option value="Delivery">Delivery</option>
+
+            <option value="Retirada">Retirada</option>
+
+            <option value="Mesa">Mesa</option>
+          </select>
+
+          <select id="filtroStatus">
+            <option value="">Todos</option>
+
+            <option value="RECEBIDO">
+              Recebidos
+            </option>
+
+            <option value="PREPARANDO">
+              Em preparo
+            </option>
+
+            <option value="PRONTO">
+              Prontos
+            </option>
+
+            <option value="SAIU_PARA_ENTREGA">
+              Saiu para entrega
+            </option>
+          </select>
+        </div>
+
+        <div class="pedidos-board">
+          <section class="pedidos-column" data-status="RECEBIDO">
+            <div class="column-header">
+              <span> Recebidos </span>
+
+              <span id="contadorRecebidos" class="column-counter"> 0 </span>
             </div>
-          </div>
 
-          <div class="pedidos-filtros">
-            <input
-              id="buscarPedido"
-              type="text"
-              placeholder="Pesquisar pedido..."
-            />
+            <div id="colunaRecebidos" class="column-body"></div>
+          </section>
 
-            <select id="filtroTipo">
-              <option value="">Todos os tipos</option>
+          <section class="pedidos-column" data-status="PREPARANDO">
+            <div class="column-header">
+              <span> Em preparo </span>
 
-              <option value="Delivery">Delivery</option>
+              <span id="contadorPreparando" class="column-counter"> 0 </span>
+            </div>
 
-              <option value="Retirada">Retirada</option>
+            <div id="colunaPreparando" class="column-body"></div>
+          </section>
 
-              <option value="Mesa">Mesa</option>
-            </select>
+          <section class="pedidos-column" data-status="PRONTO">
+            <div class="column-header">
+              <span> Prontos </span>
 
-            <select id="filtroStatus">
-              <option value="">Todos</option>
+              <span id="contadorProntos" class="column-counter"> 0 </span>
+            </div>
 
-              <option value="RECEBIDO">Recebidos</option>
+            <div id="colunaProntos" class="column-body"></div>
+          </section>
 
-              <option value="PREPARANDO">Em preparo</option>
+          <section class="pedidos-column" data-status="SAIU_PARA_ENTREGA">
+            <div class="column-header">
+              <span>Saiu para entrega</span>
 
-              <option value="PRONTO">Prontos</option>
+              <span id="contadorSaiuParaEntrega" class="column-counter">
+                0
+              </span>
+            </div>
 
-              <option value="ENTREGUE">Entregues</option>
-            </select>
-          </div>
+            <div id="colunaSaiuParaEntrega" class="column-body"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
 
-          <div class="pedidos-board">
-            <section class="pedidos-column" data-status="RECEBIDO">
-              <div class="column-header">
-                <span> Recebidos </span>
+  <script type="module" src="js/app.js"></script>
+</body>
 
-                <span id="contadorRecebidos" class="column-counter"> 0 </span>
-              </div>
-
-              <div id="colunaRecebidos" class="column-body"></div>
-            </section>
-
-            <section class="pedidos-column" data-status="PREPARANDO">
-              <div class="column-header">
-                <span> Em preparo </span>
-
-                <span id="contadorPreparando" class="column-counter"> 0 </span>
-              </div>
-
-              <div id="colunaPreparando" class="column-body"></div>
-            </section>
-
-            <section class="pedidos-column" data-status="PRONTO">
-              <div class="column-header">
-                <span> Prontos </span>
-
-                <span id="contadorProntos" class="column-counter"> 0 </span>
-              </div>
-
-              <div id="colunaProntos" class="column-body"></div>
-            </section>
-
-            <section class="pedidos-column" data-status="ENTREGUE">
-              <div class="column-header">
-                <span> Entregues </span>
-
-                <span id="contadorEntregues" class="column-counter"> 0 </span>
-              </div>
-
-              <div id="colunaEntregues" class="column-body"></div>
-            </section>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <script type="module" src="js/app.js"></script>
-  </body>
 </html>

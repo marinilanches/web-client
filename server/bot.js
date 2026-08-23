@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
 const { Client, LocalAuth } = require("whatsapp-web.js");
+const puppeteer = require("puppeteer");
 
 const { initializeApp, cert } = require("firebase-admin/app");
 const {
@@ -206,14 +207,16 @@ ${linkPedido}
 
 Obrigado pela preferência!`;
 
-    case "ENTREGUE":
+    case "SAIU_PARA_ENTREGA":
       return `Olá *${cliente}*!
 
-🚚 Seu pedido *#${numeroPedido}* foi finalizado.
+    🚚 Seu pedido *#${numeroPedido}* saiu para entrega.
 
-Muito obrigado pela preferência!
+    Você pode acompanhar o andamento do seu pedido pelo link:
 
-Esperamos atendê-lo novamente em breve.`;
+    ${linkPedido}
+
+    Obrigado pela preferência!`;
 
     case "CANCELADO":
       return `Olá *${cliente}*!
@@ -753,7 +756,7 @@ function iniciarListenerPedidos() {
           enviando.add(chaveEnvio);
 
           filaMensagens = filaMensagens
-            .catch(() => {})
+            .catch(() => { })
             .then(async () => {
 
               try {
@@ -927,6 +930,13 @@ async function criarClienteWhatsapp() {
 
   inicializandoCliente = true;
 
+  const caminhoChromium = await puppeteer.executablePath();
+
+  console.log(
+    "[BOT] Chromium Puppeteer:",
+    caminhoChromium
+  );
+
   /* --------------------------------------------------------
      DESTRÓI CLIENTE EXISTENTE
   -------------------------------------------------------- */
@@ -986,25 +996,18 @@ async function criarClienteWhatsapp() {
   -------------------------------------------------------- */
 
   client = new Client({
-
     authStrategy: new LocalAuth({
       clientId: "mesa-facil",
     }),
 
     puppeteer: {
-
       headless: true,
-
-      executablePath:
-        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
 
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
       ],
     },
   });
@@ -1153,7 +1156,6 @@ async function criarClienteWhatsapp() {
     async () => {
 
       if (prontoDisparado) {
-
         console.log(
           "[BOT] Evento ready duplicado ignorado."
         );
@@ -1161,31 +1163,16 @@ async function criarClienteWhatsapp() {
         return;
       }
 
-      prontoDisparado = true;
-
-      let numero = null;
-
       try {
+        await aguardar(5000);
 
-        const info = clienteAtual.info;
+        if (client !== clienteAtual) {
+          console.log(
+            "[BOT] Cliente não é mais o atual. Ignorando ready."
+          );
 
-        numero =
-          info?.wid?.user || null;
-
-      } catch (e) {
-
-        console.warn(
-          "[BOT] Não foi possível obter número da sessão."
-        );
-
-      }
-
-      /*
-       * Aguarda o WhatsApp estabilizar.
-       */
-      await aguardar(5000);
-
-      try {
+          return;
+        }
 
         const estado =
           await clienteAtual.getState();
@@ -1196,50 +1183,52 @@ async function criarClienteWhatsapp() {
         );
 
         if (estado !== "CONNECTED") {
-
           console.log(
-            "[BOT] WhatsApp ainda instável."
+            "[BOT] WhatsApp ainda não está conectado."
           );
 
           return;
         }
 
+        prontoDisparado = true;
+
+        let numero = null;
+
+        try {
+          const info = clienteAtual.info;
+
+          numero =
+            info?.wid?.user || null;
+
+        } catch (e) {
+          console.warn(
+            "[BOT] Não foi possível obter número da sessão."
+          );
+        }
+
+        whatsappPronto = true;
+
+        atualizarEstado({
+          status: "CONECTADO",
+          numero,
+          qrCode: null,
+        });
+
+        console.log(
+          "[BOT] WhatsApp pronto!"
+        );
+
+        iniciarListenerPedidos();
+
       } catch (e) {
 
         console.error(
-          "[BOT] Erro verificando estado após ready:",
+          "[BOT] Erro durante estabilização do WhatsApp:",
           e.message
         );
 
-        return;
+        whatsappPronto = false;
       }
-
-      /* ----------------------------------------------------
-         WHATSAPP PRONTO
-      ---------------------------------------------------- */
-
-      whatsappPronto = true;
-
-      atualizarEstado({
-
-        status: "CONECTADO",
-
-        numero,
-
-        qrCode: null,
-
-      });
-
-      console.log(
-        "[BOT] WhatsApp pronto!"
-      );
-
-      /* ----------------------------------------------------
-         INICIA LISTENER
-      ---------------------------------------------------- */
-
-      iniciarListenerPedidos();
-
     }
   );
 

@@ -70,9 +70,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          adicionais
-            ? `
+        ${adicionais
+          ? `
 
           <p>
 
@@ -89,7 +88,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-            : ""
+          : ""
         }
 
 
@@ -97,9 +96,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          item.observacaoItem
-            ? `
+        ${item.observacaoItem
+          ? `
 
           <p>
 
@@ -116,7 +114,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-            : ""
+          : ""
         }
 
 
@@ -189,9 +187,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.tipo === "Delivery"
-          ? `
+      ${pedido.tipo === "Delivery"
+      ? `
 
         <h3>
 
@@ -203,9 +200,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${
-          pedido.entrega
-            ? `
+        ${pedido.entrega
+        ? `
 
           <h3>
 
@@ -263,11 +259,10 @@ export function abrirDetalhesPedido(pedido) {
             <br>
 
 
-            ${
-              pedido.entrega.previsaoMinutos
-                ? `${pedido.entrega.previsaoMinutos} min`
-                : "-"
-            }
+            ${pedido.entrega.previsaoMinutos
+          ? `${pedido.entrega.previsaoMinutos} min`
+          : "-"
+        }
 
 
           </p>
@@ -315,9 +310,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-          ${
-            pedido.entrega.trackingUrl
-              ? `
+          ${pedido.entrega.trackingUrl
+          ? `
 
             <p>
 
@@ -336,14 +330,14 @@ export function abrirDetalhesPedido(pedido) {
             </p>
 
             `
-              : ""
-          }
+          : ""
+        }
 
 
 
           `
-            : ""
-        }
+        : ""
+      }
 
 
 
@@ -366,9 +360,8 @@ export function abrirDetalhesPedido(pedido) {
 
         </p>
 
-        ${
-          pedido.distanciaEntrega != null
-            ? `
+        ${pedido.distanciaEntrega != null
+        ? `
             <p>
               <strong>
               Distância:
@@ -380,8 +373,8 @@ export function abrirDetalhesPedido(pedido) {
 
             </p>
           `
-            : ""
-        }
+        : ""
+      }
 
 
         <p>
@@ -463,8 +456,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -525,9 +518,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.pagamentoMetodo === "DINHEIRO"
-          ? `
+      ${pedido.pagamentoMetodo === "DINHEIRO"
+      ? `
 
         <p>
 
@@ -562,16 +554,16 @@ export function abrirDetalhesPedido(pedido) {
           R$
 
           ${(
-            Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
-          ).toFixed(2)}
+        Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
+      ).toFixed(2)}
 
 
         </p>
 
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -601,9 +593,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${
-        pedido.observacoes
-          ? `
+      ${pedido.observacoes
+      ? `
 
         <h3>
 
@@ -619,8 +610,8 @@ export function abrirDetalhesPedido(pedido) {
         </p>
 
         `
-          : ""
-      }
+      : ""
+    }
 
 
 
@@ -629,53 +620,49 @@ export function abrirDetalhesPedido(pedido) {
 
       <div class="modal-actions">
 
-        ${
-          pedido.status === "RECEBIDO"
-            ? `
+        ${pedido.status === "RECEBIDO"
+      ? `
                 <button
                     class="btn btn-primary"
                     id="btnPreparando">
                     👨‍🍳 Iniciar preparo
                 </button>
             `
-            : ""
-        }
+      : ""
+    }
 
-        ${
-          pedido.status === "PREPARANDO"
-            ? `
+        ${pedido.status === "PREPARANDO"
+      ? `
                 <button
                     class="btn btn-primary"
                     id="btnPronto">
                     ✅ Pedido pronto
                 </button>
             `
-            : ""
-        }
+      : ""
+    }
 
-        ${
-          pedido.status === "PRONTO"
-            ? `
+        ${pedido.status === "PRONTO"
+      ? `
                 <button
-                    class="btn btn-primary"
-                    id="btnEntregue">
-                    🚚 Entregue
+                  class="btn btn-primary"
+                  id="btnSairParaEntrega">
+                  🚚 Sair para entrega
                 </button>
             `
-            : ""
-        }
+      : ""
+    }
 
-        ${
-          pedido.tipo === "Delivery" && !pedido.entrega
-            ? `
+        ${pedido.tipo === "Delivery" && !pedido.entrega
+      ? `
                 <button
                     class="btn btn-secondary"
                     id="btnSolicitarEntregador">
                     🚚 Solicitar entregador
                 </button>
             `
-            : ""
-        }
+      : ""
+    }
 
         <button
           class="btn btn-secondary"
@@ -683,17 +670,16 @@ export function abrirDetalhesPedido(pedido) {
           🖨️ Imprimir comanda
         </button>
 
-        ${
-          pedido.status !== "CANCELADO"
-            ? `
+        ${pedido.status !== "CANCELADO"
+      ? `
                 <button
                     class="btn btn-danger"
                     id="btnCancelarPedido">
                     ❌ Cancelar pedido
                 </button>
             `
-            : ""
-        }
+      : ""
+    }
 
         <button
           class="btn btn-danger"
@@ -760,20 +746,31 @@ export function abrirDetalhesPedido(pedido) {
   });
 
   document
-    .getElementById("btnEntregue")
-    ?.addEventListener("click", async () => {
-      try {
-        await alterarStatus(pedido.id, "ENTREGUE");
+    .getElementById("btnSairParaEntrega")
+    ?.addEventListener(
+      "click",
+      async () => {
+        try {
+          await alterarStatus(
+            pedido.id,
+            "SAIU_PARA_ENTREGA",
+          );
 
-        toast("Pedido marcado como ENTREGUE");
+          toast(
+            "Pedido saiu para entrega",
+          );
 
-        fecharModal();
-      } catch (erro) {
-        console.error(erro);
+          fecharModal();
 
-        toast("Erro ao atualizar pedido.");
-      }
-    });
+        } catch (erro) {
+          console.error(erro);
+
+          toast(
+            "Erro ao atualizar pedido.",
+          );
+        }
+      },
+    );
 
   document
     .getElementById("btnCancelarPedido")

@@ -16,9 +16,9 @@ const mapas = {
     contador: "contadorProntos",
   },
 
-  ENTREGUE: {
-    body: "colunaEntregues",
-    contador: "contadorEntregues",
+  SAIU_PARA_ENTREGA: {
+    body: "colunaSaiuParaEntrega",
+    contador: "contadorSaiuParaEntrega",
   },
 };
 
@@ -38,62 +38,81 @@ export function limparBoard() {
   });
 }
 
-export function renderizarColuna(status, pedidos, eventos = {}) {
+export function renderizarColuna(
+  status,
+  pedidos,
+  eventos = {},
+) {
   const config = mapas[status];
 
   if (!config) return;
 
   const body = document.getElementById(config.body);
-
   const contador = document.getElementById(config.contador);
 
   if (!body) return;
 
   body.innerHTML = "";
 
-  contador.textContent = pedidos.length;
+  if (contador) {
+    contador.textContent = pedidos.length;
+  }
 
   if (!pedidos.length) {
     body.innerHTML = `
-            <div class="pedido-vazio">
-                Nenhum pedido
-            </div>
-        `;
+      <div class="pedido-vazio">
+        Nenhum pedido
+      </div>
+    `;
 
     return;
   }
 
   pedidos.forEach((pedido) => {
     body.appendChild(
-      criarCardPedido(pedido, eventos),
+      criarCardPedido(
+        pedido,
+        eventos,
+      ),
     );
   });
 }
 
-export function renderBoard(pedidos, eventos = {}) {
+export function renderBoard(
+  pedidos,
+  eventos = {},
+) {
   limparBoard();
 
   renderizarColuna(
     "RECEBIDO",
-    pedidos.filter((p) => p.status === "RECEBIDO"),
+    pedidos.filter(
+      (p) => p.status === "RECEBIDO",
+    ),
     eventos,
   );
 
   renderizarColuna(
     "PREPARANDO",
-    pedidos.filter((p) => p.status === "PREPARANDO"),
+    pedidos.filter(
+      (p) => p.status === "PREPARANDO",
+    ),
     eventos,
   );
 
   renderizarColuna(
     "PRONTO",
-    pedidos.filter((p) => p.status === "PRONTO"),
+    pedidos.filter(
+      (p) => p.status === "PRONTO",
+    ),
     eventos,
   );
 
   renderizarColuna(
-    "ENTREGUE",
-    pedidos.filter((p) => p.status === "ENTREGUE"),
+    "SAIU_PARA_ENTREGA",
+    pedidos.filter(
+      (p) => p.status === "SAIU_PARA_ENTREGA",
+    ),
     eventos,
   );
 }
