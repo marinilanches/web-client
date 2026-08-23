@@ -1,5 +1,8 @@
 import { db } from "../../js/services/firebase.js";
 import {
+  validarTempoEstimado,
+} from "../../js/services/order-estimates.js";
+import {
   doc,
   getDoc,
   setDoc,
@@ -29,6 +32,22 @@ function getElements() {
     retirada: document.getElementById("retirada"),
     distancia: document.getElementById("distancia"),
     bairro: document.getElementById("bairro"),
+
+    tempoRetiradaMinimo: document.getElementById(
+      "tempoRetiradaMinimo",
+    ),
+
+    tempoRetiradaMaximo: document.getElementById(
+      "tempoRetiradaMaximo",
+    ),
+
+    tempoEntregaMinimo: document.getElementById(
+      "tempoEntregaMinimo",
+    ),
+
+    tempoEntregaMaximo: document.getElementById(
+      "tempoEntregaMaximo",
+    ),
 
     listaPagamentos: document.getElementById("listaPagamentos"),
     btnAdicionarPagamento: document.getElementById("btnAdicionarPagamento"),
@@ -74,6 +93,18 @@ function coletarDados(el) {
       taxaPorBairro: el.bairro.checked,
     },
 
+    tempoEstimado: {
+      retirada: validarTempoEstimado(
+        el.tempoRetiradaMinimo.value,
+        el.tempoRetiradaMaximo.value,
+      ),
+
+      entrega: validarTempoEstimado(
+        el.tempoEntregaMinimo.value,
+        el.tempoEntregaMaximo.value,
+      ),
+    },
+
     pagamentos: obterPagamentos(),
 
     seguranca: {
@@ -95,6 +126,10 @@ function preencherFormulario(el, dados = {}) {
   const loja = dados.loja || {};
   const funcionamento = dados.funcionamento || {};
   const delivery = dados.delivery || {};
+  const tempoEstimado = dados.tempoEstimado || {};
+
+  const retirada = tempoEstimado.retirada || {};
+  const entrega = tempoEstimado.entrega || {};
   let pagamentos = dados.pagamentos || [];
 
   if (!Array.isArray(pagamentos)) {
@@ -135,6 +170,17 @@ function preencherFormulario(el, dados = {}) {
 
   el.delivery.checked = delivery.ativo ?? true;
   el.retirada.checked = delivery.retirada ?? true;
+  el.tempoRetiradaMinimo.value =
+    retirada.minimo ?? 20;
+
+  el.tempoRetiradaMaximo.value =
+    retirada.maximo ?? 30;
+
+  el.tempoEntregaMinimo.value =
+    entrega.minimo ?? 120;
+
+  el.tempoEntregaMaximo.value =
+    entrega.maximo ?? 130;
   if (delivery.taxaPorDistancia) {
     el.distancia.checked = true;
     el.bairro.checked = false;
@@ -195,6 +241,17 @@ function restaurarPadrao(el) {
       retirada: true,
       taxaPorDistancia: false,
       taxaPorBairro: true,
+    },
+    tempoEstimado: {
+      retirada: {
+        minimo: 20,
+        maximo: 30,
+      },
+
+      entrega: {
+        minimo: 120,
+        maximo: 130,
+      },
     },
     pagamentos: [
       {

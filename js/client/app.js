@@ -13,6 +13,12 @@ import { iniciarPedidosCliente } from "./orders-client.js";
 import { iniciarCliente } from "./customer.js";
 import { garantirClienteAuth } from "../services/customers.js";
 import { isStoreOpen } from "../services/store-hours.js";
+import {
+  calcularHorarioFinalEstimativa,
+  formatarHorarioEstimativa,
+  textoDiaEstimativa,
+  obterEstimativaPorTipo,
+} from "../services/order-estimates.js";
 
 /* ==========================================================
    CONFIG
@@ -44,11 +50,106 @@ function verificarCarrinhoAntesCheckout() {
   return true;
 }
 
+function renderizarEstimativas(config = {}) {
+  const retiradaEl =
+    document.getElementById("estimativaRetirada");
+
+  const entregaEl =
+    document.getElementById("estimativaEntrega");
+
+  const agora = new Date();
+
+  if (retiradaEl) {
+    const estimativa =
+      obterEstimativaPorTipo(
+        config,
+        "Retirada",
+      );
+
+    const horarioFinal =
+      calcularHorarioFinalEstimativa(
+        estimativa,
+        agora,
+      );
+
+    retiradaEl.innerHTML = `
+      <div class="card-body p-4">
+        <div class="fs-5 fw-bold">
+          🛍️ Retirada
+        </div>
+
+        <div class="text-secondary mt-2">
+          ${textoDiaEstimativa(
+            horarioFinal,
+            agora,
+          )}
+        </div>
+
+        <div class="fs-4 fw-bold mt-1">
+          ${estimativa.minimo}–${estimativa.maximo} min
+        </div>
+
+        <div class="mt-2">
+          Pronto para retirar até
+          <strong>
+            ${formatarHorarioEstimativa(
+              horarioFinal,
+            )}
+          </strong>
+        </div>
+      </div>
+    `;
+  }
+
+  if (entregaEl) {
+    const estimativa =
+      obterEstimativaPorTipo(
+        config,
+        "Delivery",
+      );
+
+    const horarioFinal =
+      calcularHorarioFinalEstimativa(
+        estimativa,
+        agora,
+      );
+
+    entregaEl.innerHTML = `
+      <div class="card-body p-4">
+        <div class="fs-5 fw-bold">
+          🚚 Entrega
+        </div>
+
+        <div class="text-secondary mt-2">
+          ${textoDiaEstimativa(
+            horarioFinal,
+            agora,
+          )}
+        </div>
+
+        <div class="fs-4 fw-bold mt-1">
+          ${estimativa.minimo}–${estimativa.maximo} min
+        </div>
+
+        <div class="mt-2">
+          Chegará até
+          <strong>
+            ${formatarHorarioEstimativa(
+              horarioFinal,
+            )}
+          </strong>
+        </div>
+      </div>
+    `;
+  }
+}
+
 /* ==========================================================
    UI DA LOJA
 ========================================================== */
 
 function atualizarInterfaceLoja(config = {}) {
+  renderizarEstimativas(config);
   const statusEl = document.getElementById("status");
   const finalizarBtn = document.getElementById("finalizarBtn");
   const finalizarBtnMobile = document.getElementById("finalizarBtnMobile");

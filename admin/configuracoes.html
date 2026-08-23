@@ -112,6 +112,53 @@
             </table>
           </div>
 
+          <!-- TEMPOS ESTIMADOS -->
+
+          <div class="panel">
+            <div class="panel-title">⏱️ Tempos estimados</div>
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label for="tempoRetiradaMinimo">
+                  🛍️ Retirada — mínimo (min)
+                </label>
+
+                <input type="number" id="tempoRetiradaMinimo" min="0" step="1" placeholder="20" />
+              </div>
+
+              <div class="form-group">
+                <label for="tempoRetiradaMaximo">
+                  🛍️ Retirada — máximo (min)
+                </label>
+
+                <input type="number" id="tempoRetiradaMaximo" min="0" step="1" placeholder="30" />
+              </div>
+
+              <div class="form-group">
+                <label for="tempoEntregaMinimo">
+                  🚚 Entrega — mínimo (min)
+                </label>
+
+                <input type="number" id="tempoEntregaMinimo" min="0" step="1" placeholder="120" />
+              </div>
+
+              <div class="form-group">
+                <label for="tempoEntregaMaximo">
+                  🚚 Entrega — máximo (min)
+                </label>
+
+                <input type="number" id="tempoEntregaMaximo" min="0" step="1" placeholder="130" />
+              </div>
+
+            </div>
+
+            <p class="form-help">
+              Os tempos são usados para mostrar ao cliente uma estimativa
+              baseada no horário em que o pedido foi realizado.
+            </p>
+          </div>
+
           <!-- Pagamentos -->
           <div class="panel">
             <div class="panel-title">💳 Pagamentos</div>

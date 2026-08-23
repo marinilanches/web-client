@@ -67,6 +67,12 @@
       buscarCliente,
     } from "./js/services/customers.js";
 
+    import {
+      calcularHorarioFinalEstimativa,
+      textoDiaEstimativa,
+      formatarHorarioEstimativa,
+    } from "./js/services/order-estimates.js";
+
     const pedidoAtual = document.getElementById("pedidoAtual");
     const listaPedidos = document.getElementById("listaPedidos");
 
@@ -274,18 +280,18 @@
           <div class="progresso-etapas">
 
             ${etapas
-              .map((etapa, index) => {
-                let classe = "";
+          .map((etapa, index) => {
+            let classe = "";
 
-                if (index < indiceAtual) {
-                  classe = "concluida";
-                }
+            if (index < indiceAtual) {
+              classe = "concluida";
+            }
 
-                if (index === indiceAtual) {
-                  classe = "ativa";
-                }
+            if (index === indiceAtual) {
+              classe = "ativa";
+            }
 
-                return `
+            return `
                   <div
                     class="progresso-etapa ${classe}"
                   >
@@ -298,8 +304,8 @@
                     </span>
                   </div>
                 `;
-              })
-              .join("")}
+          })
+          .join("")}
 
           </div>
         </div>
@@ -452,6 +458,71 @@
         : "<p>Nenhum item.</p>";
 
       const isDelivery = pedido.tipo === "Delivery";
+      const estimativaTempo = pedido.estimativaTempo;
+
+      let blocoEstimativa = "";
+
+      if (
+        estimativaTempo &&
+        Number.isFinite(Number(estimativaTempo.maximo))
+      ) {
+        const criadoEm =
+          typeof pedido.criadoEm?.toDate === "function"
+            ? pedido.criadoEm.toDate()
+            : new Date(pedido.criadoEm);
+
+        const base =
+          criadoEm instanceof Date &&
+            !Number.isNaN(criadoEm.getTime())
+            ? criadoEm
+            : new Date();
+
+        const horarioFinal =
+          calcularHorarioFinalEstimativa(
+            estimativaTempo,
+            base,
+          );
+
+        const dia =
+          textoDiaEstimativa(
+            horarioFinal,
+            new Date(),
+          );
+
+        const horario =
+          formatarHorarioEstimativa(
+            horarioFinal,
+          );
+
+        const retirada =
+          pedido.tipo === "Retirada";
+
+        blocoEstimativa = `
+          <div class="status-section">
+            <h4>
+              ${retirada ? "🛍️ Retirada" : "🚚 Entrega"}
+            </h4>
+
+            <p>
+              <strong>${dia}</strong>
+            </p>
+
+            <p>
+              <strong>
+                ${estimativaTempo.minimo}–${estimativaTempo.maximo} min
+              </strong>
+            </p>
+
+            <p>
+              ${retirada
+            ? "Pronto para retirar até"
+            : "Chegará até"
+          }
+              <strong>${horario}</strong>
+            </p>
+          </div>
+        `;
+      }
       const blocoPix = getPixHtml(pedido);
 
       const endereco = pedido.endereco || {};
@@ -498,6 +569,8 @@
         <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
         ${gerarProgresso(pedido.status)}
+
+        ${blocoEstimativa}
 
         <p>
           <strong>Status:</strong>

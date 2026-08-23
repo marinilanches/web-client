@@ -161,6 +161,17 @@ export async function criarPedido(dados) {
     telefoneWhatsapp,
 
     tipo: dados.tipo || "Delivery",
+
+    ...(dados.estimativaTempo
+      ? {
+        estimativaTempo: {
+          tipo: dados.estimativaTempo.tipo,
+          minimo: Number(dados.estimativaTempo.minimo),
+          maximo: Number(dados.estimativaTempo.maximo),
+        },
+      }
+      : {}),
+
     status: dados.status || "RECEBIDO",
 
     endereco: dados.endereco || {
