@@ -213,7 +213,7 @@ function liberarLockBot() {
   if (lockFd !== null) {
     try {
       fs.closeSync(lockFd);
-    } catch {}
+    } catch { }
     lockFd = null;
   }
 
@@ -505,7 +505,7 @@ function processarFilaPedidos() {
 
   filaMensagens =
     filaMensagens
-      .catch(() => {})
+      .catch(() => { })
       .then(
         async () => {
 
@@ -686,7 +686,7 @@ async function enviarMensagemPedido(
   if (
     referencia.status &&
     statusAtual !==
-      referencia.status
+    referencia.status
   ) {
 
     console.log(
@@ -696,7 +696,7 @@ async function enviarMensagemPedido(
     if (
       statusAtual &&
       pedido.ultimoStatusNotificado !==
-        statusAtual
+      statusAtual
     ) {
 
       adicionarPedidoFila(
@@ -831,7 +831,7 @@ async function enviarMensagemPedido(
   if (
     client !== clienteAtual ||
     sessaoEnvio !==
-      idSessaoWhatsapp ||
+    idSessaoWhatsapp ||
     !whatsappPronto ||
     reconectando
   ) {
@@ -1255,9 +1255,9 @@ function iniciarListenerPedidos() {
 
             if (
               change.type ===
-                "modified" &&
+              "modified" &&
               statusAtual ===
-                statusAnterior
+              statusAnterior
             ) {
 
               continue;
@@ -1319,7 +1319,7 @@ function pararListenerPedidos() {
 
     try {
       unsubscribePedidos();
-    } catch {}
+    } catch { }
   }
 
   unsubscribePedidos =
@@ -1456,20 +1456,16 @@ async function reconectarWhatsapp() {
 
 function agendarReconexao() {
 
-  if (
-    reconexaoAgendada
-  ) {
+  if (reconexaoAgendada) {
     return;
   }
 
-  reconexaoAgendada =
-    true;
+  reconexaoAgendada = true;
 
   setTimeout(
     async () => {
 
-      reconexaoAgendada =
-        false;
+      reconexaoAgendada = false;
 
       if (
         whatsappPronto ||
@@ -1497,7 +1493,7 @@ function agendarReconexao() {
       }
 
     },
-    5000
+    15000
   );
 }
 
@@ -1748,7 +1744,7 @@ async function criarClienteWhatsapp() {
         if (
           client !== novoCliente ||
           sessaoAtual !==
-            idSessaoWhatsapp
+          idSessaoWhatsapp
         ) {
 
           return;
@@ -1788,7 +1784,7 @@ async function criarClienteWhatsapp() {
               ?.user ||
             null;
 
-        } catch {}
+        } catch { }
 
         whatsappPronto =
           true;
@@ -1917,13 +1913,21 @@ async function criarClienteWhatsapp() {
         "[BOT] Browser do WhatsApp foi fechado."
       );
 
-      whatsappPronto =
-        false;
+      whatsappPronto = false;
 
       atualizarEstado({
-        status:
-          "DESCONECTADO",
+        status: "DESCONECTADO",
+        numero: null,
+        qrCode: null,
       });
+
+      client = null;
+
+      idSessaoWhatsapp++;
+
+      pararListenerPedidos();
+
+      agendarReconexao();
     }
   );
 
@@ -1985,31 +1989,40 @@ async function criarClienteWhatsapp() {
       erro.message
     );
 
-    if (
-      client ===
-      novoCliente
-    ) {
-
-      client =
-        null;
-
-      whatsappPronto =
-        false;
+    if (client === novoCliente) {
+      client = null;
+      whatsappPronto = false;
 
       atualizarEstado({
-        status:
-          "DESCONECTADO",
+        status: "DESCONECTADO",
+        qrCode: null,
+        numero: null,
       });
     }
 
-    /*
-     * Não apagamos a sessão.
-     *
-     * Se for erro temporário, tentamos novamente.
-     */
+    try {
+
+      console.log(
+        "[BOT] Destruindo cliente que falhou na inicialização..."
+      );
+
+      await novoCliente.destroy();
+
+      console.log(
+        "[BOT] Cliente com falha destruído."
+      );
+
+    } catch (erroDestroy) {
+
+      console.warn(
+        "[BOT] Não foi possível destruir cliente com falha:",
+        erroDestroy.message
+      );
+    }
+
+    await aguardar(3000);
 
     agendarReconexao();
-
   } finally {
 
     inicializandoCliente =
