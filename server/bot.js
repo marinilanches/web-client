@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
 const fs = require("fs");
+const { execFile } = require("child_process");
 const path = require("path");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 
@@ -48,6 +49,8 @@ const whatsappState = {
 /* ==========================================================
    CLIENTE WHATSAPP
 ========================================================== */
+
+let botEncerrando = false;
 
 let client = null;
 
@@ -1364,18 +1367,18 @@ function limparFilaWhatsapp() {
    */
 }
 
+/* ==========================================================
+   DESTRUIR CLIENTE WHATSAPP
+========================================================== */
+
 async function destruirClienteWhatsapp(
   cliente,
   motivo = "desconhecido"
 ) {
 
   /*
-   * Se já existe uma destruição em andamento,
-   * todos os chamadores aguardam a MESMA operação.
-   *
-   * Isso evita que uma segunda rotina continue para
-   * a criação de um novo cliente enquanto o Chromium
-   * antigo ainda está sendo encerrado.
+   * Se já existe uma destruição, todos os chamadores
+   * aguardam exatamente a mesma operação.
    */
   if (destruicaoEmAndamento) {
 
@@ -1390,6 +1393,8 @@ async function destruirClienteWhatsapp(
     return;
   }
 
+  destruindoCliente = true;
+
   const promessa =
     (async () => {
 
@@ -1400,10 +1405,15 @@ async function destruirClienteWhatsapp(
         );
 
         /*
-         * Remove os listeners primeiro.
-         *
-         * Eventos atrasados do cliente antigo não poderão
-         * iniciar outro ciclo de reconexão.
+         * Guarda o browser ANTES de remover listeners
+         * ou chamar destroy().
+         */
+        const browser =
+          cliente.pupBrowser || null;
+
+        /*
+         * Remove os listeners para impedir que a própria
+         * destruição gere outro ciclo de reconexão.
          */
         try {
 
@@ -1416,12 +1426,6 @@ async function destruirClienteWhatsapp(
             erro?.message || String(erro)
           );
         }
-
-        /*
-         * Guarda a referência ao browser ANTES do destroy().
-         */
-        const browser =
-          cliente.pupBrowser || null;
 
         let destroyConcluido = false;
 
@@ -1471,10 +1475,13 @@ async function destruirClienteWhatsapp(
         }
 
         /*
-         * Se destroy() não encerrou o browser,
-         * tenta fechar o Puppeteer diretamente.
+         * Se destroy() falhou ou expirou, tenta o browser
+         * diretamente.
          */
-        if (!destroyConcluido && browser) {
+        if (
+          !destroyConcluido &&
+          browser
+        ) {
 
           console.warn(
             "[BOT] client.destroy() não encerrou o Chromium. Tentando browser.close()..."
@@ -1523,11 +1530,8 @@ async function destruirClienteWhatsapp(
             );
 
             /*
-             * Último recurso:
-             * encerra SOMENTE o processo do Chromium
-             * pertencente a este cliente.
-             *
-             * A sessão .wwebjs_auth permanece intacta.
+             * Último recurso para o browser pertencente
+             * a este cliente.
              */
             try {
 
@@ -1565,7 +1569,6 @@ async function destruirClienteWhatsapp(
                     erroKill?.stack || "Stack indisponível"
                   );
                 }
-
               }
 
             } catch (erroProcesso) {
@@ -1589,13 +1592,14 @@ async function destruirClienteWhatsapp(
 
       } finally {
 
+        destruindoCliente = false;
         destruicaoEmAndamento = null;
-
       }
 
     })();
 
-  destruicaoEmAndamento = promessa;
+  destruicaoEmAndamento =
+    promessa;
 
   return promessa;
 }
@@ -1605,6 +1609,15 @@ async function destruirClienteWhatsapp(
 ========================================================== */
 
 async function reconectarWhatsapp({ manual = false } = {}) {
+
+  if (botEncerrando) {
+
+    console.log(
+      "[BOT] Bot está sendo encerrado. Reconexão ignorada."
+    );
+
+    return;
+  }
 
   if (manual) {
 
@@ -1623,9 +1636,6 @@ async function reconectarWhatsapp({ manual = false } = {}) {
     reconexaoAgendada = false;
   }
 
-  /*
-   * Impede duas reconexões simultâneas.
-   */
   if (reconectando) {
 
     console.log(
@@ -1647,16 +1657,13 @@ async function reconectarWhatsapp({ manual = false } = {}) {
   pararListenerPedidos();
 
   /*
-   * Mantemos a referência do cliente antigo.
-   *
-   * NÃO podemos simplesmente perder essa referência,
-   * pois o Chromium dele ainda pode estar vivo.
+   * Captura o cliente atual ANTES de invalidá-lo.
    */
   const clienteParaDestruir =
     client;
 
   /*
-   * Invalida eventos do cliente antigo imediatamente.
+   * Invalida imediatamente os eventos antigos.
    */
   client = null;
 
@@ -1668,15 +1675,11 @@ async function reconectarWhatsapp({ manual = false } = {}) {
       "[BOT] Iniciando limpeza para reconexão..."
     );
 
-    /*
-     * A fila de mensagens pode ser reinicializada,
-     * mas os pedidos pendentes continuam preservados.
-     */
     limparFilaWhatsapp();
 
     /*
-     * PRIMEIRO:
-     * destruir completamente o cliente antigo.
+     * Destrói o cliente antigo antes de qualquer
+     * tentativa de criação.
      */
     if (clienteParaDestruir) {
 
@@ -1684,25 +1687,11 @@ async function reconectarWhatsapp({ manual = false } = {}) {
         clienteParaDestruir,
         "reconexão"
       );
-
-    } else {
-
-      /*
-       * Se outra rotina iniciou uma destruição,
-       * aguardamos mesmo que client já seja null.
-       */
-      if (destruicaoEmAndamento) {
-
-        console.log(
-          "[BOT] Aguardando destruição anterior antes de criar novo cliente..."
-        );
-
-        await destruicaoEmAndamento;
-      }
     }
 
     /*
-     * Garante que nenhuma destruição ficou pendente.
+     * Se outra rotina já iniciou uma destruição,
+     * aguarda a mesma Promise.
      */
     if (destruicaoEmAndamento) {
 
@@ -1714,55 +1703,41 @@ async function reconectarWhatsapp({ manual = false } = {}) {
     }
 
     /*
-     * Pequena janela apenas para permitir que o processo
-     * encerrado seja liberado pelo sistema operacional.
-     *
-     * NÃO é o mecanismo de retry.
-     */
-    await aguardar(1000);
-
-    /*
-     * Segurança adicional:
-     *
-     * jamais criar outro cliente enquanto uma inicialização
-     * ou destruição estiver em andamento.
+     * Se uma inicialização anterior ainda existir,
+     * nunca cria outro cliente em paralelo.
      */
     if (inicializacaoEmAndamento) {
 
       console.log(
-        "[BOT] Existe uma inicialização pendente. Aguardando..."
+        "[BOT] Aguardando conclusão da inicialização anterior..."
       );
 
-      await inicializacaoEmAndamento;
+      try {
+
+        await inicializacaoEmAndamento;
+
+      } catch {
+
+        /*
+         * O erro já foi registrado pela própria
+         * criarClienteWhatsapp().
+         */
+      }
     }
 
-    if (destruicaoEmAndamento) {
-
-      console.log(
-        "[BOT] Existe uma destruição pendente. Aguardando..."
-      );
-
-      await destruicaoEmAndamento;
+    if (botEncerrando) {
+      return;
     }
 
     /*
-     * Só agora o novo cliente pode ser criado.
+     * Cria somente depois de toda destruição/
+     * inicialização anterior terminar.
      */
     console.log(
       "[BOT] Criando novo cliente WhatsApp..."
     );
 
     await criarClienteWhatsapp();
-
-    /*
-     * IMPORTANTE:
-     *
-     * Não agenda retry aqui.
-     *
-     * Se initialize() falhar, o erro sobe para este catch.
-     * Se houver disconnected/browser_closed, o próprio evento
-     * agenda a próxima tentativa.
-     */
 
   } catch (erro) {
 
@@ -1781,12 +1756,13 @@ async function reconectarWhatsapp({ manual = false } = {}) {
     );
 
     /*
-     * Só existe um lugar responsável por agendar
-     * o próximo retry.
+     * ESTE é o único ponto que agenda o próximo retry
+     * quando a própria tentativa falha.
      */
     if (
       !whatsappPronto &&
-      !reconexaoAgendada
+      !reconexaoAgendada &&
+      !botEncerrando
     ) {
 
       agendarReconexao();
@@ -1796,7 +1772,6 @@ async function reconectarWhatsapp({ manual = false } = {}) {
 
     reconectando = false;
     reconexaoManual = false;
-
   }
 }
 
@@ -1806,7 +1781,10 @@ async function reconectarWhatsapp({ manual = false } = {}) {
 
 function agendarReconexao() {
 
-  if (whatsappPronto) {
+  if (
+    botEncerrando ||
+    whatsappPronto
+  ) {
     return;
   }
 
@@ -1872,6 +1850,7 @@ function agendarReconexao() {
         reconexaoAgendada = false;
 
         if (
+          botEncerrando ||
           whatsappPronto ||
           reconectando
         ) {
@@ -1882,38 +1861,7 @@ function agendarReconexao() {
           `[BOT] Tentando reconectar WhatsApp (${tentativaReconexao}/${MAX_TENTATIVAS_RECONEXAO})...`
         );
 
-        try {
-
-          await reconectarWhatsapp();
-
-        } catch (erro) {
-
-          console.error(
-            "[BOT] Falha na tentativa de reconexão:"
-          );
-
-          console.error(
-            "message:",
-            erro?.message || String(erro)
-          );
-
-          console.error(
-            "stack:",
-            erro?.stack || "Stack indisponível"
-          );
-
-          /*
-           * Só agenda novamente se a tentativa realmente
-           * terminou sem deixar outra reconexão em andamento.
-           */
-          if (
-            !whatsappPronto &&
-            !reconectando
-          ) {
-
-            agendarReconexao();
-          }
-        }
+        await reconectarWhatsapp();
 
       },
       TEMPO_RECONEXAO_MS
@@ -1927,17 +1875,21 @@ function agendarReconexao() {
 async function criarClienteWhatsapp() {
 
   /*
-   * Nunca permite duas inicializações simultâneas.
+   * Se já existe uma inicialização, todos aguardam
+   * exatamente a mesma Promise.
    */
   if (inicializacaoEmAndamento) {
 
     console.log(
-      "[BOT] Já existe uma inicialização do WhatsApp em andamento. Ignorando nova tentativa."
+      "[BOT] Já existe uma inicialização do WhatsApp em andamento. Aguardando a mesma operação."
     );
 
     return inicializacaoEmAndamento;
   }
 
+  /*
+   * Nunca cria um segundo cliente.
+   */
   if (client) {
 
     console.log(
@@ -1947,6 +1899,9 @@ async function criarClienteWhatsapp() {
     return;
   }
 
+  /*
+   * Nunca cria cliente durante destruição.
+   */
   if (destruicaoEmAndamento) {
 
     console.log(
@@ -1957,7 +1912,7 @@ async function criarClienteWhatsapp() {
   }
 
   /*
-   * Verifica novamente depois da espera.
+   * Verificação novamente depois da espera.
    */
   if (client) {
 
@@ -1966,6 +1921,11 @@ async function criarClienteWhatsapp() {
     );
 
     return;
+  }
+
+  if (destruicaoEmAndamento) {
+
+    await destruicaoEmAndamento;
   }
 
   if (destruindoCliente) {
@@ -1977,13 +1937,42 @@ async function criarClienteWhatsapp() {
     return;
   }
 
+  /*
+   * Nunca criar durante encerramento do bot.
+   */
+  if (botEncerrando) {
+
+    console.log(
+      "[BOT] Bot está sendo encerrado. Nova criação ignorada."
+    );
+
+    return;
+  }
+
+  /*
+   * A Promise é criada ANTES de qualquer operação assíncrona
+   * da inicialização.
+   *
+   * Assim nenhuma chamada concorrente pode escapar da trava.
+   */
+  let resolverInicializacao;
+  let rejeitadorInicializacao;
+
+  inicializacaoEmAndamento =
+    new Promise((resolve, reject) => {
+
+      resolverInicializacao = resolve;
+      rejeitadorInicializacao = reject;
+
+    });
+
   inicializandoCliente = true;
 
-  const promessaInicializacao =
-    (async () => {
+  const sessaoAtual =
+    ++idSessaoWhatsapp;
 
-      const sessaoAtual =
-        ++idSessaoWhatsapp;
+  const executarInicializacao =
+    async () => {
 
       const novoCliente =
         new Client({
@@ -2229,10 +2218,6 @@ async function criarClienteWhatsapp() {
 
             whatsappPronto = true;
 
-            /*
-             * Reconexão bem-sucedida:
-             * zera o contador de falhas.
-             */
             tentativaReconexao = 0;
 
             if (timerReconexao) {
@@ -2316,26 +2301,52 @@ async function criarClienteWhatsapp() {
           );
 
           /*
-           * Invalida o cliente para impedir que eventos atrasados
-           * sejam considerados válidos.
+           * Mantém a referência REAL do cliente que
+           * disparou o evento.
            */
-          const clienteParaDestruir =
-            client || clienteParaLimpeza;
+          const clienteDesconectado =
+            novoCliente;
 
+          /*
+           * Invalida imediatamente os eventos desse cliente.
+           */
           client = null;
-          clienteParaLimpeza = null;
 
           idSessaoWhatsapp++;
 
+          clienteParaLimpeza =
+            clienteDesconectado;
+
           pararListenerPedidos();
 
-          /*
-           * NÃO cria outro cliente aqui.
-           *
-           * O agendamento apenas inicia o ciclo de reconexão.
-           * reconectarWhatsapp() fará a limpeza antes da criação.
-           */
-          agendarReconexao();
+          try {
+
+            /*
+             * A destruição acontece ANTES de agendar
+             * a próxima criação.
+             */
+            await destruirClienteWhatsapp(
+              clienteDesconectado,
+              "desconexão"
+            );
+
+          } finally {
+
+            if (
+              clienteParaLimpeza ===
+              clienteDesconectado
+            ) {
+
+              clienteParaLimpeza = null;
+            }
+
+            if (
+              !botEncerrando
+            ) {
+
+              agendarReconexao();
+            }
+          }
         }
       );
 
@@ -2365,13 +2376,22 @@ async function criarClienteWhatsapp() {
             qrCode: null,
           });
 
+          /*
+           * O evento significa que o browser já fechou.
+           * Não tentamos destruí-lo novamente.
+           */
           client = null;
 
           idSessaoWhatsapp++;
 
           pararListenerPedidos();
 
-          agendarReconexao();
+          if (
+            !botEncerrando
+          ) {
+
+            agendarReconexao();
+          }
         }
       );
 
@@ -2411,7 +2431,7 @@ async function criarClienteWhatsapp() {
           );
 
           /*
-           * Não apagamos .wwebjs_auth.
+           * A sessão nunca é apagada.
            */
         }
       );
@@ -2431,13 +2451,10 @@ async function criarClienteWhatsapp() {
           "[BOT] initialize() concluído."
         );
 
+        resolverInicializacao();
+
       } catch (erro) {
 
-        /*
-         * ESTE É O PONTO MAIS IMPORTANTE:
-         *
-         * Agora o erro REAL aparece no log.
-         */
         console.error(
           "[BOT] ERRO REAL NO initialize():"
         );
@@ -2467,7 +2484,8 @@ async function criarClienteWhatsapp() {
         }
 
         /*
-         * O cliente que falhou não pode continuar vivo.
+         * Tenta destruir o cliente caso ele tenha
+         * conseguido iniciar parcialmente.
          */
         await destruirClienteWhatsapp(
           novoCliente,
@@ -2475,26 +2493,34 @@ async function criarClienteWhatsapp() {
         );
 
         /*
-         * IMPORTANTE:
-         *
-         * Não chamamos agendarReconexao() aqui.
-         *
-         * Quem controla o retry é reconectarWhatsapp()/agendarReconexao().
-         *
-         * Isso elimina o ciclo duplicado que existia antes.
+         * Se o erro foi causado por um Chromium órfão,
+         * remove somente o processo que está usando
+         * session-mesa-facil.
          */
+        if (
+          erro?.message?.includes(
+            "The browser is already running"
+          )
+        ) {
+
+          console.warn(
+            "[BOT] Chromium preso detectado. Tentando liberar a sessão..."
+          );
+
+          await encerrarChromiumSessao();
+        }
+
+        rejeitadorInicializacao(
+          erro
+        );
 
         throw erro;
       }
-
-    })();
-
-  inicializacaoEmAndamento =
-    promessaInicializacao;
+    };
 
   try {
 
-    await promessaInicializacao;
+    await executarInicializacao();
 
   } finally {
 
@@ -2502,7 +2528,7 @@ async function criarClienteWhatsapp() {
     inicializandoCliente = false;
   }
 
-  return promessaInicializacao;
+  return inicializacaoEmAndamento;
 }
 
 /* ==========================================================
@@ -2653,10 +2679,6 @@ const PORT = 3001;
 
 async function iniciarBot() {
 
-  /*
-   * Primeiro garante uma única instância.
-   */
-
   const lockObtido =
     adquirirLockBot();
 
@@ -2670,6 +2692,10 @@ async function iniciarBot() {
 
     return;
   }
+
+  botEncerrando = false;
+
+  // restante da função permanece exatamente igual
 
   /*
    * Libera o lock em encerramento normal.
@@ -2764,15 +2790,143 @@ async function iniciarBot() {
 }
 
 /* ==========================================================
+   ENCERRAR CHROMIUM PRESO DA SESSÃO
+========================================================== */
+
+async function encerrarChromiumSessao() {
+
+  const diretorioSessao =
+    path.resolve(
+      __dirname,
+      ".wwebjs_auth",
+      "session-mesa-facil"
+    );
+
+  console.warn(
+    `[BOT] Verificando Chromium preso na sessão: ${diretorioSessao}`
+  );
+
+  return new Promise((resolve) => {
+
+    const script = `
+      $sessionDir = [System.IO.Path]::GetFullPath($env:WHATSAPP_SESSION_DIR).TrimEnd('\\').ToLowerInvariant();
+
+      $processos = Get-CimInstance Win32_Process |
+        Where-Object {
+          $_.Name -match '^(chrome|chromium)(\\.exe)?$' -and
+          $_.CommandLine -and
+          $_.CommandLine.ToLowerInvariant().Contains($sessionDir)
+        };
+
+      foreach ($processo in $processos) {
+
+        Write-Output ("PID=" + $processo.ProcessId);
+
+        try {
+
+          Stop-Process -Id $processo.ProcessId -Force -ErrorAction Stop;
+
+          Write-Output ("ENCERRADO=" + $processo.ProcessId);
+
+        } catch {
+
+          Write-Output ("ERRO=" + $processo.ProcessId + ":" + $_.Exception.Message);
+
+        }
+      }
+    `;
+
+    execFile(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        script,
+      ],
+      {
+        windowsHide: true,
+        env: {
+          ...process.env,
+          WHATSAPP_SESSION_DIR:
+            diretorioSessao,
+        },
+      },
+      (erro, stdout, stderr) => {
+
+        if (erro) {
+
+          console.error(
+            "[BOT] Erro ao verificar/encerrar Chromium preso:"
+          );
+
+          console.error(
+            "message:",
+            erro?.message || String(erro)
+          );
+
+          console.error(
+            "stack:",
+            erro?.stack || "Stack indisponível"
+          );
+
+          if (stderr) {
+
+            console.error(
+              "[BOT] PowerShell:",
+              stderr.trim()
+            );
+          }
+
+          resolve(false);
+
+          return;
+        }
+
+        const resultado =
+          String(stdout || "").trim();
+
+        if (resultado) {
+
+          console.warn(
+            "[BOT] Resultado da verificação do Chromium:"
+          );
+
+          console.warn(
+            resultado
+          );
+
+        } else {
+
+          console.log(
+            "[BOT] Nenhum Chromium preso encontrado para esta sessão."
+          );
+        }
+
+        resolve(true);
+      }
+    );
+  });
+}
+
+/* ==========================================================
    ENCERRAMENTO
 ========================================================== */
 
 async function encerrarBot() {
 
+  /*
+   * Impede qualquer reconexão ou criação enquanto
+   * o processo está sendo encerrado.
+   */
+  botEncerrando = true;
+
   whatsappPronto = false;
 
   /*
-   * Cancela eventual retry automático.
+   * Cancela retry automático.
    */
   if (timerReconexao) {
 
@@ -2787,6 +2941,9 @@ async function encerrarBot() {
 
   pararListenerPedidos();
 
+  /*
+   * Invalida eventos do cliente atual.
+   */
   const clienteParaDestruir =
     client;
 
@@ -2794,12 +2951,54 @@ async function encerrarBot() {
 
   idSessaoWhatsapp++;
 
+  /*
+   * Aguarda uma reconexão que já esteja em andamento.
+   *
+   * Ela não poderá criar outro cliente porque
+   * botEncerrando === true.
+   */
+  if (reconectando) {
+
+    console.log(
+      "[BOT] Aguardando reconexão em andamento antes do encerramento..."
+    );
+
+    while (reconectando) {
+
+      await aguardar(100);
+    }
+  }
+
+  /*
+   * Aguarda eventual destruição já existente.
+   */
+  if (destruicaoEmAndamento) {
+
+    console.log(
+      "[BOT] Aguardando destruição anterior..."
+    );
+
+    await destruicaoEmAndamento;
+  }
+
+  /*
+   * Destrói o cliente atual, se existir.
+   */
   if (clienteParaDestruir) {
 
     await destruirClienteWhatsapp(
       clienteParaDestruir,
       "encerramento do bot"
     );
+  }
+
+  /*
+   * Garante que nenhum Chromium esteja sendo
+   * destruído neste momento.
+   */
+  if (destruicaoEmAndamento) {
+
+    await destruicaoEmAndamento;
   }
 
   liberarLockBot();
