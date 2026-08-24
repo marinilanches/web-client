@@ -227,45 +227,58 @@
       }
     }
 
-    function gerarProgresso(status) {
-      const etapas = [
-        {
-          id: "RECEBIDO",
-          nome: "Recebido",
-          emoji: "📥",
-        },
+    function gerarProgresso(status, tipo) {
+      const isRetirada = tipo === "Retirada";
 
-        {
-          id: "PREPARANDO",
-          nome: "Preparando",
-          emoji: "👨‍🍳",
-        },
+      const etapas = isRetirada
+        ? [
+            {
+              id: "RECEBIDO",
+              nome: "Recebido",
+              emoji: "📥",
+            },
+            {
+              id: "PREPARANDO",
+              nome: "Preparando",
+              emoji: "👨‍🍳",
+            },
+            {
+              id: "PRONTO",
+              nome: "Pronto",
+              emoji: "✅",
+            },
+          ]
+        : [
+            {
+              id: "RECEBIDO",
+              nome: "Recebido",
+              emoji: "📥",
+            },
+            {
+              id: "PREPARANDO",
+              nome: "Preparando",
+              emoji: "👨‍🍳",
+            },
+            {
+              id: "PRONTO",
+              nome: "Pronto",
+              emoji: "✅",
+            },
+            {
+              id: "SAIU_PARA_ENTREGA",
+              nome: "Saiu para entrega",
+              emoji: "🚚",
+            },
+          ];
 
-        {
-          id: "PRONTO",
-          nome: "Pronto",
-          emoji: "✅",
-        },
-
-        {
-          id: "SAIU_PARA_ENTREGA",
-          nome: "Saiu para entrega",
-          emoji: "🚚",
-        },
-      ];
-
-      const indiceAtual =
-        etapas.findIndex(
-          (etapa) =>
-            etapa.id === status,
-        );
+      const indiceAtual = etapas.findIndex(
+        (etapa) => etapa.id === status
+      );
 
       const porcentagem =
         indiceAtual < 0
           ? 0
-          : (indiceAtual /
-            (etapas.length - 1)) *
-          100;
+          : (indiceAtual / (etapas.length - 1)) * 100;
 
       return `
         <div class="status-progresso">
@@ -280,18 +293,18 @@
           <div class="progresso-etapas">
 
             ${etapas
-          .map((etapa, index) => {
-            let classe = "";
+              .map((etapa, index) => {
+                let classe = "";
 
-            if (index < indiceAtual) {
-              classe = "concluida";
-            }
+                if (index < indiceAtual) {
+                  classe = "concluida";
+                }
 
-            if (index === indiceAtual) {
-              classe = "ativa";
-            }
+                if (index === indiceAtual) {
+                  classe = "ativa";
+                }
 
-            return `
+                return `
                   <div
                     class="progresso-etapa ${classe}"
                   >
@@ -304,8 +317,8 @@
                     </span>
                   </div>
                 `;
-          })
-          .join("")}
+              })
+              .join("")}
 
           </div>
         </div>
@@ -568,7 +581,7 @@
       <div class="item status-card" style="display:block;">
         <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
-        ${gerarProgresso(pedido.status)}
+        ${gerarProgresso(pedido.status, pedido.tipo)}
 
         ${blocoEstimativa}
 
@@ -672,7 +685,7 @@
           <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
           <p><strong>Status:</strong> ${getStatusLabel(p.status)}</p>
 
-          ${gerarProgresso(p.status)}
+          ${gerarProgresso(p.status, p.tipo)}
 
           <button
             class="btn btn-outline-danger mt-3"
