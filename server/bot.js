@@ -1007,15 +1007,14 @@ async function enviarMensagemPedido(
 ========================================================== */
 
 /*
- * Esta função resolve o principal problema da fila offline.
+ * Na inicialização do bot, NÃO devemos reenviar pedidos antigos.
  *
- * Sempre que o WhatsApp fica READY, consultamos o Firestore
- * e procuramos pedidos cujo:
+ * A reconciliação serve apenas para estabelecer o último status
+ * conhecido dos pedidos que ainda não possuem
+ * ultimoStatusNotificado.
  *
- * status !== ultimoStatusNotificado
- *
- * Assim, pedidos que mudaram enquanto o WhatsApp estava
- * offline não são perdidos.
+ * Depois que o bot estiver funcionando, alterações de status
+ * serão tratadas normalmente pelo listener.
  */
 
 async function reconciliarPedidosPendentes() {
@@ -1029,7 +1028,7 @@ async function reconciliarPedidosPendentes() {
   }
 
   console.log(
-    "[BOT] Verificando pedidos pendentes no Firestore..."
+    "[BOT] Sincronizando status atuais dos pedidos..."
   );
 
   try {
@@ -1039,58 +1038,56 @@ async function reconciliarPedidosPendentes() {
         .collection("pedidos")
         .get();
 
-    let encontrados = 0;
+    let sincronizados = 0;
 
-    for (
-      const doc of snapshot.docs
-    ) {
+    for (const doc of snapshot.docs) {
 
-      const pedido =
-        doc.data();
+      const pedido = doc.data();
 
       if (!pedido.status) {
         continue;
       }
 
+      /*
+       * Pedido que ainda não possui um status notificado.
+       *
+       * Na primeira inicialização, consideramos o status atual
+       * como já conhecido para NÃO enviar mensagens antigas.
+       */
       if (
-        pedido.ultimoStatusNotificado ===
-        pedido.status
+        pedido.ultimoStatusNotificado === undefined ||
+        pedido.ultimoStatusNotificado === null ||
+        pedido.ultimoStatusNotificado === ""
       ) {
+
+        await doc.ref.update({
+          ultimoStatusNotificado: pedido.status,
+        });
+
+        sincronizados++;
+
+        console.log(
+          `[BOT] Pedido ${doc.id} sincronizado no status ${pedido.status} sem envio.`
+        );
+
         continue;
       }
 
       /*
-       * Só adicionamos estados que possuem mensagem.
+       * Se já existe ultimoStatusNotificado, não fazemos nada aqui.
+       *
+       * Mudanças futuras serão detectadas pelo listener.
        */
-
-      const mensagem =
-        montarMensagemStatus({
-          ...pedido,
-          id: doc.id,
-        });
-
-      if (!mensagem) {
-        continue;
-      }
-
-      encontrados++;
-
-      adicionarPedidoFila(
-        doc.id,
-        pedido
-      );
     }
 
     console.log(
-      `[BOT] Reconciliação concluída. ${encontrados} pedido(s) pendente(s) encontrado(s).`
+      `[BOT] Sincronização concluída. ${sincronizados} pedido(s) inicializado(s) sem envio.`
     );
-
-    processarFilaPedidos();
 
   } catch (erro) {
 
     console.error(
-      "[BOT] Erro ao reconciliar pedidos:",
+      "[BOT] Erro ao sincronizar pedidos:",
       erro
     );
   }
