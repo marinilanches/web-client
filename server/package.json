@@ -5,7 +5,8 @@
   "main": "printer.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node printer.js"
+    "start": "node printer.js",
+    "install-chrome": "node scripts/install-chrome.js"
   },
   "keywords": [
     "mesa-facil",

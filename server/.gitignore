@@ -1,11 +1,14 @@
 node_modules/
 
+.puppeteer/
+
 .wwebjs_auth/
 .wwebjs_auth_backup/
 .wwebjs_cache/
 
 *.raw
 *.log
+
 logs/
 
 .env
