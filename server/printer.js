@@ -2,72 +2,68 @@ const iconv = require("iconv-lite");
 
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
 
-const { execFile } = require("child_process");
+const fs = require("fs");
 const path = require("path");
 
+const { execFile } = require("child_process");
+
+
 const app = express();
+
 const PORT = 3002;
 
-const PRINTER_NAME = "ELGIN i9(COM3)";
 
 /*
 |--------------------------------------------------------------------------
-| CONFIGURAÇÃO DA IMPRESSORA
+| IMPRESSÃO
 |--------------------------------------------------------------------------
-|
-| Nome exatamente igual ao mostrado em:
-| Painel de Controle > Dispositivos e Impressoras
-|
 */
 
-function imprimirRAW() {
-  return new Promise((resolve, reject) => {
-    const arquivo = path.join(__dirname, "raw-print.ps1");
-
-    execFile(
-      "powershell",
-      ["-ExecutionPolicy", "Bypass", "-File", arquivo],
-      (erro, stdout, stderr) => {
-        if (erro) {
-          console.error(stderr);
-          reject(erro);
-          return;
-        }
-
-        resolve();
-      },
-    );
-  });
-}
-
 const LARGURA = 48;
+
+const LARGURA_DUPLA =
+    Math.floor(LARGURA / 2);
+
 
 const ESC = "\x1B";
 const GS = "\x1D";
 
+
 const CMD = {
-  RESET: ESC + "@",
 
-  BOLD_ON: ESC + "E\x01",
+    RESET:
+        ESC + "@",
 
-  BOLD_OFF: ESC + "E\x00",
+    BOLD_ON:
+        ESC + "E\x01",
 
-  UNDERLINE: ESC + "-\x01",
+    BOLD_OFF:
+        ESC + "E\x00",
 
-  UNDERLINE_OFF: ESC + "-\x00",
+    UNDERLINE:
+        ESC + "-\x01",
 
-  CENTER: ESC + "a\x01",
+    UNDERLINE_OFF:
+        ESC + "-\x00",
 
-  LEFT: ESC + "a\x00",
+    CENTER:
+        ESC + "a\x01",
 
-  DOUBLE: ESC + "!\x30",
+    LEFT:
+        ESC + "a\x00",
 
-  NORMAL: ESC + "!\x00",
+    DOUBLE:
+        ESC + "!\x30",
 
-  CUT: GS + "V\x01",
+    NORMAL:
+        ESC + "!\x00",
+
+    CUT:
+        GS + "V\x01"
+
 };
+
 
 /*
 |--------------------------------------------------------------------------
@@ -76,23 +72,34 @@ const CMD = {
 */
 
 app.use(cors());
-app.use(express.json({ limit: "2mb" }));
+
+app.use(
+    express.json({
+        limit: "2mb"
+    })
+);
+
 
 /*
 |--------------------------------------------------------------------------
-| ESTADO DO SERVIÇO
+| ESTADO
 |--------------------------------------------------------------------------
 */
 
 let estado = {
-  online: true,
 
-  fila: 0,
+    online: false,
 
-  impressosHoje: 0,
+    fila: 0,
 
-  ultimaImpressao: null,
+    impressosHoje: 0,
+
+    ultimaImpressao: null,
+
+    impressora: null
+
 };
+
 
 /*
 |--------------------------------------------------------------------------
@@ -101,413 +108,1689 @@ let estado = {
 */
 
 function texto(valor) {
-  if (valor === undefined) return "";
-
-  if (valor === null) return "";
-
-  return String(valor);
-}
-
-function numero(valor) {
-  return Number(valor || 0);
-}
-
-function formatarMoeda(valor) {
-  return numero(valor).toFixed(2).replace(".", ",");
-}
-
-function moeda(valor) {
-  return Number(valor || 0)
-    .toFixed(2)
-    .replace(".", ",");
-}
-
-function linhaDupla() {
-  return "=".repeat(48);
-}
-
-function campo(nome, valor) {
-  return `${nome}: ${texto(valor)}\n`;
-}
-
-function coluna(nome, valor) {
-  const espaco = 48 - nome.length - valor.length;
-
-  return nome + " ".repeat(Math.max(1, espaco)) + valor;
-}
-
-function dinheiro(valor) {
-  return `R$ ${formatarMoeda(valor)}`;
-}
-
-function dataAtual() {
-  return new Date().toLocaleString("pt-BR");
-}
-
-function linha(caractere = "-") {
-  return caractere.repeat(LARGURA);
-}
-
-function linhaDupla() {
-  return "=".repeat(LARGURA);
-}
-
-function limparTexto(valor = "") {
-  return String(valor)
-    .normalize("NFD")
-
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function centralizar(textoLinha) {
-  textoLinha = texto(textoLinha);
-
-  if (textoLinha.length >= LARGURA) return textoLinha;
-
-  const esquerda = Math.floor((LARGURA - textoLinha.length) / 2);
-
-  return " ".repeat(esquerda) + textoLinha;
-}
-
-function duasColunas(esquerda, direita) {
-  esquerda = texto(esquerda);
-
-  direita = texto(direita);
-
-  const espacos = LARGURA - esquerda.length - direita.length;
-
-  if (espacos <= 1) {
-    return `${esquerda} ${direita}`;
-  }
-
-  return esquerda + " ".repeat(espacos) + direita;
-}
-
-function quebrarLinha(valor, largura = LARGURA) {
-  valor = texto(valor);
-
-  const palavras = valor.split(" ");
-
-  const linhas = [];
-
-  let atual = "";
-
-  for (const palavra of palavras) {
-    if ((atual + palavra).length > largura) {
-      linhas.push(atual.trim());
-
-      atual = "";
-    }
-
-    atual += palavra + " ";
-  }
-
-  if (atual.trim()) {
-    linhas.push(atual.trim());
-  }
-
-  return linhas;
-}
-
-async function enviarRAW(texto) {
-  const arquivoRaw = path.join(__dirname, "cupom.raw");
-
-  fs.writeFileSync(arquivoRaw, iconv.encode(texto, "cp850"));
-
-  const script = path.join(__dirname, "raw-print.ps1");
-
-  return new Promise((resolve, reject) => {
-    execFile(
-      "powershell.exe",
-      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, arquivoRaw],
-      {
-        windowsHide: true,
-      },
-      (erro, stdout, stderr) => {
-        if (erro) {
-          console.error(stderr);
-
-          reject(erro);
-
-          return;
-        }
-
-        console.log(stdout);
-
-        resolve();
-      },
-    );
-  });
-}
-
-async function verificarImpressora() {
-  return true;
-}
-
-async function iniciarImpressao() {
-  const conectada = await verificarImpressora();
-
-  if (!conectada) {
-    throw new Error(`Impressora "${PRINTER_NAME}" não encontrada.`);
-  }
-}
-
-async function imprimirPedido(pedido) {
-  let cupom = "";
-
-  cupom += CMD.RESET;
-
-  // Código da tabela de caracteres da impressora
-  // ESC t 2 = CP850
-  cupom += "\x1B\x74\x02";
-
-  // CABEÇALHO
-
-  cupom += CMD.CENTER;
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += CMD.DOUBLE;
-
-  cupom += "LANCHES MARINI\n";
-
-  cupom += CMD.NORMAL;
-
-  cupom += CMD.BOLD_OFF;
-
-  cupom += linhaDupla() + "\n";
-
-  // PEDIDO
-
-  cupom += CMD.LEFT;
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += campo("PEDIDO", "#" + pedido.numeroPedido);
-
-  cupom += campo("DATA", pedido.dataHora || dataAtual());
-
-  cupom += linha() + "\n";
-
-  // CLIENTE
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += `CLIENTE ${pedido.cliente}\n`;
-
-  cupom += CMD.BOLD_OFF;
-
-  cupom += `Telefone: ${pedido.telefone}\n`;
-
-  if ((pedido.tipo || "").toUpperCase() === "MESA") {
-    cupom += `Mesa: ${pedido.numeroMesa ?? pedido.mesa ?? "-"}\n`;
-  }
-
-  cupom += linha() + "\n";
-
-  // ITENS
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += "ITENS DO PEDIDO\n";
-
-  cupom += CMD.BOLD_OFF;
-
-  for (const item of pedido.itens || []) {
-    cupom += duasColunas(
-      `${item.quantidade}x ${item.nome}`,
-      "R$ " + moeda(item.valorUnitario),
-    );
-
-    cupom += "\n";
-
-    if (item.adicionais?.length) {
-      cupom += "\n";
-      cupom += "COMPLEMENTOS:\n";
-
-      for (const adicional of item.adicionais) {
-        cupom += `${adicional.nome} R$ ${moeda(
-          adicional.preco || adicional.valor,
-        )}\n`;
-      }
-    }
-
-    if (item.observacaoItem) {
-      cupom += "\n";
-
-      cupom += CMD.BOLD_ON;
-
-      cupom += "[ OBSERVACAO ]\n";
-
-      cupom += CMD.BOLD_OFF;
-
-      cupom += item.observacaoItem.toUpperCase() + "\n";
-    }
-
-    cupom += "\n";
-  }
-
-  cupom += linha() + "\n";
-
-  // ENTREGA / RETIRADA
-
-  if (pedido.tipo && pedido.tipo.toUpperCase() === "DELIVERY") {
-    cupom += CMD.BOLD_ON;
-
-    cupom += "ENTREGA\n";
-
-    cupom += CMD.BOLD_OFF;
-
-    if (pedido.endereco) {
-      cupom += CMD.DOUBLE;
-
-      cupom += "ENDEREÇO:\n\n";
-
-      if (typeof pedido.endereco === "object") {
-        const e = pedido.endereco;
-
-        let linhaEndereco = e.rua || "";
-
-        if (e.numero) {
-          linhaEndereco += `, ${e.numero}`;
-        }
-
-        if (e.bairro) {
-          linhaEndereco += ` ${e.bairro}`;
-        }
-
-        quebrarLinha(linhaEndereco, LARGURA).forEach((linha) => {
-          cupom += linha + "\n";
-        });
-
-        if (e.cep) {
-          cupom += `CEP: ${e.cep}\n`;
-        }
-
-        if (e.complemento) {
-          const linhas = quebrarLinha(`Complemento: ${e.complemento}`, LARGURA);
-
-          linhas.forEach((linha) => {
-            cupom += linha + "\n";
-          });
-        }
-      } else {
-        cupom += `${pedido.endereco}\n`;
-      }
-
-      cupom += CMD.NORMAL;
-    }
-  } else {
-    cupom += CMD.BOLD_ON;
-
-    cupom += `TIPO: ${pedido.tipo || "-"}\n`;
-
-    cupom += CMD.BOLD_OFF;
-  }
-
-  if (pedido.observacoes) {
-    cupom += CMD.BOLD_ON;
-
-    cupom += "OBSERVAÇÕES\n";
-
-    cupom += CMD.BOLD_OFF;
-
-    quebrarLinha(pedido.observacoes.toUpperCase()).forEach((linha) => {
-      cupom += linha + "\n";
-    });
-
-    cupom += linha() + "\n";
-  } else {
-    cupom += linha() + "\n";
-  }
-
-  // PAGAMENTO
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += `PAGAMENTO ${pedido.pagamentoMetodo}\n`;
-
-  cupom += CMD.BOLD_OFF;
-
-  // TROCO SOMENTE PARA DINHEIRO
-
-  if (
-    pedido.pagamentoMetodo &&
-    pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO"
-  ) {
-    const total = Number(pedido.valorTotal || 0);
 
     if (
-      pedido.trocoPara !== null &&
-      pedido.trocoPara !== undefined &&
-      pedido.trocoPara !== ""
+        valor === undefined ||
+        valor === null
     ) {
-      const pago = Number(pedido.trocoPara);
-
-      const troco = pago - total;
-
-      cupom += `CLIENTE PAGA: R$ ${moeda(pago)}\n`;
-      cupom += `TROCO: R$ ${moeda(troco)}\n`;
+        return "";
     }
-  }
 
-  cupom += linha() + "\n";
-
-  // VALORES
-
-  cupom += `Subtotal: R$ ${moeda(pedido.valorSubtotal)}\n`;
-
-  if (pedido.tipo && pedido.tipo.toUpperCase() === "DELIVERY") {
-    cupom += `Entrega: R$ ${moeda(pedido.taxaEntrega)}\n`;
-  }
-
-  cupom += "\n";
-
-  cupom += CMD.CENTER;
-
-  cupom += CMD.BOLD_ON;
-
-  cupom += CMD.DOUBLE;
-
-  cupom += `TOTAL: R$ ${moeda(pedido.valorTotal)}\n`;
-
-  cupom += CMD.NORMAL;
-
-  cupom += CMD.BOLD_OFF;
-
-  if (
-    pedido.pagamentoMetodo &&
-    pedido.pagamentoMetodo.toUpperCase() === "DINHEIRO" &&
-    (pedido.trocoPara === null ||
-      pedido.trocoPara === undefined ||
-      pedido.trocoPara === "")
-  ) {
-    cupom += "\n";
-    cupom += CMD.LEFT;
-    cupom += CMD.BOLD_ON;
-    cupom += "TROCO: ";
-    cupom += CMD.BOLD_OFF;
-    cupom += "Cliente informou que possui trocado.\n";
-  }
-
-  cupom += CMD.NORMAL;
-
-  cupom += CMD.BOLD_OFF;
-
-  cupom += "\n";
-
-  cupom += "Obrigado pela preferencia!\n";
-
-  cupom += "\n\n\n";
-
-  cupom += CMD.CUT;
-
-  await enviarRAW(cupom);
-
-  estado.impressosHoje++;
-
-  estado.ultimaImpressao = new Date().toISOString();
+    return String(valor);
 }
+
+
+function numero(valor) {
+
+    const resultado =
+        Number(valor || 0);
+
+    return Number.isFinite(resultado)
+        ? resultado
+        : 0;
+}
+
+
+function formatarMoeda(valor) {
+
+    return numero(valor)
+        .toFixed(2)
+        .replace(".", ",");
+
+}
+
+
+function moeda(valor) {
+
+    return formatarMoeda(valor);
+
+}
+
+
+function dinheiro(valor) {
+
+    return `R$ ${formatarMoeda(valor)}`;
+
+}
+
+
+function dataAtual() {
+
+    return new Date()
+        .toLocaleString("pt-BR");
+
+}
+
+
+function linha(
+    caractere = "-"
+) {
+
+    return caractere.repeat(
+        LARGURA
+    );
+
+}
+
+
+function linhaDupla() {
+
+    return linha("=");
+
+}
+
+
+function campo(
+    nome,
+    valor
+) {
+
+    return `${nome}: ${texto(valor)}\n`;
+
+}
+
+
+function duasColunas(
+    esquerda,
+    direita
+) {
+
+    esquerda = texto(esquerda);
+
+    direita = texto(direita);
+
+
+    const espacos =
+
+        LARGURA -
+
+        esquerda.length -
+
+        direita.length;
+
+
+    if (espacos <= 1) {
+
+        return (
+            esquerda +
+            " " +
+            direita
+        );
+
+    }
+
+
+    return (
+
+        esquerda +
+
+        " ".repeat(espacos) +
+
+        direita
+
+    );
+
+}
+
+
+function quebrarLinha(
+    valor,
+    largura = LARGURA
+) {
+
+    valor = texto(valor)
+        .trim();
+
+
+    if (!valor) {
+
+        return [];
+
+    }
+
+
+    const palavras =
+        valor.split(/\s+/);
+
+
+    const linhas = [];
+
+    let atual = "";
+
+
+    for (
+        const palavra of palavras
+    ) {
+
+        /*
+        Se uma única palavra for
+        maior que a largura.
+        */
+
+        if (
+            palavra.length >
+            largura
+        ) {
+
+            if (atual) {
+
+                linhas.push(atual);
+
+                atual = "";
+
+            }
+
+
+            let restante =
+                palavra;
+
+
+            while (
+                restante.length >
+                largura
+            ) {
+
+                linhas.push(
+
+                    restante.substring(
+                        0,
+                        largura
+                    )
+
+                );
+
+
+                restante =
+
+                    restante.substring(
+                        largura
+                    );
+
+            }
+
+
+            atual =
+                restante;
+
+
+            continue;
+
+        }
+
+
+        const candidato =
+
+            atual
+
+                ? `${atual} ${palavra}`
+
+                : palavra;
+
+
+        if (
+            candidato.length >
+            largura
+        ) {
+
+            linhas.push(atual);
+
+            atual =
+                palavra;
+
+        } else {
+
+            atual =
+                candidato;
+
+        }
+
+    }
+
+
+    if (atual) {
+
+        linhas.push(atual);
+
+    }
+
+
+    return linhas;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| DETECTAR IMPRESSORA
+|--------------------------------------------------------------------------
+*/
+
+function detectarImpressora() {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const script =
+
+                path.join(
+                    __dirname,
+                    "raw-print.ps1"
+                );
+
+
+            execFile(
+
+                "powershell.exe",
+
+                [
+                    "-NoProfile",
+
+                    "-ExecutionPolicy",
+                    "Bypass",
+
+                    "-File",
+                    script,
+
+                    "-DetectOnly"
+                ],
+
+                {
+                    windowsHide: true
+                },
+
+                (
+                    erro,
+                    stdout,
+                    stderr
+                ) => {
+
+                    if (erro) {
+
+                        const mensagem =
+
+                            texto(stderr)
+                                .trim() ||
+
+                            erro.message;
+
+
+                        reject(
+
+                            new Error(
+                                mensagem
+                            )
+
+                        );
+
+                        return;
+
+                    }
+
+
+                    const nome =
+
+                        texto(stdout)
+                            .trim();
+
+
+                    if (!nome) {
+
+                        reject(
+
+                            new Error(
+                                "Nenhuma impressora Elgin detectada."
+                            )
+
+                        );
+
+                        return;
+
+                    }
+
+
+                    resolve(nome);
+
+                }
+
+            );
+
+        }
+
+    );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| STATUS DA IMPRESSORA
+|--------------------------------------------------------------------------
+*/
+
+async function verificarImpressora() {
+
+    try {
+
+        const nome =
+
+            await detectarImpressora();
+
+
+        estado.online = true;
+
+        estado.impressora =
+            nome;
+
+
+        return true;
+
+    } catch (erro) {
+
+        estado.online = false;
+
+        estado.impressora =
+            null;
+
+
+        console.error(
+            "[PRINTER] Impressora não detectada:",
+            erro.message
+        );
+
+
+        return false;
+
+    }
+
+}
+
+
+async function iniciarImpressao() {
+
+    const conectada =
+
+        await verificarImpressora();
+
+
+    if (!conectada) {
+
+        throw new Error(
+
+            "Nenhuma impressora ELGIN i9 foi encontrada no Windows."
+
+        );
+
+    }
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CRIAR ARQUIVO RAW E ENVIAR
+|--------------------------------------------------------------------------
+*/
+
+async function enviarRAW(
+    conteudo
+) {
+
+    /*
+    Arquivo único para evitar
+    que dois pedidos simultâneos
+    sobrescrevam cupom.raw.
+    */
+
+    const nomeArquivo =
+
+        `cupom-${Date.now()}-${process.pid}-${Math.random()
+            .toString(36)
+            .slice(2, 8)}.raw`;
+
+
+    const arquivoRaw =
+
+        path.join(
+            __dirname,
+            nomeArquivo
+        );
+
+
+    const script =
+
+        path.join(
+            __dirname,
+            "raw-print.ps1"
+        );
+
+
+    try {
+
+        /*
+        Elgin configurada para
+        tabela CP850.
+        */
+
+        const buffer =
+
+            iconv.encode(
+                conteudo,
+                "cp850"
+            );
+
+
+        fs.writeFileSync(
+            arquivoRaw,
+            buffer
+        );
+
+
+        await new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                execFile(
+
+                    "powershell.exe",
+
+                    [
+                        "-NoProfile",
+
+                        "-ExecutionPolicy",
+                        "Bypass",
+
+                        "-File",
+                        script,
+
+                        "-arquivoRaw",
+                        arquivoRaw
+                    ],
+
+                    {
+                        windowsHide: true,
+
+                        maxBuffer:
+                            1024 * 1024
+                    },
+
+                    (
+                        erro,
+                        stdout,
+                        stderr
+                    ) => {
+
+                        if (erro) {
+
+                            console.error(
+                                "[PRINTER RAW]",
+                                stderr
+                            );
+
+
+                            reject(
+
+                                new Error(
+
+                                    texto(stderr)
+                                        .trim() ||
+
+                                    erro.message
+
+                                )
+
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        const resposta =
+
+                            texto(stdout)
+                                .trim();
+
+
+                        if (resposta) {
+
+                            console.log(
+                                resposta
+                            );
+
+                        }
+
+
+                        resolve();
+
+                    }
+
+                );
+
+            }
+
+        );
+
+    } finally {
+
+        /*
+        Remove o arquivo temporário
+        mesmo se a impressão falhar.
+        */
+
+        try {
+
+            if (
+                fs.existsSync(
+                    arquivoRaw
+                )
+            ) {
+
+                fs.unlinkSync(
+                    arquivoRaw
+                );
+
+            }
+
+        } catch (
+            erroLimpeza
+        ) {
+
+            console.warn(
+
+                "[PRINTER] Não foi possível remover RAW temporário:",
+
+                erroLimpeza.message
+
+            );
+
+        }
+
+    }
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PEDIDO
+|--------------------------------------------------------------------------
+*/
+
+async function imprimirPedido(
+    pedido
+) {
+
+    await iniciarImpressao();
+
+
+    let cupom = "";
+
+
+    /*
+    ============================================================
+    RESET + CP850
+    ============================================================
+    */
+
+    cupom +=
+        CMD.RESET;
+
+
+    /*
+    ESC t 2
+    Tabela CP850
+    */
+
+    cupom +=
+        "\x1B\x74\x02";
+
+
+    /*
+    ============================================================
+    CABEÇALHO
+    ============================================================
+    */
+
+    cupom +=
+        CMD.CENTER;
+
+    cupom +=
+        CMD.BOLD_ON;
+
+    cupom +=
+        CMD.DOUBLE;
+
+    cupom +=
+        "LANCHES MARINI\n";
+
+    cupom +=
+        CMD.NORMAL;
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+    cupom +=
+        linhaDupla() +
+        "\n";
+
+
+    /*
+    ============================================================
+    PEDIDO
+    ============================================================
+    */
+
+    cupom +=
+        CMD.LEFT;
+
+    cupom +=
+        CMD.BOLD_ON;
+
+
+    cupom += campo(
+        "PEDIDO",
+        "#" +
+            texto(
+                pedido.numeroPedido ||
+                pedido.id ||
+                "-"
+            )
+    );
+
+
+    cupom += campo(
+        "DATA",
+        pedido.dataHora ||
+            dataAtual()
+    );
+
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+    cupom +=
+        linha() +
+        "\n";
+
+
+    /*
+    ============================================================
+    CLIENTE
+    ============================================================
+    */
+
+    cupom +=
+        CMD.BOLD_ON;
+
+
+    cupom +=
+
+        `CLIENTE: ${texto(
+            pedido.cliente ||
+            "Cliente não informado"
+        )}\n`;
+
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+
+    cupom +=
+
+        `Telefone: ${texto(
+            pedido.telefone ||
+            "-"
+        )}\n`;
+
+
+    if (
+        (
+            pedido.tipo ||
+            ""
+        )
+            .toUpperCase() ===
+        "MESA"
+    ) {
+
+        cupom +=
+
+            `Mesa: ${texto(
+                pedido.numeroMesa ??
+                pedido.mesa ??
+                "-"
+            )}\n`;
+
+    }
+
+
+    cupom +=
+        linha() +
+        "\n";
+
+
+    /*
+    ============================================================
+    ITENS
+    ============================================================
+    */
+
+    cupom +=
+        CMD.BOLD_ON;
+
+    cupom +=
+        "ITENS DO PEDIDO\n";
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+
+    const itens =
+
+        Array.isArray(
+            pedido.itens
+        )
+
+            ? pedido.itens
+
+            : [];
+
+
+    if (!itens.length) {
+
+        cupom +=
+
+            "Nenhum item informado.\n";
+
+    }
+
+
+    for (
+        const item of itens
+    ) {
+
+        const quantidade =
+
+            numero(
+                item.quantidade ||
+                1
+            );
+
+
+        const nome =
+
+            texto(
+                item.nome ||
+                "Item"
+            );
+
+
+        const valorUnitario =
+
+            numero(
+
+                item.valorUnitario ??
+
+                item.precoBase ??
+
+                item.preco ??
+
+                0
+
+            );
+
+
+        /*
+        Produto e valor.
+        */
+
+        const descricao =
+
+            `${quantidade}x ${nome}`;
+
+
+        if (
+            descricao.length +
+                dinheiro(
+                    valorUnitario
+                ).length <
+            LARGURA
+        ) {
+
+            cupom +=
+
+                duasColunas(
+                    descricao,
+                    dinheiro(
+                        valorUnitario
+                    )
+                );
+
+            cupom += "\n";
+
+        } else {
+
+            quebrarLinha(
+                descricao
+            ).forEach(
+                (itemLinha) => {
+
+                    cupom +=
+                        itemLinha +
+                        "\n";
+
+                }
+            );
+
+
+            cupom +=
+                CMD.RIGHT;
+
+
+            cupom +=
+
+                dinheiro(
+                    valorUnitario
+                ) +
+                "\n";
+
+
+            cupom +=
+                CMD.LEFT;
+
+        }
+
+
+        /*
+        ADICIONAIS
+        */
+
+        if (
+            Array.isArray(
+                item.adicionais
+            ) &&
+            item.adicionais.length
+        ) {
+
+            cupom +=
+                "  COMPLEMENTOS:\n";
+
+
+            for (
+                const adicional
+                of item.adicionais
+            ) {
+
+                if (
+                    typeof adicional ===
+                    "string"
+                ) {
+
+                    quebrarLinha(
+
+                        `  + ${adicional}`
+
+                    ).forEach(
+                        (adicionalLinha) => {
+
+                            cupom +=
+                                adicionalLinha +
+                                "\n";
+
+                        }
+                    );
+
+
+                    continue;
+
+                }
+
+
+                const nomeAdicional =
+
+                    texto(
+                        adicional.nome ||
+                        "Adicional"
+                    );
+
+
+                const valorAdicional =
+
+                    numero(
+
+                        adicional.preco ??
+
+                        adicional.valor ??
+
+                        0
+
+                    );
+
+
+                const textoAdicional =
+
+                    `  + ${nomeAdicional}`;
+
+
+                if (
+                    valorAdicional >
+                    0
+                ) {
+
+                    if (
+                        textoAdicional.length +
+                            dinheiro(
+                                valorAdicional
+                            ).length <
+                        LARGURA
+                    ) {
+
+                        cupom +=
+
+                            duasColunas(
+                                textoAdicional,
+                                dinheiro(
+                                    valorAdicional
+                                )
+                            );
+
+                        cupom += "\n";
+
+                    } else {
+
+                        quebrarLinha(
+                            textoAdicional
+                        ).forEach(
+                            (adicionalLinha) => {
+
+                                cupom +=
+                                    adicionalLinha +
+                                    "\n";
+
+                            }
+                        );
+
+
+                        cupom +=
+                            `    ${dinheiro(
+                                valorAdicional
+                            )}\n`;
+
+                    }
+
+                } else {
+
+                    quebrarLinha(
+                        textoAdicional
+                    ).forEach(
+                        (adicionalLinha) => {
+
+                            cupom +=
+                                adicionalLinha +
+                                "\n";
+
+                        }
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        OBSERVAÇÃO DO ITEM
+        */
+
+        const observacaoItem =
+
+            texto(
+
+                item.observacaoItem ||
+
+                item.personalizados
+                    ?.observacao ||
+
+                ""
+
+            ).trim();
+
+
+        if (
+            observacaoItem
+        ) {
+
+            cupom +=
+                CMD.BOLD_ON;
+
+            cupom +=
+                "[ OBSERVACAO ]\n";
+
+            cupom +=
+                CMD.BOLD_OFF;
+
+
+            quebrarLinha(
+
+                observacaoItem
+                    .toUpperCase()
+
+            ).forEach(
+                (obsLinha) => {
+
+                    cupom +=
+                        obsLinha +
+                        "\n";
+
+                }
+            );
+
+        }
+
+
+        cupom += "\n";
+
+    }
+
+
+    cupom +=
+        linha() +
+        "\n";
+
+
+    /*
+    ============================================================
+    ENTREGA / RETIRADA
+    ============================================================
+    */
+
+    const tipo =
+
+        texto(
+            pedido.tipo
+        ).toUpperCase();
+
+
+    if (
+        tipo ===
+        "DELIVERY"
+    ) {
+
+        cupom +=
+            CMD.BOLD_ON;
+
+        cupom +=
+            "ENTREGA\n";
+
+        cupom +=
+            CMD.BOLD_OFF;
+
+
+        const endereco =
+            pedido.endereco;
+
+
+        if (
+            endereco
+        ) {
+
+            /*
+            Endereço em destaque.
+
+            Como DOUBLE dobra a largura,
+            a quebra precisa usar
+            metade das colunas.
+            */
+
+            cupom +=
+                CMD.DOUBLE;
+
+
+            cupom +=
+                "ENDERECO:\n";
+
+
+            if (
+                typeof endereco ===
+                "object"
+            ) {
+
+                const rua =
+
+                    texto(
+                        endereco.rua
+                    );
+
+
+                const numeroCasa =
+
+                    texto(
+                        endereco.numero
+                    );
+
+
+                let linhaEndereco =
+                    rua;
+
+
+                if (
+                    numeroCasa
+                ) {
+
+                    linhaEndereco +=
+
+                        `${linhaEndereco
+                            ? ", "
+                            : ""}${numeroCasa}`;
+
+                }
+
+
+                quebrarLinha(
+                    linhaEndereco,
+                    LARGURA_DUPLA
+                ).forEach(
+                    (endLinha) => {
+
+                        cupom +=
+                            endLinha +
+                            "\n";
+
+                    }
+                );
+
+
+                if (
+                    endereco.bairro
+                ) {
+
+                    quebrarLinha(
+
+                        texto(
+                            endereco.bairro
+                        ),
+
+                        LARGURA_DUPLA
+
+                    ).forEach(
+                        (bairroLinha) => {
+
+                            cupom +=
+                                bairroLinha +
+                                "\n";
+
+                        }
+                    );
+
+                }
+
+
+                if (
+                    endereco.complemento
+                ) {
+
+                    quebrarLinha(
+
+                        `Compl: ${endereco.complemento}`,
+
+                        LARGURA_DUPLA
+
+                    ).forEach(
+                        (complLinha) => {
+
+                            cupom +=
+                                complLinha +
+                                "\n";
+
+                        }
+                    );
+
+                }
+
+
+                if (
+                    endereco.cep
+                ) {
+
+                    quebrarLinha(
+
+                        `CEP: ${endereco.cep}`,
+
+                        LARGURA_DUPLA
+
+                    ).forEach(
+                        (cepLinha) => {
+
+                            cupom +=
+                                cepLinha +
+                                "\n";
+
+                        }
+                    );
+
+                }
+
+            } else {
+
+                quebrarLinha(
+
+                    endereco,
+
+                    LARGURA_DUPLA
+
+                ).forEach(
+                    (endLinha) => {
+
+                        cupom +=
+                            endLinha +
+                            "\n";
+
+                    }
+                );
+
+            }
+
+
+            cupom +=
+                CMD.NORMAL;
+
+        }
+
+
+        if (
+            pedido.referencia
+        ) {
+
+            cupom +=
+
+                `Referencia: ${texto(
+                    pedido.referencia
+                )}\n`;
+
+        }
+
+    } else {
+
+        cupom +=
+            CMD.BOLD_ON;
+
+
+        cupom +=
+
+            `TIPO: ${
+                texto(
+                    pedido.tipo
+                ) || "-"
+            }\n`;
+
+
+        cupom +=
+            CMD.BOLD_OFF;
+
+    }
+
+
+    /*
+    ============================================================
+    OBSERVAÇÕES GERAIS
+    ============================================================
+    */
+
+    if (
+        pedido.observacoes
+    ) {
+
+        cupom +=
+            linha() +
+            "\n";
+
+
+        cupom +=
+            CMD.BOLD_ON;
+
+        cupom +=
+            "OBSERVACOES\n";
+
+        cupom +=
+            CMD.BOLD_OFF;
+
+
+        quebrarLinha(
+
+            texto(
+                pedido.observacoes
+            ).toUpperCase()
+
+        ).forEach(
+            (obsLinha) => {
+
+                cupom +=
+                    obsLinha +
+                    "\n";
+
+            }
+        );
+
+    }
+
+
+    cupom +=
+        linha() +
+        "\n";
+
+
+    /*
+    ============================================================
+    PAGAMENTO
+    ============================================================
+    */
+
+    const pagamento =
+
+        texto(
+            pedido.pagamentoMetodo
+        ) || "-";
+
+
+    cupom +=
+        CMD.BOLD_ON;
+
+
+    cupom +=
+
+        `PAGAMENTO: ${pagamento}\n`;
+
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+
+    /*
+    TROCO
+    */
+
+    if (
+        pagamento.toUpperCase() ===
+        "DINHEIRO"
+    ) {
+
+        const totalPedido =
+
+            numero(
+                pedido.valorTotal
+            );
+
+
+        if (
+
+            pedido.trocoPara !==
+                null &&
+
+            pedido.trocoPara !==
+                undefined &&
+
+            pedido.trocoPara !==
+                ""
+
+        ) {
+
+            const pago =
+
+                numero(
+                    pedido.trocoPara
+                );
+
+
+            const troco =
+
+                Math.max(
+                    0,
+                    pago -
+                        totalPedido
+                );
+
+
+            cupom +=
+
+                `CLIENTE PAGA: ${dinheiro(
+                    pago
+                )}\n`;
+
+
+            cupom +=
+
+                `TROCO: ${dinheiro(
+                    troco
+                )}\n`;
+
+        } else {
+
+            cupom +=
+
+                "TROCO: Cliente possui trocado.\n";
+
+        }
+
+    }
+
+
+    cupom +=
+        linha() +
+        "\n";
+
+
+    /*
+    ============================================================
+    VALORES
+    ============================================================
+    */
+
+    cupom +=
+
+        duasColunas(
+
+            "Subtotal",
+
+            dinheiro(
+                pedido.valorSubtotal
+            )
+
+        ) +
+        "\n";
+
+
+    if (
+        tipo ===
+        "DELIVERY"
+    ) {
+
+        cupom +=
+
+            duasColunas(
+
+                "Entrega",
+
+                dinheiro(
+                    pedido.taxaEntrega
+                )
+
+            ) +
+            "\n";
+
+    }
+
+
+    cupom += "\n";
+
+
+    /*
+    ============================================================
+    TOTAL
+    ============================================================
+    */
+
+    cupom +=
+        CMD.CENTER;
+
+    cupom +=
+        CMD.BOLD_ON;
+
+    cupom +=
+        CMD.DOUBLE;
+
+
+    cupom +=
+
+        `TOTAL: ${dinheiro(
+            pedido.valorTotal
+        )}\n`;
+
+
+    cupom +=
+        CMD.NORMAL;
+
+    cupom +=
+        CMD.BOLD_OFF;
+
+
+    /*
+    ============================================================
+    RODAPÉ
+    ============================================================
+    */
+
+    cupom += "\n";
+
+    cupom +=
+        "Obrigado pela preferencia!\n";
+
+    cupom +=
+        "\n\n\n";
+
+
+    /*
+    Corte automático.
+    */
+
+    cupom +=
+        CMD.CUT;
+
+
+    /*
+    ============================================================
+    ENVIAR
+    ============================================================
+    */
+
+    await enviarRAW(
+        cupom
+    );
+
+
+    estado.impressosHoje++;
+
+    estado.ultimaImpressao =
+        new Date().toISOString();
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TESTE RAW
+|--------------------------------------------------------------------------
+*/
+
+app.post(
+    "/print/raw-test",
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            let teste = "";
+
+            teste +=
+                CMD.RESET;
+
+            teste +=
+                "\x1B\x74\x02";
+
+            teste +=
+                CMD.CENTER;
+
+            teste +=
+                CMD.BOLD_ON;
+
+            teste +=
+                CMD.DOUBLE;
+
+            teste +=
+                "TESTE ELGIN i9\n";
+
+            teste +=
+                CMD.NORMAL;
+
+            teste +=
+                CMD.BOLD_OFF;
+
+            teste +=
+                "\n";
+
+            teste +=
+                "Impressora detectada automaticamente.\n";
+
+            teste +=
+                "\n\n\n";
+
+            teste +=
+                CMD.CUT;
+
+
+            await enviarRAW(
+                teste
+            );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "RAW enviado."
+
+            });
+
+        } catch (erro) {
+
+            console.error(
+                erro
+            );
+
+
+            res.status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        erro.message
+
+                });
+
+        }
+
+    }
+
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -515,41 +1798,43 @@ async function imprimirPedido(pedido) {
 |--------------------------------------------------------------------------
 */
 
-app.post("/print/raw-test", async (req, res) => {
-  try {
-    await imprimirRAW();
+app.get(
+    "/status",
 
-    res.json({
-      success: true,
-      message: "RAW enviado",
-    });
-  } catch (erro) {
-    console.error(erro);
+    async (
+        req,
+        res
+    ) => {
 
-    res.status(500).json({
-      success: false,
-      message: erro.message,
-    });
-  }
-});
+        const online =
 
-app.get("/status", async (req, res) => {
-  const online = await verificarImpressora();
+            await verificarImpressora();
 
-  estado.online = online;
 
-  res.json({
-    success: true,
+        res.json({
 
-    online,
+            success: true,
 
-    fila: estado.fila,
+            online,
 
-    impressosHoje: estado.impressosHoje,
+            impressora:
+                estado.impressora,
 
-    ultimaImpressao: estado.ultimaImpressao,
-  });
-});
+            fila:
+                estado.fila,
+
+            impressosHoje:
+                estado.impressosHoje,
+
+            ultimaImpressao:
+                estado.ultimaImpressao
+
+        });
+
+    }
+
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -557,147 +1842,215 @@ app.get("/status", async (req, res) => {
 |--------------------------------------------------------------------------
 */
 
-app.post("/print/test", async (req, res) => {
-  try {
-    const pedidoFake = {
-      id: "TESTE-ACENTOS-001",
+app.post(
+    "/print/test",
 
-      numeroPedido: "271385",
+    async (
+        req,
+        res
+    ) => {
 
-      cliente: "João José da Silva Ávila",
+        try {
 
-      telefone: "(19) 99999-9999",
+            const pedidoFake = {
 
-      telefoneWhatsapp: "5519999999999",
+                id:
+                    "TESTE-001",
 
-      tipo: "Delivery",
+                numeroPedido:
+                    "271385",
 
-      status: "RECEBIDO",
+                cliente:
+                    "João José da Silva Ávila",
 
-      bairro: "São José do Piauí",
+                telefone:
+                    "(19) 99999-9999",
 
-      endereco: "Rua João Dias da Silva, nº 203 - Vila São Luís",
+                telefoneWhatsapp:
+                    "5519999999999",
 
-      referencia: "Casa azul próxima à padaria",
+                tipo:
+                    "Delivery",
 
-      observacoes: "Sem cebola, sem pimentão, atenção à entrega rápida",
+                status:
+                    "RECEBIDO",
 
-      pagamentoMetodo: "PIX",
+                endereco: {
 
-      pagamentoStatus: "PENDENTE",
+                    cep:
+                        "13360-000",
 
-      trocoPara: 100,
+                    bairro:
+                        "São José",
 
-      taxaEntrega: 8,
+                    rua:
+                        "Rua João Dias da Silva",
 
-      valorSubtotal: 39.9,
+                    numero:
+                        "203",
 
-      valorTotal: 47.9,
+                    complemento:
+                        "Casa azul"
 
-      itens: [
-        {
-          nome: "X-Búrguer Especial com Queijo",
+                },
 
-          quantidade: 2,
+                referencia:
+                    "Próxima à padaria",
 
-          valorUnitario: 19.95,
+                observacoes:
+                    "Sem cebola, sem pimentão, atenção à entrega rápida",
 
-          subtotal: 39.9,
+                pagamentoMetodo:
+                    "PIX",
 
-          adicionais: [
-            {
-              nome: "Hambúrguer Grande",
+                pagamentoStatus:
+                    "PENDENTE",
 
-              valor: 5,
-            },
+                trocoPara:
+                    null,
 
-            {
-              nome: "Queijo Muçarela",
+                taxaEntrega:
+                    8,
 
-              valor: 3,
-            },
+                valorSubtotal:
+                    39.90,
 
-            {
-              nome: "Coração de Frango à Milanesa",
+                valorTotal:
+                    47.90,
 
-              valor: 7,
-            },
+                itens: [
 
-            {
-              nome: "Pimentão Vermelho",
+                    {
 
-              valor: 2,
-            },
-          ],
+                        nome:
+                            "X-Búrguer Especial com Queijo",
 
-          observacaoItem: "Sem tomate, sem cebola, adicionar molho especial",
-        },
+                        quantidade:
+                            2,
 
-        {
-          nome: "Coca-Cola 2L Gelada",
+                        valorUnitario:
+                            19.95,
 
-          quantidade: 1,
+                        subtotal:
+                            39.90,
 
-          valorUnitario: 5.9,
+                        adicionais: [
 
-          subtotal: 5.9,
+                            {
 
-          adicionais: [],
+                                nome:
+                                    "Hambúrguer Grande",
 
-          observacaoItem: "Entregar bem gelada",
-        },
+                                valor:
+                                    5
 
-        {
-          nome: "Açaí com Banana e Morango",
+                            },
 
-          quantidade: 1,
+                            {
 
-          valorUnitario: 12.5,
+                                nome:
+                                    "Queijo Muçarela",
 
-          subtotal: 12.5,
+                                valor:
+                                    3
 
-          adicionais: [
-            {
-              nome: "Leite Condensado",
+                            }
 
-              valor: 2,
-            },
+                        ],
 
-            {
-              nome: "Granola Crocante",
+                        observacaoItem:
+                            "Sem tomate e sem cebola"
 
-              valor: 1.5,
-            },
-          ],
+                    },
 
-          observacaoItem: "Pouco açúcar",
-        },
-      ],
-    };
+                    {
 
-    estado.fila++;
+                        nome:
+                            "Coca-Cola 2L Gelada",
 
-    await imprimirPedido(pedidoFake);
+                        quantidade:
+                            1,
 
-    estado.fila = Math.max(0, estado.fila - 1);
+                        valorUnitario:
+                            5.90,
 
-    res.json({
-      success: true,
+                        subtotal:
+                            5.90,
 
-      message: "Impressão de teste enviada.",
-    });
-  } catch (erro) {
-    estado.fila = Math.max(0, estado.fila - 1);
+                        adicionais:
+                            [],
 
-    console.error(erro);
+                        observacaoItem:
+                            "Entregar bem gelada"
 
-    res.status(500).json({
-      success: false,
+                    }
 
-      message: erro.message,
-    });
-  }
-});
+                ]
+
+            };
+
+
+            estado.fila++;
+
+
+            await imprimirPedido(
+                pedidoFake
+            );
+
+
+            estado.fila =
+
+                Math.max(
+                    0,
+                    estado.fila - 1
+                );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Impressão de teste enviada.",
+
+                impressora:
+                    estado.impressora
+
+            });
+
+        } catch (erro) {
+
+            estado.fila =
+
+                Math.max(
+                    0,
+                    estado.fila - 1
+                );
+
+
+            console.error(
+                "[PRINT TEST]",
+                erro
+            );
+
+
+            res.status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        erro.message
+
+                });
+
+        }
+
+    }
+
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -705,43 +2058,107 @@ app.post("/print/test", async (req, res) => {
 |--------------------------------------------------------------------------
 */
 
-app.post("/print/order", async (req, res) => {
-  console.log("TESTE RESTART AUTOMATICO");
+app.post(
+    "/print/order",
 
-  console.log("==============================");
-  console.log("JSON RECEBIDO:");
-  console.log(JSON.stringify(req.body, null, 2));
+    async (
+        req,
+        res
+    ) => {
 
-  console.log("typeof endereco:", typeof req.body.endereco);
-  console.log("endereco:", req.body.endereco);
+        console.log(
+            "=============================="
+        );
 
-  console.log("==============================");
+        console.log(
+            "PEDIDO RECEBIDO:"
+        );
 
-  try {
-    const pedido = req.body || {};
+        console.log(
 
-    estado.fila++;
+            JSON.stringify(
+                req.body,
+                null,
+                2
+            )
 
-    await imprimirPedido(pedido);
+        );
 
-    estado.fila = Math.max(0, estado.fila - 1);
+        console.log(
+            "=============================="
+        );
 
-    res.json({
-      success: true,
-      message: "Pedido impresso com sucesso.",
-    });
-  } catch (erro) {
-    estado.fila = Math.max(0, estado.fila - 1);
 
-    console.error("Erro ao imprimir pedido:");
-    console.error(erro);
+        try {
 
-    res.status(500).json({
-      success: false,
-      message: erro.message,
-    });
-  }
-});
+            const pedido =
+                req.body || {};
+
+
+            estado.fila++;
+
+
+            await imprimirPedido(
+                pedido
+            );
+
+
+            estado.fila =
+
+                Math.max(
+                    0,
+                    estado.fila - 1
+                );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Pedido impresso com sucesso.",
+
+                impressora:
+                    estado.impressora
+
+            });
+
+        } catch (erro) {
+
+            estado.fila =
+
+                Math.max(
+                    0,
+                    estado.fila - 1
+                );
+
+
+            console.error(
+                "Erro ao imprimir pedido:"
+            );
+
+            console.error(
+                erro
+            );
+
+
+            res.status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        erro.message
+
+                });
+
+        }
+
+    }
+
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -749,15 +2166,30 @@ app.post("/print/order", async (req, res) => {
 |--------------------------------------------------------------------------
 */
 
-app.post("/queue/clear", (req, res) => {
-  estado.fila = 0;
+app.post(
+    "/queue/clear",
 
-  res.json({
-    success: true,
+    (
+        req,
+        res
+    ) => {
 
-    message: "Fila limpa.",
-  });
-});
+        estado.fila = 0;
+
+
+        res.json({
+
+            success: true,
+
+            message:
+                "Fila limpa."
+
+        });
+
+    }
+
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -765,32 +2197,75 @@ app.post("/queue/clear", (req, res) => {
 |--------------------------------------------------------------------------
 */
 
-console.log("======================================");
-console.log(" NOVO PRINTER.JS - ESC/POS ");
-console.log("======================================");
+console.log(
+    "======================================"
+);
 
-app.listen(PORT, async () => {
-  console.log("SERVIDOR NOVO INICIADO");
+console.log(
+    " MESA FACIL - ESC/POS RAW"
+);
 
-  const online = await verificarImpressora();
+console.log(
+    "======================================"
+);
 
-  estado.online = online;
 
-  console.log("");
+app.listen(
+    PORT,
 
-  console.log("======================================");
+    async () => {
 
-  console.log(" Mesa Facil - Printer Service");
+        console.log(
+            `Servidor: http://localhost:${PORT}`
+        );
 
-  console.log("======================================");
 
-  console.log(`Servidor : http://localhost:${PORT}`);
+        const online =
 
-  console.log(`Impressora : ${PRINTER_NAME}`);
+            await verificarImpressora();
 
-  console.log(`Status : ${online ? "ONLINE" : "OFFLINE"}`);
 
-  console.log("======================================");
+        console.log(
+            ""
+        );
 
-  console.log("");
-});
+
+        console.log(
+            "======================================"
+        );
+
+
+        if (online) {
+
+            console.log(
+                `Impressora: ${estado.impressora}`
+            );
+
+            console.log(
+                "Status: ONLINE"
+            );
+
+        } else {
+
+            console.log(
+                "Impressora: nenhuma ELGIN detectada"
+            );
+
+            console.log(
+                "Status: OFFLINE"
+            );
+
+        }
+
+
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            ""
+        );
+
+    }
+
+);
