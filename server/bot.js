@@ -308,7 +308,17 @@ function montarMensagemStatus(pedido) {
 
   const linkPedido = gerarLinkPedido(pedido.id);
 
+  const tipoPedido =
+    String(pedido.tipo || "").trim().toLowerCase();
+
+  const isRetirada =
+    tipoPedido === "retirada";
+
+  const isDelivery =
+    tipoPedido === "delivery";
+
   switch (pedido.status) {
+
     case "RECEBIDO":
       return `Olá *${cliente}*!
 
@@ -342,6 +352,29 @@ ${linkPedido}
 Obrigado pela preferência!`;
 
     case "PRONTO":
+
+      if (isRetirada) {
+        return `Olá *${cliente}*!
+
+✅ Seu pedido *#${numeroPedido}* está pronto.
+
+Muito obrigado pela preferência!
+
+Esperamos atendê-lo novamente em breve.`;
+      }
+
+      if (isDelivery) {
+        return `Olá *${cliente}*!
+
+✅ Seu pedido *#${numeroPedido}* está pronto.
+
+Confira os detalhes:
+
+${linkPedido}
+
+Obrigado pela preferência!`;
+      }
+
       return `Olá *${cliente}*!
 
 ✅ Seu pedido *#${numeroPedido}* está pronto.
@@ -353,15 +386,18 @@ ${linkPedido}
 Obrigado pela preferência!`;
 
     case "SAIU_PARA_ENTREGA":
+
+      if (!isDelivery) {
+        return null;
+      }
+
       return `Olá *${cliente}*!
 
 🚚 Seu pedido *#${numeroPedido}* saiu para entrega.
 
-Você pode acompanhar o andamento do seu pedido pelo link:
+Muito obrigado pela preferência!
 
-${linkPedido}
-
-Obrigado pela preferência!`;
+Esperamos atendê-lo novamente em breve.`;
 
     case "CANCELADO":
       return `Olá *${cliente}*!
