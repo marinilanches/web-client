@@ -1325,6 +1325,36 @@
 
         const tipo = tipoPedidoEl.value;
 
+        // VALIDAÇÃO DA TAXA DE ENTREGA
+        if (tipo === "Delivery") {
+          const taxa = Number(taxaEntrega);
+
+          if (!Number.isFinite(taxa) || taxa <= 0) {
+            console.error("Delivery bloqueado: taxa de entrega inválida.", {
+              taxaEntrega,
+              distanciaEntrega,
+              latitudeCliente,
+              longitudeCliente,
+              entregaDisponivel,
+            });
+
+            const desejaContato = confirm(
+              "Não foi possível calcular a taxa de entrega.\n\n" +
+                "Verifique o endereço informado ou tente novamente.\n\n" +
+                "Se o problema continuar, você pode entrar em contato pelo WhatsApp.",
+            );
+
+            if (desejaContato) {
+              window.open(
+                "https://wa.me/5519992522781?text=Olá!%20Estou%20tentando%20fazer%20um%20pedido%20pelo%20site%2C%20mas%20não%20foi%20possível%20calcular%20a%20taxa%20de%20entrega.",
+                "_blank",
+              );
+            }
+
+            return;
+          }
+        }
+
         // VALIDAÇÃO DELIVERY - EXIGE COORDENADAS
         if (tipo === "Delivery") {
           if (latitudeCliente == null || longitudeCliente == null) {
