@@ -9,20 +9,37 @@ import "./notificadorPedidos.js";
 ========================================================== */
 
 async function iniciarAdmin() {
+  /*
+   * PROTEÇÃO ADMIN
+   *
+   * Executa antes de carregar qualquer conteúdo
+   * da área administrativa.
+   */
   const autorizado = protegerPaginaAdmin();
 
   if (!autorizado) {
     return;
   }
 
+  /* ========================================================
+     COMPONENTES ADMIN
+  ======================================================== */
+
   carregarSidebar();
   carregarHeader();
 
-  const pagina = window.location.pathname.split("/").pop() || "index.html";
+  /* ========================================================
+     IDENTIFICAR PÁGINA
+  ======================================================== */
 
-  const paginaNormalizada = pagina.includes(".html") ? pagina : "index.html";
+  const pagina =
+    window.location.pathname.split("/").pop() || "index.html";
 
   console.log("Página:", pagina);
+
+  /* ========================================================
+     CARREGAR MÓDULO DA PÁGINA
+  ======================================================== */
 
   switch (pagina) {
     case "index.html":
@@ -32,16 +49,12 @@ async function iniciarAdmin() {
 
     case "pedidos.html":
       console.log("Carregando pedidos.js");
-
       await import("./pedidos.js");
-
       break;
 
     case "historico-pedidos.html":
       console.log("Carregando historico-pedidos.js");
-
       await import("./historico-pedidos.js");
-
       break;
 
     case "produtos.html":
@@ -105,7 +118,6 @@ async function iniciarAdmin() {
       const { initPDV } = await import("./pdv/pdv.js");
 
       await initPDV();
-
       break;
 
     case "promocoes.html":
@@ -119,7 +131,10 @@ async function iniciarAdmin() {
       break;
 
     default:
-      console.warn("Nenhum módulo encontrado para a página:", pagina);
+      console.warn(
+        "Nenhum módulo encontrado para a página:",
+        pagina
+      );
       break;
   }
 }
