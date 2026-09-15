@@ -14,7 +14,7 @@ export async function login(login, senha) {
     const senhaLimpa = String(senha || "").trim();
 
     if (loginLimpo === ADMIN_LOGIN && senhaLimpa === ADMIN_PASSWORD) {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+        localStorage.setItem(ADMIN_SESSION_KEY, "true");
         return true;
     }
 
@@ -26,11 +26,11 @@ export async function login(login, senha) {
 ========================================================== */
 
 export function adminEstaLogado() {
-    return sessionStorage.getItem(ADMIN_SESSION_KEY) === "true";
+    return localStorage.getItem(ADMIN_SESSION_KEY) === "true";
 }
 
 export function logoutAdmin() {
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    localStorage.removeItem(ADMIN_SESSION_KEY);
 }
 
 /* ==========================================================
@@ -52,7 +52,7 @@ export function redirecionarSeAdminLogado() {
 
 export function protegerPaginaAdmin() {
     if (!adminEstaLogado()) {
-        window.location.replace("/login.html");
+        window.location.replace(LOGIN_PATH);
         return false;
     }
 
