@@ -7,9 +7,18 @@ const path = require("path");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 
 const { initializeApp, cert } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
-const serviceAccount = require("./serviceAccountKey.json");
+const {
+  getFirestore,
+  FieldValue,
+} = require("firebase-admin/firestore");
+
+const serviceAccount =
+  require("./serviceAccountKey.json");
+
+const {
+  iniciarNotificacoesPedidos,
+} = require("./pushNotifications");
 const { solicitarEntregador } = require("./bee/bee.orders");
 
 /* ==========================================================
@@ -21,6 +30,8 @@ initializeApp({
 });
 
 const db = getFirestore();
+
+iniciarNotificacoesPedidos(db);
 
 /* ==========================================================
    EXPRESS

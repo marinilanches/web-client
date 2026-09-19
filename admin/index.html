@@ -1,183 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Mesa Fácil • Dashboard</title>
-    <link rel="icon" type="image/png" href="../assets/admin-icon.png">
+    <link rel="icon" type="image/png" href="../assets/admin-icon.png" />
 
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin.css" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <div class="layout">
+      <!-- Sidebar -->
+      <aside id="sidebar"></aside>
 
-        <!-- Sidebar -->
-        <aside id="sidebar"></aside>
+      <!-- Conteúdo -->
 
-        <!-- Conteúdo -->
+      <main class="content">
+        <!-- Header -->
+        <header id="header"></header>
 
-        <main class="content">
+        <button id="testarNotificacao" type="button">
+          🔔 Ativar notificações
+        </button>
 
-            <!-- Header -->
-            <header id="header"></header>
+        <!-- Dashboard -->
 
-            <!-- Dashboard -->
+        <section class="dashboard">
+          <h1>Dashboard</h1>
 
-            <section class="dashboard">
+          <p class="subtitle">Visão geral da sua loja em tempo real.</p>
 
-                <h1>Dashboard</h1>
+          <!-- Cards -->
 
-                <p class="subtitle">
-                    Visão geral da sua loja em tempo real.
-                </p>
+          <section class="cards">
+            <div id="cardFinalizados"></div>
 
-                <!-- Cards -->
+            <div id="cardPreparo"></div>
 
-                <section class="cards">
+            <div id="cardProntos"></div>
 
-                    <div id="cardFinalizados"></div>
+            <div id="cardEntregues"></div>
 
-                    <div id="cardPreparo"></div>
+            <div id="cardLoja"></div>
 
-                    <div id="cardProntos"></div>
+            <div id="cardFaturamento"></div>
+          </section>
 
-                    <div id="cardEntregues"></div>
+          <!-- Linha 2 -->
 
-                    <div id="cardLoja"></div>
+          <section class="dashboard-grid">
+            <!-- Últimos pedidos -->
 
-                    <div id="cardFaturamento"></div>
+            <div class="panel">
+              <div class="panel-title">📦 Últimos Pedidos</div>
 
-                </section>
+              <div id="ultimosPedidos">Carregando...</div>
+            </div>
 
-                <!-- Linha 2 -->
+            <!-- Produtos -->
 
-                <section class="dashboard-grid">
+            <div class="panel">
+              <div class="panel-title">🔥 Produtos Mais Vendidos</div>
 
-                    <!-- Últimos pedidos -->
+              <div id="maisVendidos">Carregando...</div>
+            </div>
+          </section>
 
-                    <div class="panel">
+          <!-- Linha 3 -->
 
-                        <div class="panel-title">
+          <section class="dashboard-grid">
+            <!-- Sistema -->
 
-                            📦 Últimos Pedidos
+            <div class="panel">
+              <div class="panel-title">⚙️ Status do Sistema</div>
 
-                        </div>
+              <div class="status-list">
+                <div>
+                  Firebase
 
-                        <div id="ultimosPedidos">
+                  <span id="firebaseStatus"> 🟢 </span>
+                </div>
 
-                            Carregando...
+                <div>
+                  Impressora
 
-                        </div>
+                  <span id="printerStatus"> 🟢 </span>
+                </div>
 
-                    </div>
+                <div>
+                  WhatsApp
 
-                    <!-- Produtos -->
+                  <span id="whatsappStatus"> 🟢 </span>
+                </div>
+              </div>
+            </div>
 
-                    <div class="panel">
+            <!-- Atividade -->
 
-                        <div class="panel-title">
+            <div class="panel">
+              <div class="panel-title">📈 Atividade</div>
 
-                            🔥 Produtos Mais Vendidos
-
-                        </div>
-
-                        <div id="maisVendidos">
-
-                            Carregando...
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-                <!-- Linha 3 -->
-
-                <section class="dashboard-grid">
-
-                    <!-- Sistema -->
-
-                    <div class="panel">
-
-                        <div class="panel-title">
-
-                            ⚙️ Status do Sistema
-
-                        </div>
-
-                        <div class="status-list">
-
-                            <div>
-
-                                Firebase
-
-                                <span id="firebaseStatus">
-
-                                    🟢
-
-                                </span>
-
-                            </div>
-
-                            <div>
-
-                                Impressora
-
-                                <span id="printerStatus">
-
-                                    🟢
-
-                                </span>
-
-                            </div>
-
-                            <div>
-
-                                WhatsApp
-
-                                <span id="whatsappStatus">
-
-                                    🟢
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Atividade -->
-
-                    <div class="panel">
-
-                        <div class="panel-title">
-
-                            📈 Atividade
-
-                        </div>
-
-                        <canvas id="graficoPedidos"></canvas>
-
-                    </div>
-
-                </section>
-
-            </section>
-
-        </main>
-
+              <canvas id="graficoPedidos"></canvas>
+            </div>
+          </section>
+        </section>
+      </main>
     </div>
 
     <!-- Componentes -->
@@ -194,6 +131,13 @@
 
     <script type="module" src="js/app.js"></script>
 
-</body>
-
+    <script>
+      document
+        .getElementById("testarNotificacao")
+        .addEventListener("click", async () => {
+          const permissao = await Notification.requestPermission();
+          console.log("Permissão:", permissao);
+        });
+    </script>
+  </body>
 </html>
