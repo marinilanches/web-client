@@ -8,9 +8,191 @@ import {
   cancelarPedido,
   excluirPedido,
   marcarComoImpresso,
+  ouvirSolicitacoesPedido,
+  responderSolicitacaoAdmin,
 } from "../../js/services/orders.js";
 
 import { solicitarEntregador } from "../../js/services/bee-delivery.js";
+
+
+let unsubscribeSolicitacoes = null;
+
+function escaparHtml(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatarHorarioSolicitacao(valor) {
+  if (!valor) return "—";
+
+  const data = typeof valor.toDate === "function" ? valor.toDate() : new Date(valor);
+
+  if (Number.isNaN(data.getTime())) return "—";
+
+  return data.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function renderSolicitacoesAdmin(pedido, solicitacoes) {
+  const container = document.getElementById("solicitacoesPedidoAdmin");
+  if (!container) return;
+
+  if (!solicitacoes.length) {
+    container.innerHTML = `
+      <h3>💬 Solicitações do cliente</h3>
+      <p class="text-secondary">Nenhuma solicitação pendente.</p>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <h3>💬 Solicitações do cliente</h3>
+    ${solicitacoes
+      .map((solicitacao) => {
+        const ehCancelamento = solicitacao.tipo === "CANCELAMENTO";
+        const ehProposta =
+          solicitacao.tipo === "PREVISAO_ENTREGA" ||
+          solicitacao.tipo === "ATRASO";
+
+        const titulo = ehCancelamento
+          ? "❌ Solicitação de cancelamento"
+          : solicitacao.tipo === "ATRASO"
+            ? "⚠️ Pedido atrasado"
+            : "🕐 Nova previsão de entrega";
+
+        let acoes = "";
+
+        if (solicitacao.status === "PENDENTE" && ehProposta) {
+          acoes = `
+            <div class="border rounded p-3 mt-3">
+              <label class="form-label"><strong>Quanto tempo a mais você precisa?</strong></label>
+              <div class="input-group mb-3">
+                <input
+                  type="number"
+                  min="1"
+                  max="1440"
+                  class="form-control"
+                  id="tempo-${solicitacao.id}"
+                  value="10"
+                >
+                <span class="input-group-text">minutos</span>
+              </div>
+
+              <label class="form-label"><strong>Motivo</strong></label>
+              <textarea
+                class="form-control mb-3"
+                id="motivo-${solicitacao.id}"
+                rows="2"
+                placeholder="Poderia nos informar o motivo para o novo tempo?"
+              ></textarea>
+
+              <button
+                class="btn btn-primary w-100"
+                type="button"
+                data-propor-previsao="${solicitacao.id}"
+              >
+                📤 Enviar nova previsão
+              </button>
+            </div>
+          `;
+        } else if (solicitacao.status === "PENDENTE" && ehCancelamento) {
+          acoes = `
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-danger flex-fill" type="button" data-aceitar-cancelamento="${solicitacao.id}">
+                ✅ Aceitar cancelamento
+              </button>
+              <button class="btn btn-outline-secondary flex-fill" type="button" data-recusar-cancelamento="${solicitacao.id}">
+                ❌ Recusar
+              </button>
+            </div>
+          `;
+        } else if (solicitacao.status === "AGUARDANDO_CLIENTE") {
+          acoes = `
+            <div class="alert alert-info mt-3 mb-0">
+              Aguardando resposta do cliente até <strong>${formatarHorarioSolicitacao(solicitacao.aceitaAte)}</strong>.
+              <br>
+              Nova previsão: <strong>${formatarHorarioSolicitacao(solicitacao.horarioProposto)}</strong>.
+            </div>
+          `;
+        } else if (solicitacao.status === "ACEITA" || solicitacao.status === "ACEITA_TIMEOUT") {
+          acoes = `<div class="alert alert-success mt-3 mb-0">✅ Solicitação aceita${solicitacao.status === "ACEITA_TIMEOUT" ? " automaticamente após 5 minutos" : " pelo cliente"}.</div>`;
+        } else if (solicitacao.status === "RECUSADA") {
+          acoes = `<div class="alert alert-secondary mt-3 mb-0">❌ Solicitação recusada.</div>`;
+        }
+
+        return `
+          <div class="border rounded p-3 mb-3">
+            <strong>${titulo}</strong>
+            <p class="mt-2 mb-1">${escaparHtml(solicitacao.mensagem || "")}</p>
+            <small class="text-secondary">Status: ${escaparHtml(solicitacao.status || "—")}</small>
+            ${solicitacao.motivo ? `<p class="mt-2 mb-0"><strong>Motivo:</strong> ${escaparHtml(solicitacao.motivo)}</p>` : ""}
+            ${acoes}
+          </div>
+        `;
+      })
+      .join("")}
+  `;
+
+  container.querySelectorAll("[data-propor-previsao]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      const id = botao.dataset.proporPrevisao;
+      const minutos = Number(document.getElementById(`tempo-${id}`)?.value || 0);
+      const motivo = document.getElementById(`motivo-${id}`)?.value?.trim() || "";
+
+      if (!Number.isFinite(minutos) || minutos <= 0) {
+        toast("Informe um tempo adicional válido.");
+        return;
+      }
+
+      try {
+        await responderSolicitacaoAdmin(pedido.id, id, {
+          status: "AGUARDANDO_CLIENTE",
+          tempoAdicionalMinutos: minutos,
+          motivo,
+        });
+        toast("Nova previsão enviada ao cliente.");
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao enviar nova previsão.");
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-aceitar-cancelamento]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      try {
+        await responderSolicitacaoAdmin(pedido.id, botao.dataset.aceitarCancelamento, {
+          status: "ACEITA",
+        });
+        toast("Cancelamento aceito.");
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao aceitar cancelamento.");
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-recusar-cancelamento]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      try {
+        await responderSolicitacaoAdmin(pedido.id, botao.dataset.recusarCancelamento, {
+          status: "RECUSADA",
+        });
+        toast("Cancelamento recusado.");
+      } catch (erro) {
+        console.error(erro);
+        toast("Erro ao recusar cancelamento.");
+      }
+    });
+  });
+}
 
 export function abrirDetalhesPedido(pedido) {
   if (!pedido) {
@@ -618,6 +800,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
+      <div id="solicitacoesPedidoAdmin" class="mb-4"></div>
+
       <div class="modal-actions">
 
         ${pedido.status === "RECEBIDO"
@@ -695,6 +879,12 @@ export function abrirDetalhesPedido(pedido) {
     </div>
 
     `,
+  );
+
+  unsubscribeSolicitacoes?.();
+  unsubscribeSolicitacoes = ouvirSolicitacoesPedido(
+    pedido.id,
+    (solicitacoes) => renderSolicitacoesAdmin(pedido, solicitacoes),
   );
 
   document

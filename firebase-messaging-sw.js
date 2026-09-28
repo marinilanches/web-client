@@ -78,6 +78,7 @@ messaging.onBackgroundMessage((payload) => {
     data: {
       url,
       numeroPedido,
+      origem: data.origem || (url.includes("/admin/") ? "ADMIN" : "CLIENTE"),
     },
   };
 
@@ -108,10 +109,7 @@ self.addEventListener(
         })
         .then((clientList) => {
           for (const client of clientList) {
-            if (
-              client.url.includes("/admin/") &&
-              "focus" in client
-            ) {
+            if ("focus" in client) {
               return client.focus().then(() => {
                 if ("navigate" in client) {
                   return client.navigate(url);

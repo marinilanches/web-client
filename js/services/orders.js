@@ -1,4 +1,5 @@
 import { db } from "./firebase.js";
+import { garantirIdentidadeCliente } from "./customers.js";
 
 import {
   collection,
@@ -122,6 +123,8 @@ function extrairBairro(endereco = "") {
 export async function criarPedido(dados) {
   const agora = serverTimestamp();
 
+  const identidade = await garantirIdentidadeCliente();
+
   const telefone = dados.telefone || "";
   const telefoneWhatsapp =
     dados.telefoneWhatsapp || normalizarTelefoneWhatsapp(telefone);
@@ -138,7 +141,8 @@ export async function criarPedido(dados) {
     origem: dados.origem || "CLIENTE_WEB",
 
     cliente: dados.cliente || "",
-    clienteId: dados.clienteId || null,
+    clienteId: identidade.clienteId,
+    firebaseUid: identidade.uid,
 
     telefone,
     telefoneWhatsapp,
@@ -147,12 +151,12 @@ export async function criarPedido(dados) {
 
     ...(dados.estimativaTempo
       ? {
-        estimativaTempo: {
-          tipo: dados.estimativaTempo.tipo,
-          minimo: Number(dados.estimativaTempo.minimo),
-          maximo: Number(dados.estimativaTempo.maximo),
-        },
-      }
+          estimativaTempo: {
+            tipo: dados.estimativaTempo.tipo,
+            minimo: Number(dados.estimativaTempo.minimo),
+            maximo: Number(dados.estimativaTempo.maximo),
+          },
+        }
       : {}),
 
     status: dados.status || "RECEBIDO",
@@ -191,6 +195,8 @@ export async function criarPedido(dados) {
 
     impresso: Boolean(dados.impresso),
     impressoEm: dados.impressoEm || null,
+
+    vendasContabilizadas: Boolean(dados.vendasContabilizadas),
 
     criadoEm: agora,
     atualizadoEm: agora,
@@ -406,6 +412,106 @@ export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
 }
 
 /* ==========================================================
+   SOLICITAÇÕES DO CLIENTE
+========================================================== */
+
+function solicitacoesRef(pedidoId) {
+  return collection(doc(db, "pedidos", pedidoId), "solicitacoes");
+}
+
+export async function criarSolicitacaoPedido(pedidoId, tipo, mensagem) {
+  const tiposPermitidos = ["PREVISAO_ENTREGA", "ATRASO", "CANCELAMENTO"];
+
+  if (!pedidoId || !tiposPermitidos.includes(tipo)) {
+    throw new Error("SOLICITACAO_INVALIDA");
+  }
+
+  const texto = String(mensagem || "").trim();
+
+  if (!texto) {
+    throw new Error("MENSAGEM_SOLICITACAO_OBRIGATORIA");
+  }
+
+  return addDoc(solicitacoesRef(pedidoId), {
+    tipo,
+    status: "PENDENTE",
+    mensagem: texto,
+    criadaEm: serverTimestamp(),
+  });
+}
+
+export function ouvirSolicitacoesPedido(pedidoId, callback) {
+  const q = query(solicitacoesRef(pedidoId), orderBy("criadaEm", "desc"));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      callback(
+        snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        })),
+      );
+    },
+    (erro) => {
+      console.error("Erro ao ouvir solicitações do pedido:", erro);
+    },
+  );
+}
+
+export async function responderSolicitacaoCliente(
+  pedidoId,
+  solicitacaoId,
+  resposta,
+) {
+  const respostaNormalizada = String(resposta || "").toUpperCase();
+
+  if (!["ACEITA", "RECUSADA"].includes(respostaNormalizada)) {
+    throw new Error("RESPOSTA_SOLICITACAO_INVALIDA");
+  }
+
+  await updateDoc(doc(db, "pedidos", pedidoId, "solicitacoes", solicitacaoId), {
+    respostaCliente: respostaNormalizada,
+    respondidaEm: serverTimestamp(),
+  });
+}
+
+export async function responderSolicitacaoAdmin(
+  pedidoId,
+  solicitacaoId,
+  dados = {},
+) {
+  const status = String(dados.status || "").toUpperCase();
+  const updatePayload = {};
+
+  if (["ACEITA", "RECUSADA"].includes(status)) {
+    updatePayload.status = status;
+    updatePayload.origem = "ADMIN";
+  } else if (status === "AGUARDANDO_CLIENTE") {
+    const minutos = Math.max(
+      1,
+      Math.min(24 * 60, Number(dados.tempoAdicionalMinutos || 0)),
+    );
+
+    if (!Number.isFinite(minutos) || minutos <= 0) {
+      throw new Error("TEMPO_ADICIONAL_INVALIDO");
+    }
+
+    updatePayload.status = "AGUARDANDO_CLIENTE";
+    updatePayload.origem = "ADMIN";
+    updatePayload.tempoAdicionalMinutos = Math.round(minutos);
+    updatePayload.motivo = String(dados.motivo || "").trim();
+  } else {
+    throw new Error("STATUS_SOLICITACAO_INVALIDO");
+  }
+
+  await updateDoc(
+    doc(db, "pedidos", pedidoId, "solicitacoes", solicitacaoId),
+    updatePayload,
+  );
+}
+
+/* ==========================================================
    CONTADORES
 ========================================================== */
 
@@ -413,42 +519,20 @@ export function contarPedidos(pedidos) {
   return {
     total: pedidos.length,
 
-    recebidos: pedidos.filter(
-      (p) => p.status === "RECEBIDO",
-    ).length,
+    recebidos: pedidos.filter((p) => p.status === "RECEBIDO").length,
 
-    preparando: pedidos.filter(
-      (p) => p.status === "PREPARANDO",
-    ).length,
+    preparando: pedidos.filter((p) => p.status === "PREPARANDO").length,
 
-    prontos: pedidos.filter(
-      (p) => p.status === "PRONTO",
-    ).length,
+    prontos: pedidos.filter((p) => p.status === "PRONTO").length,
 
-    saiuParaEntrega: pedidos.filter(
-      (p) =>
-        p.status ===
-        "SAIU_PARA_ENTREGA",
-    ).length,
+    saiuParaEntrega: pedidos.filter((p) => p.status === "SAIU_PARA_ENTREGA")
+      .length,
 
-    cancelados: pedidos.filter(
-      (p) => p.status === "CANCELADO",
-    ).length,
+    cancelados: pedidos.filter((p) => p.status === "CANCELADO").length,
 
     faturamento: pedidos
-      .filter(
-        (p) =>
-          p.status ===
-          "SAIU_PARA_ENTREGA",
-      )
-      .reduce(
-        (total, pedido) =>
-          total +
-          Number(
-            pedido.valorTotal || 0,
-          ),
-        0,
-      ),
+      .filter((p) => p.status === "SAIU_PARA_ENTREGA")
+      .reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0),
   };
 }
 
@@ -506,12 +590,14 @@ export async function buscarPedidosPorPeriodo(
    OUVIR PEDIDOS DO CLIENTE
 ========================================================== */
 
-export function ouvirPedidosCliente(uid, callback) {
+export async function ouvirPedidosCliente(callback) {
+  const identidade = await garantirIdentidadeCliente();
+
   const { inicioHoje, inicioAmanha } = getInicioEFimDeHoje();
 
   const q = query(
     pedidosRef,
-    where("clienteId", "==", uid),
+    where("clienteId", "==", identidade.clienteId),
     where("criadoEm", ">=", inicioHoje),
     where("criadoEm", "<", inicioAmanha),
     orderBy("criadoEm", "desc"),
@@ -532,7 +618,7 @@ export function ouvirPedidosCliente(uid, callback) {
       callback(pedidos);
     },
     (erro) => {
-      console.error("Erro ao ouvir pedidos do cliente:", erro);
+      console.error("Erro ao buscar pedidos do cliente:", erro);
     },
   );
 }

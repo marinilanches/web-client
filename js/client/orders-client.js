@@ -1,5 +1,4 @@
 import {
-  garantirClienteAuth,
   buscarCliente
 } from "../services/customers.js";
 
@@ -160,39 +159,17 @@ Ver status
 
 
 
-export async function iniciarPedidosCliente(){
+export async function iniciarPedidosCliente() {
+  if (!container) {
+    return;
+  }
 
+  const cliente = await buscarCliente();
 
-if(!container)
-return;
-
-
-const user =
-await garantirClienteAuth();
-
-
-
-const cliente =
-await buscarCliente();
-
-
-
-ouvirPedidosCliente(
-
-user.uid,
-
-(pedidos)=>{
-
-
-renderPedidos(
-pedidos,
-cliente
-);
-
-
-}
-
-);
-
-
+  await ouvirPedidosCliente((pedidos) => {
+    renderPedidos(
+      pedidos,
+      cliente,
+    );
+  });
 }

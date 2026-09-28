@@ -33,6 +33,10 @@ const db = getFirestore();
 
 iniciarNotificacoesPedidos(db);
 
+console.log(
+  "[Firebase Admin] Listener de pedidos, vendas e solicitações iniciado.",
+);
+
 /* ==========================================================
    EXPRESS
 ========================================================== */

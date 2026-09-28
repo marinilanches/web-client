@@ -96,6 +96,12 @@ export function criarCardPedido(
       ${pedido.status}
     </span>
 
+    ${Number(pedido.solicitacoesPendentesCount || 0) > 0 ? `
+      <span class="badge bg-warning text-dark mt-2">
+        💬 ${Number(pedido.solicitacoesPendentesCount)} solicitação${Number(pedido.solicitacoesPendentesCount) > 1 ? "ões" : ""}
+      </span>
+    ` : ""}
+
     <div class="pedido-cliente">
       ${pedido.cliente || "Cliente"}
     </div>

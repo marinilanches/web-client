@@ -1,0 +1,231 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+
+    function ehAdmin() {
+      return estaAutenticado()
+        && request.auth.token.admin == true;
+    }
+
+    function ehCliente() {
+      return estaAutenticado()
+        && request.auth.token.firebase.sign_in_provider == "anonymous";
+    }
+
+    function identidadeDoCliente() {
+  return get(
+    /databases/$(database)/documents/clienteIdentidades/$(request.auth.uid)
+  );
+}
+
+function clienteIdDoUsuario() {
+  return identidadeDoCliente().data.clienteId;
+}
+
+function ehDonoDoCliente(clienteId) {
+  return estaAutenticado()
+    && identidadeDoCliente().data.clienteId == clienteId;
+}
+
+function pedidoDoCliente(pedidoId) {
+  return estaAutenticado()
+    && get(
+      /databases/$(database)/documents/pedidos/$(pedidoId)
+    ).data.clienteId == clienteIdDoUsuario();
+}
+
+    match /produtos/{produtoId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /categorias/{categoriaId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /adicionais/{adicionalId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /promocoes/{promocaoId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /taxasEntrega/{taxaId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /configuracoes/{configuracaoId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /clienteIdentidades/{uid} {
+  allow read: if ehAdmin()
+    || (
+      estaAutenticado()
+      && request.auth.uid == uid
+    );
+
+  allow create: if ehAdmin()
+    || (
+      ehCliente()
+      && request.auth.uid == uid
+      && request.resource.data.uid == request.auth.uid
+      && request.resource.data.clienteId is string
+      && !exists(
+        /databases/$(database)/documents/clientes/$(request.resource.data.clienteId)
+      )
+    );
+
+  allow update: if ehAdmin();
+
+  allow delete: if ehAdmin();
+}
+
+    match /clientes/{clienteId} {
+  allow read: if ehAdmin() || ehDonoDoCliente(clienteId);
+
+  allow create: if ehAdmin()
+    || (ehCliente() && ehDonoDoCliente(clienteId));
+
+  allow update: if ehAdmin()
+    || (ehCliente() && ehDonoDoCliente(clienteId));
+
+  allow delete: if ehAdmin();
+}
+
+    match /pedidos/{pedidoId} {
+  allow read: if ehAdmin()
+    || (
+      ehCliente()
+      && resource.data.clienteId == clienteIdDoUsuario()
+    );
+
+  allow create: if ehAdmin()
+    || (
+      ehCliente()
+      && request.resource.data.clienteId == clienteIdDoUsuario()
+      && request.resource.data.status == "RECEBIDO"
+    );
+
+  allow update, delete: if ehAdmin();
+
+      match /solicitacoes/{solicitacaoId} {
+        allow read: if ehAdmin() || pedidoDoCliente(pedidoId);
+
+        allow create: if ehAdmin()
+          || (
+            ehCliente()
+            && pedidoDoCliente(pedidoId)
+            && get(/databases/$(database)/documents/pedidos/$(pedidoId)).data.status in [
+              "RECEBIDO",
+              "PREPARANDO",
+              "PRONTO",
+              "SAIU_PARA_ENTREGA"
+            ]
+            && request.resource.data.keys().hasOnly([
+              "tipo",
+              "status",
+              "mensagem",
+              "criadaEm"
+            ])
+            && request.resource.data.tipo in [
+              "PREVISAO_ENTREGA",
+              "ATRASO",
+              "CANCELAMENTO"
+            ]
+            && request.resource.data.status == "PENDENTE"
+          );
+
+        allow update: if ehAdmin()
+          || (
+            ehCliente()
+            && pedidoDoCliente(pedidoId)
+            && resource.data.status == "AGUARDANDO_CLIENTE"
+            && request.resource.data.status == "AGUARDANDO_CLIENTE"
+            && request.resource.data.respostaCliente in ["ACEITA", "RECUSADA"]
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              "respostaCliente",
+              "respondidaEm"
+            ])
+            && request.time <= resource.data.aceitaAte
+          );
+
+        allow delete: if ehAdmin();
+      }
+    }
+
+    match /pagamentos/{pagamentoId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /mesas/{mesaId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /usuarios/{usuarioId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /integracoes/{integracaoId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /relatorios/{relatorioId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /cupons/{cupomId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if ehAdmin();
+    }
+
+    match /entregadores/{entregadorId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /notificacoes/{notificacaoId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /adminNotificationTokens/{tokenId} {
+      allow read, write: if ehAdmin();
+    }
+
+    match /clienteNotificationTokens/{tokenId} {
+      allow read: if ehAdmin()
+        || (estaAutenticado() && resource.data.uid == request.auth.uid);
+
+      allow create: if ehAdmin()
+        || (
+          ehCliente()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.token is string
+        );
+
+      allow update: if ehAdmin()
+        || (
+          ehCliente()
+          && resource.data.uid == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+        );
+
+      allow delete: if ehAdmin()
+        || (ehCliente() && resource.data.uid == request.auth.uid);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

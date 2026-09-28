@@ -62,11 +62,15 @@
       import {
         ouvirPedidosCliente,
         ouvirPedidoPorId,
+        criarSolicitacaoPedido,
+        ouvirSolicitacoesPedido,
+        responderSolicitacaoCliente,
       } from "./js/services/orders.js";
 
       import {
         garantirClienteAuth,
         buscarCliente,
+        registrarNotificacoesCliente,
       } from "./js/services/customers.js";
 
       import {
@@ -77,6 +81,8 @@
 
       const pedidoAtual = document.getElementById("pedidoAtual");
       const listaPedidos = document.getElementById("listaPedidos");
+      let solicitacoesAtual = [];
+      let pedidoAtualEmTela = null;
 
       function formatarMoeda(valor) {
         return Number(valor || 0).toLocaleString("pt-BR", {
@@ -132,6 +138,212 @@
         if (!metodo) return false;
         const texto = String(metodo).toLowerCase().trim();
         return texto === "pix" || texto.includes("pix");
+      }
+
+      function timestampParaDate(valor) {
+        if (!valor) return null;
+        if (typeof valor.toDate === "function") return valor.toDate();
+        const data = new Date(valor);
+        return Number.isNaN(data.getTime()) ? null : data;
+      }
+
+      function formatarHorario(valor) {
+        const data = timestampParaDate(valor);
+        if (!data) return "—";
+        return data.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+      }
+
+      function escaparHtml(valor) {
+        return String(valor ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function renderSolicitacoes(pedido) {
+        const container = document.getElementById("solicitacoesPedido");
+        if (!container) return;
+
+        const ativas = solicitacoesAtual.filter(
+          (item) => !["CANCELADA"].includes(item.status),
+        );
+
+        const pendentes = ativas.filter(
+          (item) =>
+            item.status === "PENDENTE" || item.status === "AGUARDANDO_CLIENTE",
+        );
+
+        const pedidoFinalizado = ["ENTREGUE", "CANCELADO"].includes(
+          pedido.status,
+        );
+
+        const temPrevisao = pendentes.some(
+          (item) => item.tipo === "PREVISAO_ENTREGA" || item.tipo === "ATRASO",
+        );
+        const temCancelamento = pendentes.some(
+          (item) => item.tipo === "CANCELAMENTO",
+        );
+
+        const botoes = pedidoFinalizado
+          ? ""
+          : `
+            <div class="d-grid gap-2 mt-3">
+              ${
+                !temPrevisao
+                  ? `
+                <button class="btn btn-outline-primary" id="btnSolicitarPrevisao" type="button">
+                  🕐 Gostaria de uma previsão de entrega
+                </button>
+                <button class="btn btn-outline-warning" id="btnSolicitarAtraso" type="button">
+                  ⚠️ Meu pedido está atrasado
+                </button>
+              `
+                  : ""
+              }
+              ${
+                !temCancelamento
+                  ? `
+                <button class="btn btn-outline-danger" id="btnSolicitarCancelamento" type="button">
+                  ❌ Quero cancelar este pedido
+                </button>
+              `
+                  : ""
+              }
+            </div>
+          `;
+
+        const historico = ativas.length
+          ? ativas
+              .map((item) => {
+                const tipo =
+                  item.tipo === "CANCELAMENTO"
+                    ? "❌ Cancelamento"
+                    : item.tipo === "ATRASO"
+                      ? "⚠️ Pedido atrasado"
+                      : "🕐 Nova previsão";
+
+                let conteudo = `<p class="mb-2"><strong>${tipo}</strong></p>
+                  <p class="mb-2">${escaparHtml(item.mensagem || "")}</p>`;
+
+                if (item.status === "PENDENTE") {
+                  conteudo += `<div class="alert alert-warning mb-0">Aguardando resposta do estabelecimento.</div>`;
+                } else if (item.status === "AGUARDANDO_CLIENTE") {
+                  conteudo += `
+                    <div class="alert alert-info">
+                      <strong>Nova previsão: ${formatarHorario(item.horarioProposto)}</strong><br>
+                      ${item.tempoAdicionalMinutos ? `Tempo adicional: ${item.tempoAdicionalMinutos} min.<br>` : ""}
+                      ${item.motivo ? `Motivo: ${escaparHtml(item.motivo)}<br>` : ""}
+                      <small>Responda até ${formatarHorario(item.aceitaAte)}.</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-success flex-fill" type="button" data-aceitar-solicitacao="${item.id}">✅ Aceitar</button>
+                      <button class="btn btn-outline-danger flex-fill" type="button" data-recusar-solicitacao="${item.id}">❌ Recusar</button>
+                    </div>
+                  `;
+                } else if (
+                  item.status === "ACEITA" ||
+                  item.status === "ACEITA_TIMEOUT"
+                ) {
+                  const timeout = item.status === "ACEITA_TIMEOUT";
+                  conteudo += `<div class="alert alert-success mb-0">${
+                    timeout
+                      ? "✅ O prazo terminou sem resposta e a nova previsão foi considerada aceita."
+                      : "✅ Nova previsão aceita."
+                  }</div>`;
+                } else if (item.status === "RECUSADA") {
+                  conteudo += `<div class="alert alert-secondary mb-0">❌ Solicitação recusada.</div>`;
+                }
+
+                return `<div class="border rounded p-3 mb-3">${conteudo}</div>`;
+              })
+              .join("")
+          : "";
+
+        container.innerHTML = `
+          <div class="status-section">
+            <h4>💬 Comunicação com a loja</h4>
+            <p class="text-secondary">Envie uma solicitação pelo próprio acompanhamento do pedido.</p>
+            ${historico}
+            ${botoes}
+          </div>
+        `;
+
+        async function criarSolicitacao(tipo, mensagem) {
+          try {
+            await criarSolicitacaoPedido(pedido.id, tipo, mensagem);
+            renderSolicitacoes(pedido);
+          } catch (erro) {
+            console.error(erro);
+            alert("Não foi possível enviar a solicitação. Tente novamente.");
+          }
+        }
+
+        document
+          .getElementById("btnSolicitarPrevisao")
+          ?.addEventListener("click", () =>
+            criarSolicitacao(
+              "PREVISAO_ENTREGA",
+              "Gostaria de uma previsão de entrega.",
+            ),
+          );
+
+        document
+          .getElementById("btnSolicitarAtraso")
+          ?.addEventListener("click", () =>
+            criarSolicitacao(
+              "ATRASO",
+              "Meu pedido está atrasado e gostaria de uma nova previsão de entrega.",
+            ),
+          );
+
+        document
+          .getElementById("btnSolicitarCancelamento")
+          ?.addEventListener("click", () =>
+            criarSolicitacao(
+              "CANCELAMENTO",
+              "Fiz esse pedido, poderia cancelar pra eu refazer ?",
+            ),
+          );
+
+        container
+          .querySelectorAll("[data-aceitar-solicitacao]")
+          .forEach((botao) => {
+            botao.addEventListener("click", async () => {
+              try {
+                await responderSolicitacaoCliente(
+                  pedido.id,
+                  botao.dataset.aceitarSolicitacao,
+                  "ACEITA",
+                );
+              } catch (erro) {
+                console.error(erro);
+                alert("Não foi possível registrar sua resposta.");
+              }
+            });
+          });
+
+        container
+          .querySelectorAll("[data-recusar-solicitacao]")
+          .forEach((botao) => {
+            botao.addEventListener("click", async () => {
+              try {
+                await responderSolicitacaoCliente(
+                  pedido.id,
+                  botao.dataset.recusarSolicitacao,
+                  "RECUSADA",
+                );
+              } catch (erro) {
+                console.error(erro);
+                alert("Não foi possível registrar sua resposta.");
+              }
+            });
+          });
       }
 
       function getPixHtml(pedido) {
@@ -404,18 +616,6 @@
         `;
       }
 
-      function abrirWhatsappPedido(pedido, pedidoId) {
-        const mensagem = encodeURIComponent(
-          gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
-        );
-
-        const telefone = "5519992522781";
-
-        const url = `https://wa.me/${telefone}?text=${mensagem}`;
-
-        window.location.href = url;
-      }
-
       function renderPedido(pedido, pedidoId) {
         const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
 
@@ -524,6 +724,57 @@
           </div>
         `;
         }
+        let blocoNovaPrevisao = "";
+
+        if (pedido.previsaoEntrega?.horario) {
+          const resposta = pedido.previsaoEntrega.resposta;
+          const aceita = resposta === "ACEITA" || resposta === "ACEITA_TIMEOUT";
+          const recusada = resposta === "RECUSADA";
+          const titulo = aceita
+            ? "✅ Nova previsão aceita"
+            : recusada
+              ? "❌ Nova previsão recusada"
+              : "🕐 Nova previsão proposta";
+
+          blocoNovaPrevisao = `
+            <div class="status-section">
+              <h4>${titulo}</h4>
+              <p>
+                <strong>${formatarHorario(pedido.previsaoEntrega.horario)}</strong>
+              </p>
+              ${
+                aceita
+                  ? `
+                <p class="mb-0">
+                  Envie o pedido até
+                  <strong>${formatarHorario(pedido.previsaoEntrega.prazoFinal)}</strong>.
+                </p>
+              `
+                  : ""
+              }
+              ${
+                !aceita && !recusada && pedido.previsaoEntrega.aceitaAte
+                  ? `
+                <p class="mb-0">
+                  Responda até
+                  <strong>${formatarHorario(pedido.previsaoEntrega.aceitaAte)}</strong>.
+                </p>
+              `
+                  : ""
+              }
+              ${
+                pedido.previsaoEntrega.motivo
+                  ? `
+                <p class="mb-0 mt-2">
+                  <strong>Motivo:</strong> ${escaparHtml(pedido.previsaoEntrega.motivo)}
+                </p>
+              `
+                  : ""
+              }
+            </div>
+          `;
+        }
+
         const blocoPix = getPixHtml(pedido);
 
         const endereco = pedido.endereco || {};
@@ -572,6 +823,7 @@
         ${gerarProgresso(pedido.status, pedido.tipo)}
 
         ${blocoEstimativa}
+        ${blocoNovaPrevisao}
 
         <p>
           <strong>Status:</strong>
@@ -596,6 +848,7 @@
         ${blocoPix}
         ${blocoEntrega}
         ${blocoComprovanteWhatsapp}
+        <div id="solicitacoesPedido"></div>
 
         <div class="status-section">
           <h4>Observações</h4>
@@ -616,7 +869,9 @@
       </div>
     `;
 
+        pedidoAtualEmTela = pedido;
         ativarBotaoCopiarPix();
+        renderSolicitacoes(pedido);
       }
 
       function renderListaPedidos(pedidos, cliente) {
@@ -701,8 +956,13 @@
         const params = new URLSearchParams(window.location.search);
         const pedidoId = params.get("id");
 
-        const user = await garantirClienteAuth();
-        const cliente = await buscarCliente(user.uid);
+        await garantirClienteAuth();
+
+        const cliente = await buscarCliente();
+
+        registrarNotificacoesCliente().catch((erro) =>
+          console.warn("Notificações do cliente indisponíveis:", erro),
+        );
 
         // Mostra o pedido atual no topo, se vier ?id=
         if (pedidoId) {
@@ -710,25 +970,26 @@
             pedidoId,
             (pedido) => {
               renderPedido(pedido, pedidoId);
-
-              const metodo = String(pedido.pagamentoMetodo || "")
-                .toLowerCase()
-                .trim();
-
-              if (pedido.status === "RECEBIDO" && !metodo.includes("pix")) {
-                abrirWhatsappPedido(pedido, pedidoId);
-              }
             },
             () => {
               renderMensagem("Pedido não encontrado.");
             },
           );
+
+          ouvirSolicitacoesPedido(pedidoId, (solicitacoes) => {
+            solicitacoesAtual = solicitacoes;
+            if (pedidoAtualEmTela?.id === pedidoId) {
+              renderSolicitacoes(pedidoAtualEmTela);
+            }
+          });
         } else {
           pedidoAtual.innerHTML = "";
+          solicitacoesAtual = [];
+          pedidoAtualEmTela = null;
         }
 
         // Lista os demais pedidos, sem duplicar o que já está no topo
-        ouvirPedidosCliente(user.uid, (pedidos) => {
+        ouvirPedidosCliente((pedidos) => {
           const pedidosFiltrados = pedidoId
             ? pedidos.filter((p) => p.id !== pedidoId)
             : pedidos;

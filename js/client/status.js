@@ -1,5 +1,5 @@
 import {
-garantirClienteAnonimo
+  buscarCliente
 } from "../services/customers.js";
 
 import {
@@ -194,36 +194,18 @@ pedido.status
 
 
 
-async function iniciar(){
+async function iniciar() {
+  const cliente = await buscarCliente();
 
+  ouvirPedidosCliente((pedidos) => {
+    if (pedidos[0]?.cliente) {
+      nomeCliente.innerText = pedidos[0].cliente;
+    } else if (cliente?.nome) {
+      nomeCliente.innerText = cliente.nome;
+    }
 
-const user =
-await garantirClienteAnonimo();
-
-
-
-ouvirPedidosCliente(
-user.uid,
-(pedidos)=>{
-
-
-if(pedidos[0]?.cliente){
-
-nomeCliente.innerText =
-pedidos[0].cliente;
-
-}
-
-
-
-renderPedidos(pedidos);
-
-
-}
-
-);
-
-
+    renderPedidos(pedidos);
+  });
 }
 
 
