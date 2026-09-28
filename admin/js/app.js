@@ -12,10 +12,10 @@ async function iniciarAdmin() {
   /*
    * PROTEÇÃO ADMIN
    *
-   * Executa antes de carregar qualquer conteúdo
-   * da área administrativa.
+   * Aguarda o Firebase restaurar a sessão
+   * antes de continuar.
    */
-  const autorizado = protegerPaginaAdmin();
+  const autorizado = await protegerPaginaAdmin();
 
   if (!autorizado) {
     return;

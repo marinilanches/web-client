@@ -1,5 +1,4 @@
 import { db } from "./firebase.js";
-import { incrementarVendasProdutos } from "./products.js";
 
 import {
   collection,
@@ -120,22 +119,6 @@ function extrairBairro(endereco = "") {
    CRIAR PEDIDO
 ========================================================== */
 
-async function atualizarEstatisticasCliente(dados) {
-  if (!dados.clienteId) return;
-
-  const clienteRef = doc(db, "clientes", dados.clienteId);
-
-  await updateDoc(clienteRef, {
-    totalPedidos: increment(1),
-
-    totalGasto: increment(Number(dados.valorTotal || 0)),
-
-    ultimaCompra: serverTimestamp(),
-
-    atualizadoEm: serverTimestamp(),
-  });
-}
-
 export async function criarPedido(dados) {
   const agora = serverTimestamp();
 
@@ -214,14 +197,6 @@ export async function criarPedido(dados) {
   };
 
   const pedidoRef = await addDoc(pedidosRef, payload);
-
-  await incrementarVendasProdutos(itens);
-
-  try {
-    await atualizarEstatisticasCliente(payload);
-  } catch (erro) {
-    console.error("Erro ao atualizar estatísticas do cliente:", erro);
-  }
 
   return pedidoRef;
 }
