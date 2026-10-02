@@ -18,6 +18,8 @@ import {
 
 import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+import { authPronto } from "../../js/services/firebase.js";
+
 import {
   getMessaging,
   getToken,
@@ -372,7 +374,7 @@ function ouvirNovasSolicitacoes() {
 
         audioNovaSolicitacao
           .play()
-          .catch(() => {});
+          .catch(() => { });
 
         /* ==================================================
            TOAST
@@ -413,99 +415,111 @@ function ouvirNovasSolicitacoes() {
 }
 
 /* ==========================================================
-   INICIAR PUSH
+   INICIAR SISTEMA DE NOTIFICAÇÕES
 ========================================================== */
 
-configurarNotificacoesPush();
+authPronto.then(async (user) => {
 
-/* ==========================================================
-   INICIAR MONITORAMENTO DE SOLICITAÇÕES
-========================================================== */
+  console.log(
+    "[Mesa Fácil] Autenticação pronta. Usuário:",
+    {
+      uid: user?.uid ?? null,
+      email: user?.email ?? null,
+    }
+  );
 
-ouvirNovasSolicitacoes();
-
-/* ==========================================================
-   NOTIFICADOR DE PEDIDOS
-========================================================== */
-
-ouvirPedidos((pedidos) => {
-
-  /* ========================================================
-     PRIMEIRA LEITURA
-  ======================================================== */
-
-  if (primeiraLeitura) {
-
-    pedidos
-      .filter(
-        (p) =>
-          p.status === "RECEBIDO"
-      )
-      .forEach(
-        (p) =>
-          pedidosRecebidos.add(p.id)
-      );
-
-    primeiraLeitura = false;
+  if (!user) {
+    console.warn(
+      "[Mesa Fácil] Nenhum usuário autenticado. Notificadores não iniciados."
+    );
 
     return;
   }
 
-  /* ========================================================
-     NOVOS PEDIDOS
-  ======================================================== */
+  await configurarNotificacoesPush();
 
-  pedidos.forEach((pedido) => {
+  ouvirNovasSolicitacoes();
 
-    if (
-      pedido.status === "RECEBIDO" &&
-      !pedidosRecebidos.has(pedido.id)
-    ) {
+  ouvirPedidos((pedidos) => {
 
-      pedidosRecebidos.add(
-        pedido.id
+    /* ========================================================
+       PRIMEIRA LEITURA
+    ======================================================== */
+
+    if (primeiraLeitura) {
+
+      pedidos
+        .filter(
+          (p) =>
+            p.status === "RECEBIDO"
+        )
+        .forEach(
+          (p) =>
+            pedidosRecebidos.add(p.id)
+        );
+
+      primeiraLeitura = false;
+
+      return;
+    }
+
+    /* ========================================================
+       NOVOS PEDIDOS
+    ======================================================== */
+
+    pedidos.forEach((pedido) => {
+
+      if (
+        pedido.status === "RECEBIDO" &&
+        !pedidosRecebidos.has(pedido.id)
+      ) {
+
+        pedidosRecebidos.add(
+          pedido.id
+        );
+
+        /* ====================================================
+           SOM
+        ==================================================== */
+
+        audioNovoPedido.currentTime = 0;
+
+        audioNovoPedido
+          .play()
+          .catch(() => { });
+
+        /* ====================================================
+           TOAST
+        ==================================================== */
+
+        toast(
+          `🔔 Novo pedido recebido<br>
+           Pedido #${pedido.numeroPedido}`,
+          "success"
+        );
+      }
+
+    });
+
+    /* ========================================================
+       EXISTEM PEDIDOS RECEBIDOS?
+    ======================================================== */
+
+    const existePedidoRecebido =
+      pedidos.some(
+        (pedido) =>
+          pedido.status === "RECEBIDO"
       );
 
-      /* ====================================================
-         SOM
-      ==================================================== */
+    if (!existePedidoRecebido) {
+
+      audioNovoPedido.pause();
 
       audioNovoPedido.currentTime = 0;
 
-      audioNovoPedido
-        .play()
-        .catch(() => {});
-
-      /* ====================================================
-         TOAST
-      ==================================================== */
-
-      toast(
-        `🔔 Novo pedido recebido<br>
-         Pedido #${pedido.numeroPedido}`,
-        "success"
-      );
+      pedidosRecebidos.clear();
     }
 
   });
-
-  /* ========================================================
-     EXISTEM PEDIDOS RECEBIDOS?
-  ======================================================== */
-
-  const existePedidoRecebido =
-    pedidos.some(
-      (pedido) =>
-        pedido.status === "RECEBIDO"
-    );
-
-  if (!existePedidoRecebido) {
-
-    audioNovoPedido.pause();
-
-    audioNovoPedido.currentTime = 0;
-
-    pedidosRecebidos.clear();
-  }
 
 });

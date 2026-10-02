@@ -1,6 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCv9EjCPGl3SlvHUaRCBShLZhT04aVl8wM",
@@ -10,10 +13,54 @@ const firebaseConfig = {
   storageBucket: "mesa-facil-62310.firebasestorage.app",
   messagingSenderId: "170185351689",
   appId: "1:170185351689:web:a3fecbda25e40384ef8ed8",
-  measurementId: "G-LWCWGT8WEZ"
+  measurementId: "G-LWCWGT8WEZ",
 };
 
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+
 export const auth = getAuth(app);
+
+/* ==========================================================
+   AUTENTICAÇÃO PRONTA
+========================================================== */
+
+let authInicializado = false;
+
+export const authPronto = new Promise((resolve) => {
+  const unsubscribe = onAuthStateChanged(
+    auth,
+    (user) => {
+      console.log(
+        "[AUTH PRONTO] Estado inicial restaurado:",
+        {
+          uid: user?.uid ?? null,
+          email: user?.email ?? null,
+        }
+      );
+
+      if (!authInicializado) {
+        authInicializado = true;
+
+        unsubscribe();
+
+        resolve(user);
+      }
+    },
+    (erro) => {
+      console.error(
+        "[AUTH PRONTO] Erro ao restaurar autenticação:",
+        erro
+      );
+
+      if (!authInicializado) {
+        authInicializado = true;
+
+        unsubscribe();
+
+        resolve(null);
+      }
+    }
+  );
+});
