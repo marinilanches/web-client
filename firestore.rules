@@ -198,7 +198,7 @@ function pedidoDoCliente(pedidoId) {
       allow read, write: if ehAdmin();
     }
 
-    match /adminNotificationTokens/{tokenId} {
+        match /adminNotificationTokens/{tokenId} {
       allow read, write: if ehAdmin();
     }
 
@@ -222,6 +222,10 @@ function pedidoDoCliente(pedidoId) {
 
       allow delete: if ehAdmin()
         || (ehCliente() && resource.data.uid == request.auth.uid);
+    }
+
+    match /{document=**}/solicitacoes/{solicitacaoId} {
+      allow read: if ehAdmin();
     }
 
     match /{document=**} {

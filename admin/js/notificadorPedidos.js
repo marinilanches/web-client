@@ -5,12 +5,15 @@ import { db } from "../../js/services/firebase.js";
 
 import {
   collection,
+  collectionGroup,
   addDoc,
   query,
   where,
   getDocs,
+  getDoc,
   updateDoc,
   doc,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -25,31 +28,22 @@ import {
    CONFIGURAÇÃO
 ========================================================== */
 
-/*
- * COLE AQUI A PUBLIC KEY VAPID GERADA NO FIREBASE CONSOLE.
- *
- * Firebase Console
- * → Configurações do projeto
- * → Cloud Messaging
- * → Web Push certificates
- * → Generate key pair
- */
-
 const VAPID_KEY =
-  "BPzI31zrcz1pAmcjaVhDnjr2GmukrR25DNYn8UWwyKnei0yeC_rXyQMHd-oUvX3uq7b_Nob8ozxCqiOi_cfpiTQ";
-
-/*
- * URL que será aberta ao clicar na notificação.
- */
+  "BPzI31zrcz1pAmcjaVhDnjr2GmukrR25DNYN8UWwyKnei0yeC_rXyQMHd-oUvX3uq7b_Nob8ozxCqiOi_cfpiTQ";
 
 const URL_PEDIDOS =
   "/admin/pedidos.html";
 
 /* ==========================================================
-   SOM
+   SONS
 ========================================================== */
 
 let primeiraLeitura = true;
+let primeiraLeituraSolicitacoes = true;
+
+/* ----------------------------------------------------------
+   NOVO PEDIDO
+---------------------------------------------------------- */
 
 const pedidosRecebidos = new Set();
 
@@ -59,6 +53,19 @@ const audioNovoPedido = new Audio(
 
 audioNovoPedido.loop = true;
 audioNovoPedido.volume = 1;
+
+/* ----------------------------------------------------------
+   NOVA SOLICITAÇÃO
+---------------------------------------------------------- */
+
+const solicitacoesPendentes = new Set();
+
+const audioNovaSolicitacao = new Audio(
+  "../../assets/sounds/nova-solicitacao.mp3"
+);
+
+audioNovaSolicitacao.loop = true;
+audioNovaSolicitacao.volume = 1;
 
 /* ==========================================================
    FIREBASE MESSAGING
@@ -82,19 +89,16 @@ async function configurarNotificacoesPush() {
       return;
     }
 
-    if (!VAPID_KEY ||
-        VAPID_KEY === "COLE_AQUI_SUA_CHAVE_PUBLICA_VAPID") {
-
+    if (
+      !VAPID_KEY ||
+      VAPID_KEY === "COLE_AQUI_SUA_CHAVE_PUBLICA_VAPID"
+    ) {
       console.warn(
         "[Mesa Fácil] Chave VAPID ainda não configurada."
       );
 
       return;
     }
-
-    /* ======================================================
-       PERMISSÃO
-    ====================================================== */
 
     let permissao = Notification.permission;
 
@@ -111,10 +115,6 @@ async function configurarNotificacoesPush() {
       return;
     }
 
-    /* ======================================================
-       SERVICE WORKER
-    ====================================================== */
-
     const registration =
       await navigator.serviceWorker.register(
         "/firebase-messaging-sw.js",
@@ -130,17 +130,8 @@ async function configurarNotificacoesPush() {
 
     await navigator.serviceWorker.ready;
 
-    /* ======================================================
-       MESSAGING
-    ====================================================== */
-
     const app = getApp();
-
     const messaging = getMessaging(app);
-
-    /* ======================================================
-       TOKEN FCM
-    ====================================================== */
 
     const token = await getToken(
       messaging,
@@ -162,34 +153,13 @@ async function configurarNotificacoesPush() {
       "[Mesa Fácil] Token FCM obtido."
     );
 
-    /* ======================================================
-       SALVAR TOKEN NO FIRESTORE
-    ====================================================== */
-
     await salvarTokenNotificacao(token);
-
-    /* ======================================================
-       MENSAGENS EM PRIMEIRO PLANO
-    ====================================================== */
 
     onMessage(messaging, (payload) => {
       console.log(
         "[Mesa Fácil] Mensagem FCM em primeiro plano:",
         payload
       );
-
-      /*
-       * Não mostramos outra notificação do Windows aqui.
-       *
-       * Quando o admin está aberto, o sistema atual
-       * continua responsável pelo:
-       *
-       * 🔊 som
-       * 🔔 toast
-       *
-       * O FCM fica responsável principalmente pelo
-       * segundo plano.
-       */
     });
 
   } catch (erro) {
@@ -245,20 +215,12 @@ async function salvarTokenNotificacao(token) {
 
     await addDoc(tokensRef, {
       token,
-
       ativo: true,
-
       criadoEm: new Date(),
       atualizadoEm: new Date(),
-
-      userAgent:
-        navigator.userAgent,
-
-      plataforma:
-        navigator.platform,
-
-      origem:
-        "ADMIN_WEB",
+      userAgent: navigator.userAgent,
+      plataforma: navigator.platform,
+      origem: "ADMIN_WEB",
     });
 
     console.log(
@@ -274,13 +236,196 @@ async function salvarTokenNotificacao(token) {
 }
 
 /* ==========================================================
+   MONITORAR SOLICITAÇÕES
+========================================================== */
+
+function ouvirNovasSolicitacoes() {
+
+  const solicitacoesRef =
+    collectionGroup(db, "solicitacoes");
+
+  const q = query(
+    solicitacoesRef,
+    where("status", "==", "PENDENTE")
+  );
+
+  return onSnapshot(
+    q,
+    async (snapshot) => {
+
+      /* ====================================================
+         PRIMEIRA LEITURA
+      ==================================================== */
+
+      if (primeiraLeituraSolicitacoes) {
+
+        snapshot.docs.forEach((solicitacao) => {
+          solicitacoesPendentes.add(
+            solicitacao.id
+          );
+        });
+
+        primeiraLeituraSolicitacoes = false;
+
+        console.log(
+          "[Mesa Fácil] Solicitações pendentes iniciais:",
+          solicitacoesPendentes.size
+        );
+
+        return;
+      }
+
+      /* ====================================================
+         NOVAS SOLICITAÇÕES
+      ==================================================== */
+
+      for (const change of snapshot.docChanges()) {
+
+        if (change.type !== "added") {
+          continue;
+        }
+
+        const solicitacao = change.doc;
+
+        const solicitacaoId =
+          solicitacao.id;
+
+        /*
+         * Evita tocar novamente caso o mesmo documento
+         * apareça novamente no listener.
+         */
+
+        if (
+          solicitacoesPendentes.has(
+            solicitacaoId
+          )
+        ) {
+          continue;
+        }
+
+        solicitacoesPendentes.add(
+          solicitacaoId
+        );
+
+        /* ==================================================
+           IDENTIFICAR PEDIDO PAI
+        ================================================== */
+
+        const pedidoRef =
+          solicitacao.ref.parent.parent;
+
+        const pedidoId =
+          pedidoRef?.id ?? null;
+
+        let numeroPedido =
+          pedidoId || "desconhecido";
+
+        if (pedidoId) {
+          try {
+
+            const pedidoSnapshot =
+              await getDoc(
+                doc(
+                  db,
+                  "pedidos",
+                  pedidoId
+                )
+              );
+
+            if (pedidoSnapshot.exists()) {
+
+              const pedido =
+                pedidoSnapshot.data();
+
+              numeroPedido =
+                pedido.numeroPedido ??
+                pedidoId;
+            }
+
+          } catch (erro) {
+
+            console.warn(
+              "[Mesa Fácil] Não foi possível carregar o pedido da solicitação:",
+              erro
+            );
+          }
+        }
+
+        /* ==================================================
+           DADOS DA SOLICITAÇÃO
+        ================================================== */
+
+        const dados =
+          solicitacao.data();
+
+        const tipo =
+          dados.tipo || "SOLICITAÇÃO";
+
+        const mensagem =
+          dados.mensagem || "";
+
+        /* ==================================================
+           SOM
+        ================================================== */
+
+        audioNovaSolicitacao.currentTime = 0;
+
+        audioNovaSolicitacao
+          .play()
+          .catch(() => {});
+
+        /* ==================================================
+           TOAST
+        ================================================== */
+
+        toast(
+          `🔔 Nova solicitação<br>
+           Pedido #${numeroPedido}<br>
+           ${tipo}${mensagem ? `<br>${mensagem}` : ""}`,
+          "success"
+        );
+
+      }
+
+      /* ====================================================
+         EXISTEM SOLICITAÇÕES PENDENTES?
+      ==================================================== */
+
+      if (snapshot.empty) {
+
+        audioNovaSolicitacao.pause();
+
+        audioNovaSolicitacao.currentTime = 0;
+
+        solicitacoesPendentes.clear();
+      }
+
+    },
+    (erro) => {
+
+      console.error(
+        "[Mesa Fácil] Erro ao ouvir solicitações:",
+        erro
+      );
+
+    }
+  );
+}
+
+/* ==========================================================
    INICIAR PUSH
 ========================================================== */
 
 configurarNotificacoesPush();
 
 /* ==========================================================
-   NOTIFICADOR ATUAL
+   INICIAR MONITORAMENTO DE SOLICITAÇÕES
+========================================================== */
+
+ouvirNovasSolicitacoes();
+
+/* ==========================================================
+   NOTIFICADOR DE PEDIDOS
 ========================================================== */
 
 ouvirPedidos((pedidos) => {
