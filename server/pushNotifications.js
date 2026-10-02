@@ -600,8 +600,9 @@ async function processarRespostaCancelamento(db, solicitacaoRef) {
     }
 
     const agora = agoraTimestamp();
+    const aceita = solicitacao.status === STATUS_ACEITA;
 
-    if (solicitacao.status === STATUS_ACEITA && pedido.status !== "CANCELADO") {
+    if (aceita && pedido.status !== "CANCELADO") {
       transaction.update(pedidoRef, {
         status: "CANCELADO",
         canceladoPor: "CLIENTE_SOLICITACAO",
@@ -617,8 +618,18 @@ async function processarRespostaCancelamento(db, solicitacaoRef) {
 
     resultado = {
       clienteId: pedido.clienteId,
-      pedido: { id: pedidoRef.id, ...pedido },
-      aceita: solicitacao.status === STATUS_ACEITA,
+      pedido: {
+        id: pedidoRef.id,
+        ...pedido,
+        ...(aceita
+          ? {
+              status: "CANCELADO",
+              canceladoPor: "CLIENTE_SOLICITACAO",
+              canceladoEm: agora,
+            }
+          : {}),
+      },
+      aceita,
     };
   });
 
@@ -627,7 +638,9 @@ async function processarRespostaCancelamento(db, solicitacaoRef) {
       db,
       resultado.clienteId,
       resultado.pedido,
-      resultado.aceita ? "✅ Pedido cancelado" : "❌ Cancelamento recusado",
+      resultado.aceita
+        ? "✅ Pedido cancelado"
+        : "❌ Cancelamento recusado",
       resultado.aceita
         ? "O estabelecimento aceitou o cancelamento do seu pedido."
         : "O estabelecimento recusou o cancelamento do seu pedido.",
