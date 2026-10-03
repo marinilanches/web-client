@@ -436,6 +436,10 @@ authPronto.then(async (user) => {
     return;
   }
 
+  const tokenResult = await user.getIdTokenResult();
+
+  console.log("[AUTH DEBUG] Claims:", tokenResult.claims);
+
   await configurarNotificacoesPush();
 
   ouvirNovasSolicitacoes();
