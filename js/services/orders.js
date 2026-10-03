@@ -1,6 +1,8 @@
 import { db } from "./firebase.js";
 import { garantirIdentidadeCliente } from "./customers.js";
 
+import { auth } from "./firebase.js";
+
 import {
   collection,
   addDoc,
@@ -329,13 +331,14 @@ export async function marcarComoImpresso(id) {
    OUVIR PEDIDOS (LISTA EM TEMPO REAL)
 ========================================================== */
 
-export function ouvirPedidos(callback) {
+export function ouvirPedidos(callback, onError) {
   const { inicioHoje, inicioAmanha } = getInicioEFimDeHoje();
 
   return ouvirPedidosPorPeriodo(
     inicioHoje.toDate(),
     inicioAmanha.toDate(),
     callback,
+    onError,
   );
 }
 
@@ -343,44 +346,64 @@ export function ouvirPedidos(callback) {
    BUSCAR PEDIDOS POR PERÍODO
 ========================================================== */
 
-export function ouvirPedidosPorPeriodo(dataInicio, dataFim, callback) {
-  const inicio = new Date(dataInicio);
-
-  inicio.setHours(0, 0, 0, 0);
-
-  const fim = new Date(dataFim);
-
-  fim.setHours(23, 59, 59, 999);
-
-  const q = query(
-    pedidosRef,
-
-    where("criadoEm", ">=", Timestamp.fromDate(inicio)),
-
-    where("criadoEm", "<=", Timestamp.fromDate(fim)),
-
-    orderBy("criadoEm", "desc"),
-  );
+export function ouvirPedidosPorPeriodo(inicio, fim, callback, onError) {
+  const pedidosRef = collection(db, "pedidos");
 
   return onSnapshot(
-    q,
-
+    pedidosRef,
     (snapshot) => {
-      const pedidos = [];
+      const pedidos = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter((pedido) => {
+          const criadoEm = pedido.criadoEm?.toDate?.();
 
-      snapshot.forEach((docItem) => {
-        pedidos.push({
-          id: docItem.id,
+          if (!criadoEm) {
+            return false;
+          }
 
-          ...docItem.data(),
+          return criadoEm >= inicio && criadoEm <= fim;
+        })
+        .sort((a, b) => {
+          const dataA = a.criadoEm?.toDate?.()?.getTime?.() ?? 0;
+
+          const dataB = b.criadoEm?.toDate?.()?.getTime?.() ?? 0;
+
+          return dataB - dataA;
         });
-      });
 
       callback(pedidos);
     },
+    async (error) => {
+      console.error("Erro ao ouvir pedidos:", error);
 
-    (erro) => {
-      console.error("Erro ao buscar pedidos por período:", erro);
+      try {
+        const usuarioAtual = auth.currentUser;
+
+        if (!usuarioAtual) {
+          console.error("[AUTH NO ERRO PEDIDOS] Nenhum usuário autenticado.");
+        } else {
+          const tokenResult = await usuarioAtual.getIdTokenResult();
+
+          console.error("[AUTH NO ERRO PEDIDOS] Estado da autenticação:", {
+            uid: usuarioAtual.uid,
+            email: usuarioAtual.email,
+            admin: tokenResult.claims.admin ?? false,
+            issuedAtTime: tokenResult.issuedAtTime,
+            expirationTime: tokenResult.expirationTime,
+            authTime: tokenResult.authTime,
+          });
+        }
+      } catch (authErro) {
+        console.error(
+          "[AUTH NO ERRO PEDIDOS] Não foi possível verificar o token:",
+          authErro,
+        );
+      }
+
+      onError?.(error);
     },
   );
 }
@@ -453,8 +476,34 @@ export function ouvirSolicitacoesPedido(pedidoId, callback) {
         })),
       );
     },
-    (erro) => {
+    async (erro) => {
       console.error("Erro ao ouvir solicitações do pedido:", erro);
+
+      try {
+        const usuarioAtual = auth.currentUser;
+
+        if (!usuarioAtual) {
+          console.error(
+            "[AUTH NO ERRO SOLICITACOES] Nenhum usuário autenticado.",
+          );
+        } else {
+          const tokenResult = await usuarioAtual.getIdTokenResult();
+
+          console.error("[AUTH NO ERRO SOLICITACOES] Estado da autenticação:", {
+            uid: usuarioAtual.uid,
+            email: usuarioAtual.email,
+            admin: tokenResult.claims.admin ?? false,
+            issuedAtTime: tokenResult.issuedAtTime,
+            expirationTime: tokenResult.expirationTime,
+            authTime: tokenResult.authTime,
+          });
+        }
+      } catch (authErro) {
+        console.error(
+          "[AUTH NO ERRO SOLICITACOES] Não foi possível verificar o token:",
+          authErro,
+        );
+      }
     },
   );
 }
@@ -470,10 +519,20 @@ export async function responderSolicitacaoCliente(
     throw new Error("RESPOSTA_SOLICITACAO_INVALIDA");
   }
 
-  await updateDoc(doc(db, "pedidos", pedidoId, "solicitacoes", solicitacaoId), {
-    respostaCliente: respostaNormalizada,
-    respondidaEm: serverTimestamp(),
-  });
+  await updateDoc(
+    doc(
+      db,
+      "pedidos",
+      pedidoId,
+      "solicitacoes",
+      solicitacaoId,
+    ),
+    {
+      status: respostaNormalizada,
+      respostaCliente: respostaNormalizada,
+      respondidaEm: serverTimestamp(),
+    },
+  );
 }
 
 export async function responderSolicitacaoAdmin(
@@ -482,33 +541,74 @@ export async function responderSolicitacaoAdmin(
   dados = {},
 ) {
   const status = String(dados.status || "").toUpperCase();
+
+  const solicitacaoRef = doc(
+    db,
+    "pedidos",
+    pedidoId,
+    "solicitacoes",
+    solicitacaoId,
+  );
+
+  const pedidoRef = doc(db, "pedidos", pedidoId);
+
+  const solicitacaoSnap = await getDoc(solicitacaoRef);
+
+  if (!solicitacaoSnap.exists()) {
+    throw new Error("SOLICITACAO_NAO_ENCONTRADA");
+  }
+
+  const solicitacao = solicitacaoSnap.data();
+
   const updatePayload = {};
 
   if (["ACEITA", "RECUSADA"].includes(status)) {
     updatePayload.status = status;
     updatePayload.origem = "ADMIN";
+
+    updatePayload.respondidaEm = serverTimestamp();
+
+    /*
+     * Se for uma solicitação de cancelamento e o admin aceitar,
+     * o próprio pedido também deve ser marcado como CANCELADO.
+     */
+    if (status === "ACEITA" && solicitacao.tipo === "CANCELAMENTO") {
+      await updateDoc(pedidoRef, {
+        status: "CANCELADO",
+        atualizadoEm: serverTimestamp(),
+      });
+    }
   } else if (status === "AGUARDANDO_CLIENTE") {
-    const minutos = Math.max(
-      1,
-      Math.min(24 * 60, Number(dados.tempoAdicionalMinutos || 0)),
-    );
+    const minutos = Number(dados.tempoAdicionalMinutos || 0);
 
     if (!Number.isFinite(minutos) || minutos <= 0) {
       throw new Error("TEMPO_ADICIONAL_INVALIDO");
     }
 
+    const minutosArredondados = Math.max(
+      1,
+      Math.min(24 * 60, Math.round(minutos)),
+    );
+
+    const agora = new Date();
+
+    const horarioProposto = new Date(
+      agora.getTime() + minutosArredondados * 60 * 1000,
+    );
+
+    const aceitaAte = new Date(agora.getTime() + 5 * 60 * 1000);
+
     updatePayload.status = "AGUARDANDO_CLIENTE";
     updatePayload.origem = "ADMIN";
-    updatePayload.tempoAdicionalMinutos = Math.round(minutos);
+    updatePayload.tempoAdicionalMinutos = minutosArredondados;
     updatePayload.motivo = String(dados.motivo || "").trim();
+    updatePayload.horarioProposto = Timestamp.fromDate(horarioProposto);
+    updatePayload.aceitaAte = Timestamp.fromDate(aceitaAte);
   } else {
     throw new Error("STATUS_SOLICITACAO_INVALIDO");
   }
 
-  await updateDoc(
-    doc(db, "pedidos", pedidoId, "solicitacoes", solicitacaoId),
-    updatePayload,
-  );
+  await updateDoc(solicitacaoRef, updatePayload);
 }
 
 /* ==========================================================

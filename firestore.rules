@@ -82,9 +82,7 @@ function pedidoDoCliente(pedidoId) {
       && request.auth.uid == uid
       && request.resource.data.uid == request.auth.uid
       && request.resource.data.clienteId is string
-      && !exists(
-        /databases/$(database)/documents/clientes/$(request.resource.data.clienteId)
-      )
+      && request.resource.data.clienteId != ""
     );
 
   allow update: if ehAdmin();
@@ -120,7 +118,7 @@ function pedidoDoCliente(pedidoId) {
 
   allow update, delete: if ehAdmin();
 
-      match /solicitacoes/{solicitacaoId} {
+  match /solicitacoes/{solicitacaoId} {
         allow read: if ehAdmin() || pedidoDoCliente(pedidoId);
 
         allow create: if ehAdmin()
@@ -148,18 +146,18 @@ function pedidoDoCliente(pedidoId) {
           );
 
         allow update: if ehAdmin()
-          || (
-            ehCliente()
-            && pedidoDoCliente(pedidoId)
-            && resource.data.status == "AGUARDANDO_CLIENTE"
-            && request.resource.data.status == "AGUARDANDO_CLIENTE"
-            && request.resource.data.respostaCliente in ["ACEITA", "RECUSADA"]
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              "respostaCliente",
-              "respondidaEm"
-            ])
-            && request.time <= resource.data.aceitaAte
-          );
+  || (
+    ehCliente()
+    && pedidoDoCliente(pedidoId)
+    && resource.data.status == "AGUARDANDO_CLIENTE"
+    && request.resource.data.status in ["ACEITA", "RECUSADA"]
+    && request.resource.data.respostaCliente == request.resource.data.status
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+      "status",
+      "respostaCliente",
+      "respondidaEm"
+    ])
+  );
 
         allow delete: if ehAdmin();
       }
@@ -224,9 +222,9 @@ function pedidoDoCliente(pedidoId) {
         || (ehCliente() && resource.data.uid == request.auth.uid);
     }
 
-    match /{document=**}/solicitacoes/{solicitacaoId} {
-      allow read: if ehAdmin();
-    }
+    match /{path=**}/solicitacoes/{solicitacaoId} {
+  allow read: if ehAdmin();
+}
 
     match /{document=**} {
       allow read, write: if false;

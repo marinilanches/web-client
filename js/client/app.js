@@ -1,7 +1,9 @@
-import { db } from "../services/firebase.js";
+import { db, auth } from "../services/firebase.js";
 import {
   doc,
   getDoc,
+  collection,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 import { loadProducts } from "../services/products.js";
@@ -51,26 +53,16 @@ function verificarCarrinhoAntesCheckout() {
 }
 
 function renderizarEstimativas(config = {}) {
-  const retiradaEl =
-    document.getElementById("estimativaRetirada");
+  const retiradaEl = document.getElementById("estimativaRetirada");
 
-  const entregaEl =
-    document.getElementById("estimativaEntrega");
+  const entregaEl = document.getElementById("estimativaEntrega");
 
   const agora = new Date();
 
   if (retiradaEl) {
-    const estimativa =
-      obterEstimativaPorTipo(
-        config,
-        "Retirada",
-      );
+    const estimativa = obterEstimativaPorTipo(config, "Retirada");
 
-    const horarioFinal =
-      calcularHorarioFinalEstimativa(
-        estimativa,
-        agora,
-      );
+    const horarioFinal = calcularHorarioFinalEstimativa(estimativa, agora);
 
     retiradaEl.innerHTML = `
       <div class="card-body p-4">
@@ -79,10 +71,7 @@ function renderizarEstimativas(config = {}) {
         </div>
 
         <div class="text-secondary mt-2">
-          ${textoDiaEstimativa(
-            horarioFinal,
-            agora,
-          )}
+          ${textoDiaEstimativa(horarioFinal, agora)}
         </div>
 
         <div class="fs-4 fw-bold mt-1">
@@ -92,9 +81,7 @@ function renderizarEstimativas(config = {}) {
         <div class="mt-2">
           Pronto para retirar até
           <strong>
-            ${formatarHorarioEstimativa(
-              horarioFinal,
-            )}
+            ${formatarHorarioEstimativa(horarioFinal)}
           </strong>
         </div>
       </div>
@@ -102,17 +89,9 @@ function renderizarEstimativas(config = {}) {
   }
 
   if (entregaEl) {
-    const estimativa =
-      obterEstimativaPorTipo(
-        config,
-        "Delivery",
-      );
+    const estimativa = obterEstimativaPorTipo(config, "Delivery");
 
-    const horarioFinal =
-      calcularHorarioFinalEstimativa(
-        estimativa,
-        agora,
-      );
+    const horarioFinal = calcularHorarioFinalEstimativa(estimativa, agora);
 
     entregaEl.innerHTML = `
       <div class="card-body p-4">
@@ -121,10 +100,7 @@ function renderizarEstimativas(config = {}) {
         </div>
 
         <div class="text-secondary mt-2">
-          ${textoDiaEstimativa(
-            horarioFinal,
-            agora,
-          )}
+          ${textoDiaEstimativa(horarioFinal, agora)}
         </div>
 
         <div class="fs-4 fw-bold mt-1">
@@ -134,9 +110,7 @@ function renderizarEstimativas(config = {}) {
         <div class="mt-2">
           Chegará até
           <strong>
-            ${formatarHorarioEstimativa(
-              horarioFinal,
-            )}
+            ${formatarHorarioEstimativa(horarioFinal)}
           </strong>
         </div>
       </div>
@@ -246,8 +220,38 @@ function atualizarInterfaceLoja(config = {}) {
 
 async function carregarConfiguracoesLoja() {
   try {
+    const usuario = auth.currentUser;
+
+    console.log("[FIRESTORE DEBUG] currentUser:", {
+      uid: usuario?.uid ?? null,
+      isAnonymous: usuario?.isAnonymous ?? null,
+      email: usuario?.email ?? null,
+    });
+
+    if (usuario) {
+      const tokenResult = await usuario.getIdTokenResult();
+
+      console.log("[FIRESTORE DEBUG] token:", {
+        uid: tokenResult.claims.user_id ?? usuario.uid,
+        signInProvider:
+          tokenResult.signInProvider ??
+          tokenResult.claims.firebase?.sign_in_provider ??
+          null,
+        claims: tokenResult.claims,
+      });
+    }
+
     const ref = doc(db, CONFIG_COLLECTION, CONFIG_DOC_ID);
+
+    const testeProdutos = await getDocs(collection(db, "produtos"));
+
+    console.log("[FIRESTORE TESTE] produtos:", testeProdutos.size);
+
+    console.log("[FIRESTORE DEBUG] tentando ler:", "configuracoes/geral");
+
     const snap = await getDoc(ref);
+
+    console.log("[FIRESTORE DEBUG] leitura OK:", snap.exists());
 
     if (!snap.exists()) {
       console.warn("Documento configuracoes/geral não encontrado.");
@@ -256,10 +260,17 @@ async function carregarConfiguracoesLoja() {
     }
 
     const config = snap.data();
+
     atualizarInterfaceLoja(config);
+
     console.log("Configurações carregadas:", config);
   } catch (error) {
-    console.error("Erro ao carregar configurações da loja:", error);
+    console.error("[FIRESTORE DEBUG] ERRO COMPLETO:", error);
+
+    console.error("[FIRESTORE DEBUG] code:", error?.code);
+
+    console.error("[FIRESTORE DEBUG] message:", error?.message);
+
     atualizarInterfaceLoja({});
   }
 }

@@ -14,6 +14,7 @@ import {
 
 import { solicitarEntregador } from "../../js/services/bee-delivery.js";
 
+import { marcarSolicitacoesComoAbertas } from "../js/notificadorPedidos.js";
 
 let unsubscribeSolicitacoes = null;
 
@@ -29,7 +30,8 @@ function escaparHtml(valor) {
 function formatarHorarioSolicitacao(valor) {
   if (!valor) return "—";
 
-  const data = typeof valor.toDate === "function" ? valor.toDate() : new Date(valor);
+  const data =
+    typeof valor.toDate === "function" ? valor.toDate() : new Date(valor);
 
   if (Number.isNaN(data.getTime())) return "—";
 
@@ -121,7 +123,10 @@ function renderSolicitacoesAdmin(pedido, solicitacoes) {
               Nova previsão: <strong>${formatarHorarioSolicitacao(solicitacao.horarioProposto)}</strong>.
             </div>
           `;
-        } else if (solicitacao.status === "ACEITA" || solicitacao.status === "ACEITA_TIMEOUT") {
+        } else if (
+          solicitacao.status === "ACEITA" ||
+          solicitacao.status === "ACEITA_TIMEOUT"
+        ) {
           acoes = `<div class="alert alert-success mt-3 mb-0">✅ Solicitação aceita${solicitacao.status === "ACEITA_TIMEOUT" ? " automaticamente após 5 minutos" : " pelo cliente"}.</div>`;
         } else if (solicitacao.status === "RECUSADA") {
           acoes = `<div class="alert alert-secondary mt-3 mb-0">❌ Solicitação recusada.</div>`;
@@ -143,8 +148,11 @@ function renderSolicitacoesAdmin(pedido, solicitacoes) {
   container.querySelectorAll("[data-propor-previsao]").forEach((botao) => {
     botao.addEventListener("click", async () => {
       const id = botao.dataset.proporPrevisao;
-      const minutos = Number(document.getElementById(`tempo-${id}`)?.value || 0);
-      const motivo = document.getElementById(`motivo-${id}`)?.value?.trim() || "";
+      const minutos = Number(
+        document.getElementById(`tempo-${id}`)?.value || 0,
+      );
+      const motivo =
+        document.getElementById(`motivo-${id}`)?.value?.trim() || "";
 
       if (!Number.isFinite(minutos) || minutos <= 0) {
         toast("Informe um tempo adicional válido.");
@@ -168,9 +176,13 @@ function renderSolicitacoesAdmin(pedido, solicitacoes) {
   container.querySelectorAll("[data-aceitar-cancelamento]").forEach((botao) => {
     botao.addEventListener("click", async () => {
       try {
-        await responderSolicitacaoAdmin(pedido.id, botao.dataset.aceitarCancelamento, {
-          status: "ACEITA",
-        });
+        await responderSolicitacaoAdmin(
+          pedido.id,
+          botao.dataset.aceitarCancelamento,
+          {
+            status: "ACEITA",
+          },
+        );
         toast("Cancelamento aceito.");
       } catch (erro) {
         console.error(erro);
@@ -182,9 +194,13 @@ function renderSolicitacoesAdmin(pedido, solicitacoes) {
   container.querySelectorAll("[data-recusar-cancelamento]").forEach((botao) => {
     botao.addEventListener("click", async () => {
       try {
-        await responderSolicitacaoAdmin(pedido.id, botao.dataset.recusarCancelamento, {
-          status: "RECUSADA",
-        });
+        await responderSolicitacaoAdmin(
+          pedido.id,
+          botao.dataset.recusarCancelamento,
+          {
+            status: "RECUSADA",
+          },
+        );
         toast("Cancelamento recusado.");
       } catch (erro) {
         console.error(erro);
@@ -252,8 +268,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${adicionais
-          ? `
+        ${
+          adicionais
+            ? `
 
           <p>
 
@@ -270,7 +287,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-          : ""
+            : ""
         }
 
 
@@ -278,8 +295,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${item.observacaoItem
-          ? `
+        ${
+          item.observacaoItem
+            ? `
 
           <p>
 
@@ -296,7 +314,7 @@ export function abrirDetalhesPedido(pedido) {
           </p>
 
           `
-          : ""
+            : ""
         }
 
 
@@ -369,8 +387,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${pedido.tipo === "Delivery"
-      ? `
+      ${
+        pedido.tipo === "Delivery"
+          ? `
 
         <h3>
 
@@ -382,8 +401,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-        ${pedido.entrega
-        ? `
+        ${
+          pedido.entrega
+            ? `
 
           <h3>
 
@@ -441,10 +461,11 @@ export function abrirDetalhesPedido(pedido) {
             <br>
 
 
-            ${pedido.entrega.previsaoMinutos
-          ? `${pedido.entrega.previsaoMinutos} min`
-          : "-"
-        }
+            ${
+              pedido.entrega.previsaoMinutos
+                ? `${pedido.entrega.previsaoMinutos} min`
+                : "-"
+            }
 
 
           </p>
@@ -492,8 +513,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-          ${pedido.entrega.trackingUrl
-          ? `
+          ${
+            pedido.entrega.trackingUrl
+              ? `
 
             <p>
 
@@ -512,14 +534,14 @@ export function abrirDetalhesPedido(pedido) {
             </p>
 
             `
-          : ""
-        }
+              : ""
+          }
 
 
 
           `
-        : ""
-      }
+            : ""
+        }
 
 
 
@@ -542,8 +564,9 @@ export function abrirDetalhesPedido(pedido) {
 
         </p>
 
-        ${pedido.distanciaEntrega != null
-        ? `
+        ${
+          pedido.distanciaEntrega != null
+            ? `
             <p>
               <strong>
               Distância:
@@ -555,8 +578,8 @@ export function abrirDetalhesPedido(pedido) {
 
             </p>
           `
-        : ""
-      }
+            : ""
+        }
 
 
         <p>
@@ -638,8 +661,8 @@ export function abrirDetalhesPedido(pedido) {
 
 
         `
-      : ""
-    }
+          : ""
+      }
 
 
 
@@ -700,8 +723,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${pedido.pagamentoMetodo === "DINHEIRO"
-      ? `
+      ${
+        pedido.pagamentoMetodo === "DINHEIRO"
+          ? `
 
         <p>
 
@@ -736,16 +760,16 @@ export function abrirDetalhesPedido(pedido) {
           R$
 
           ${(
-        Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
-      ).toFixed(2)}
+            Number(pedido.trocoPara || 0) - Number(pedido.valorTotal || 0)
+          ).toFixed(2)}
 
 
         </p>
 
 
         `
-      : ""
-    }
+          : ""
+      }
 
 
 
@@ -775,8 +799,9 @@ export function abrirDetalhesPedido(pedido) {
 
 
 
-      ${pedido.observacoes
-      ? `
+      ${
+        pedido.observacoes
+          ? `
 
         <h3>
 
@@ -792,8 +817,8 @@ export function abrirDetalhesPedido(pedido) {
         </p>
 
         `
-      : ""
-    }
+          : ""
+      }
 
 
 
@@ -804,49 +829,53 @@ export function abrirDetalhesPedido(pedido) {
 
       <div class="modal-actions">
 
-        ${pedido.status === "RECEBIDO"
-      ? `
+        ${
+          pedido.status === "RECEBIDO"
+            ? `
                 <button
                     class="btn btn-primary"
                     id="btnPreparando">
                     👨‍🍳 Iniciar preparo
                 </button>
             `
-      : ""
-    }
+            : ""
+        }
 
-        ${pedido.status === "PREPARANDO"
-      ? `
+        ${
+          pedido.status === "PREPARANDO"
+            ? `
                 <button
                     class="btn btn-primary"
                     id="btnPronto">
                     ✅ Pedido pronto
                 </button>
             `
-      : ""
-    }
+            : ""
+        }
 
-        ${pedido.status === "PRONTO"
-      ? `
+        ${
+          pedido.status === "PRONTO"
+            ? `
                 <button
                   class="btn btn-primary"
                   id="btnSairParaEntrega">
                   🚚 Sair para entrega
                 </button>
             `
-      : ""
-    }
+            : ""
+        }
 
-        ${pedido.tipo === "Delivery" && !pedido.entrega
-      ? `
+        ${
+          pedido.tipo === "Delivery" && !pedido.entrega
+            ? `
                 <button
                     class="btn btn-secondary"
                     id="btnSolicitarEntregador">
                     🚚 Solicitar entregador
                 </button>
             `
-      : ""
-    }
+            : ""
+        }
 
         <button
           class="btn btn-secondary"
@@ -854,16 +883,17 @@ export function abrirDetalhesPedido(pedido) {
           🖨️ Imprimir comanda
         </button>
 
-        ${pedido.status !== "CANCELADO"
-      ? `
+        ${
+          pedido.status !== "CANCELADO"
+            ? `
                 <button
                     class="btn btn-danger"
                     id="btnCancelarPedido">
                     ❌ Cancelar pedido
                 </button>
             `
-      : ""
-    }
+            : ""
+        }
 
         <button
           class="btn btn-danger"
@@ -882,9 +912,26 @@ export function abrirDetalhesPedido(pedido) {
   );
 
   unsubscribeSolicitacoes?.();
+
+  let primeiraLeituraSolicitacoes = true;
+
   unsubscribeSolicitacoes = ouvirSolicitacoesPedido(
     pedido.id,
-    (solicitacoes) => renderSolicitacoesAdmin(pedido, solicitacoes),
+    (solicitacoes) => {
+      if (primeiraLeituraSolicitacoes) {
+        const solicitacoesPendentes = solicitacoes.filter(
+          (solicitacao) => solicitacao.status === "PENDENTE",
+        );
+
+        marcarSolicitacoesComoAbertas(
+          solicitacoesPendentes.map((solicitacao) => solicitacao.id),
+        );
+
+        primeiraLeituraSolicitacoes = false;
+      }
+
+      renderSolicitacoesAdmin(pedido, solicitacoes);
+    },
   );
 
   document
@@ -937,30 +984,19 @@ export function abrirDetalhesPedido(pedido) {
 
   document
     .getElementById("btnSairParaEntrega")
-    ?.addEventListener(
-      "click",
-      async () => {
-        try {
-          await alterarStatus(
-            pedido.id,
-            "SAIU_PARA_ENTREGA",
-          );
+    ?.addEventListener("click", async () => {
+      try {
+        await alterarStatus(pedido.id, "SAIU_PARA_ENTREGA");
 
-          toast(
-            "Pedido saiu para entrega",
-          );
+        toast("Pedido saiu para entrega");
 
-          fecharModal();
+        fecharModal();
+      } catch (erro) {
+        console.error(erro);
 
-        } catch (erro) {
-          console.error(erro);
-
-          toast(
-            "Erro ao atualizar pedido.",
-          );
-        }
-      },
-    );
+        toast("Erro ao atualizar pedido.");
+      }
+    });
 
   document
     .getElementById("btnCancelarPedido")

@@ -39,24 +39,105 @@ export function obterClienteIdLocal() {
 }
 
 export async function garantirClienteAuth() {
-  if (auth.currentUser) {
-    return auth.currentUser;
+  const usuarioAtual = auth.currentUser;
+
+  /*
+   * Nunca criar uma sessão anônima dentro do painel administrativo.
+   * O painel deve permanecer autenticado com a conta admin.
+   */
+  const caminhoAtual = window.location.pathname || "";
+
+  const estaNoAdmin =
+    caminhoAtual === "/admin" ||
+    caminhoAtual.startsWith("/admin/");
+
+  if (estaNoAdmin) {
+    if (!usuarioAtual) {
+      throw new Error(
+        "CLIENTE_AUTH_BLOQUEADO_NO_ADMIN",
+      );
+    }
+
+    const tokenResult =
+      await usuarioAtual.getIdTokenResult();
+
+    if (tokenResult.claims.admin === true) {
+      throw new Error(
+        "CLIENTE_AUTH_CHAMADO_COM_USUARIO_ADMIN",
+      );
+    }
+
+    throw new Error(
+      "USUARIO_CLIENTE_INVALIDO_NO_ADMIN",
+    );
+  }
+
+  /*
+   * Fora do painel, mantém o comportamento normal do cliente.
+   */
+  if (usuarioAtual) {
+    return usuarioAtual;
   }
 
   const resultado = await signInAnonymously(auth);
+
   return resultado.user;
 }
 
 export async function garantirIdentidadeCliente() {
   const user = await garantirClienteAuth();
 
+  const tokenResult = await user.getIdTokenResult();
+
+  if (tokenResult.claims.admin === true) {
+    throw new Error(
+      "CONTA_ADMIN_NAO_PODE_SER_USADA_COMO_CLIENTE",
+    );
+  }
+
+  console.log("[CLIENTE DEBUG] claims do token:", {
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+    signInProvider: tokenResult.signInProvider,
+    firebaseClaims: tokenResult.claims.firebase,
+    claims: tokenResult.claims,
+  });
+
+  console.log("[CLIENTE DEBUG] usuário:", {
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+  });
   const identidadeRef = doc(
     db,
     "clienteIdentidades",
     user.uid,
   );
 
-  const identidadeSnap = await getDoc(identidadeRef);
+  console.log(
+    "[CLIENTE DEBUG] lendo identidade:",
+    `clienteIdentidades/${user.uid}`,
+  );
+
+  let identidadeSnap;
+
+  try {
+    identidadeSnap = await getDoc(identidadeRef);
+
+    console.log(
+      "[CLIENTE DEBUG] leitura identidade OK:",
+      identidadeSnap.exists(),
+      identidadeSnap.exists()
+        ? identidadeSnap.data()
+        : null,
+    );
+  } catch (erro) {
+    console.error(
+      "[CLIENTE DEBUG] ERRO ao ler identidade:",
+      erro,
+    );
+
+    throw erro;
+  }
 
   if (identidadeSnap.exists()) {
     const dados = identidadeSnap.data();
@@ -89,12 +170,33 @@ export async function garantirIdentidadeCliente() {
     );
   }
 
-  await setDoc(identidadeRef, {
-    uid: user.uid,
-    clienteId,
-    criadoEm: serverTimestamp(),
-    atualizadoEm: serverTimestamp(),
-  });
+  console.log(
+    "[CLIENTE DEBUG] criando identidade:",
+    {
+      uid: user.uid,
+      clienteId,
+    },
+  );
+
+  try {
+    await setDoc(identidadeRef, {
+      uid: user.uid,
+      clienteId,
+      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    });
+
+    console.log(
+      "[CLIENTE DEBUG] identidade criada com sucesso",
+    );
+  } catch (erro) {
+    console.error(
+      "[CLIENTE DEBUG] ERRO ao criar identidade:",
+      erro,
+    );
+
+    throw erro;
+  }
 
   return {
     uid: user.uid,
@@ -109,13 +211,39 @@ export async function garantirIdentidadeCliente() {
 export async function buscarCliente() {
   const identidade = await garantirIdentidadeCliente();
 
+  console.log(
+    "[CLIENTE DEBUG] identidade obtida:",
+    identidade,
+  );
+
   const ref = doc(
     db,
     "clientes",
     identidade.clienteId,
   );
 
-  const snap = await getDoc(ref);
+  console.log(
+    "[CLIENTE DEBUG] lendo cliente:",
+    `clientes/${identidade.clienteId}`,
+  );
+
+  let snap;
+
+  try {
+    snap = await getDoc(ref);
+
+    console.log(
+      "[CLIENTE DEBUG] leitura cliente OK:",
+      snap.exists(),
+    );
+  } catch (erro) {
+    console.error(
+      "[CLIENTE DEBUG] ERRO ao ler cliente:",
+      erro,
+    );
+
+    throw erro;
+  }
 
   if (!snap.exists()) {
     return null;

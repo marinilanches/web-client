@@ -1,199 +1,204 @@
 <!doctype html>
 <html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status do Pedido</title>
+    <link rel="icon" type="image/png" href="./assets/avatar.png" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Status do Pedido</title>
-  <link rel="icon" type="image/png" href="./assets/avatar.png" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./css/styles.css" />
 
-  <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/pedido-status.css" />
+  </head>
 
-  <link rel="stylesheet" href="./css/pedido-status.css" />
-</head>
+  <body class="cliente-body">
+    <header class="store-header">
+      <div class="container py-3 py-lg-4">
+        <div class="store-hero card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3">
+              <div class="store-logo">
+                <img src="./assets/avatar.png" alt="Logo do restaurante" />
+              </div>
 
-<body class="cliente-body">
-  <header class="store-header">
-    <div class="container py-3 py-lg-4">
-      <div class="store-hero card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-3">
-            <div class="store-logo">
-              <img src="./assets/avatar.png" alt="Logo do restaurante" />
-            </div>
+              <div>
+                <p class="store-kicker mb-1">Acompanhe seu pedido</p>
 
-            <div>
-              <p class="store-kicker mb-1">Acompanhe seu pedido</p>
-
-              <h2 class="store-title">Seus pedidos</h2>
+                <h2 class="store-title">Seus pedidos</h2>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main class="container py-3">
-    <section>
-      <div class="mb-4">
-        <h2 class="section-title">Seus pedidos</h2>
+    <main class="container py-3">
+      <section>
+        <div class="mb-4">
+          <h2 class="section-title">Seus pedidos</h2>
 
-        <p class="section-subtitle">
-          Acompanhe o andamento do seu pedido em tempo real.
-        </p>
-      </div>
-
-      <div id="pedidoAtual"></div>
-
-      <div class="mt-4">
-        <h2 class="section-title">Seus pedidos</h2>
-        <p class="section-subtitle">Acompanhe seus pedidos recentes.</p>
-        <div id="listaPedidos">
-          <div class="status-card mb-3">Carregando...</div>
+          <p class="section-subtitle">
+            Acompanhe o andamento do seu pedido em tempo real.
+          </p>
         </div>
-      </div>
-    </section>
-  </main>
 
-  <script type="module">
-    import {
-      ouvirPedidosCliente,
-      ouvirPedidoPorId,
-      criarSolicitacaoPedido,
-      ouvirSolicitacoesPedido,
-      responderSolicitacaoCliente,
-    } from "./js/services/orders.js";
+        <div id="pedidoAtual"></div>
 
-    import {
-      garantirClienteAuth,
-      buscarCliente,
-      registrarNotificacoesCliente,
-    } from "./js/services/customers.js";
+        <div class="mt-4">
+          <h2 class="section-title">Seus pedidos</h2>
+          <p class="section-subtitle">Acompanhe seus pedidos recentes.</p>
+          <div id="listaPedidos">
+            <div class="status-card mb-3">Carregando...</div>
+          </div>
+        </div>
+      </section>
+    </main>
 
-    import {
-      calcularHorarioFinalEstimativa,
-      textoDiaEstimativa,
-      formatarHorarioEstimativa,
-    } from "./js/services/order-estimates.js";
+    <script type="module">
+      import {
+        ouvirPedidosCliente,
+        ouvirPedidoPorId,
+        criarSolicitacaoPedido,
+        ouvirSolicitacoesPedido,
+        responderSolicitacaoCliente,
+      } from "./js/services/orders.js";
 
-    const pedidoAtual = document.getElementById("pedidoAtual");
-    const listaPedidos = document.getElementById("listaPedidos");
-    let solicitacoesAtual = [];
-    let pedidoAtualEmTela = null;
+      import {
+        garantirClienteAuth,
+        buscarCliente,
+        registrarNotificacoesCliente,
+      } from "./js/services/customers.js";
 
-    function formatarMoeda(valor) {
-      return Number(valor || 0).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      });
-    }
+      import {
+        calcularHorarioFinalEstimativa,
+        textoDiaEstimativa,
+        formatarHorarioEstimativa,
+      } from "./js/services/order-estimates.js";
 
-    function formatarData(data) {
-      if (!data) return "—";
+      const pedidoAtual = document.getElementById("pedidoAtual");
+      const listaPedidos = document.getElementById("listaPedidos");
+      let solicitacoesAtual = [];
+      let pedidoAtualEmTela = null;
 
-      if (typeof data.toDate === "function") {
-        return data.toDate().toLocaleString("pt-BR");
+      function formatarMoeda(valor) {
+        return Number(valor || 0).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
       }
 
-      try {
-        return new Date(data).toLocaleString("pt-BR");
-      } catch {
-        return "—";
-      }
-    }
+      function formatarData(data) {
+        if (!data) return "—";
 
-    function renderMensagem(texto) {
-      pedidoAtual.innerHTML = `
+        if (typeof data.toDate === "function") {
+          return data.toDate().toLocaleString("pt-BR");
+        }
+
+        try {
+          return new Date(data).toLocaleString("pt-BR");
+        } catch {
+          return "—";
+        }
+      }
+
+      function renderMensagem(texto) {
+        pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
         <p>${texto}</p>
       </div>
     `;
-    }
-    function getStatusLabel(status) {
-      switch (status) {
-        case "RECEBIDO":
-          return "🟡 Recebido";
-
-        case "PREPARANDO":
-          return "👨‍🍳 Em preparo";
-
-        case "PRONTO":
-          return "✅ Pronto";
-
-        case "SAIU_PARA_ENTREGA":
-          return "🚚 Saiu para entrega";
-
-        case "CANCELADO":
-          return "❌ Cancelado";
-
-        default:
-          return status || "—";
       }
-    }
+      function getStatusLabel(status) {
+        switch (status) {
+          case "RECEBIDO":
+            return "🟡 Recebido";
 
-    function isPix(metodo) {
-      if (!metodo) return false;
-      const texto = String(metodo).toLowerCase().trim();
-      return texto === "pix" || texto.includes("pix");
-    }
+          case "PREPARANDO":
+            return "👨‍🍳 Em preparo";
 
-    function timestampParaDate(valor) {
-      if (!valor) return null;
-      if (typeof valor.toDate === "function") return valor.toDate();
-      const data = new Date(valor);
-      return Number.isNaN(data.getTime()) ? null : data;
-    }
+          case "PRONTO":
+            return "✅ Pronto";
 
-    function formatarHorario(valor) {
-      const data = timestampParaDate(valor);
-      if (!data) return "—";
-      return data.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-    }
+          case "SAIU_PARA_ENTREGA":
+            return "🚚 Saiu para entrega";
 
-    function escaparHtml(valor) {
-      return String(valor ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
+          case "CANCELADO":
+            return "❌ Cancelado";
 
-    function renderSolicitacoes(pedido) {
-      const container = document.getElementById("solicitacoesPedido");
-      if (!container) return;
+          default:
+            return status || "—";
+        }
+      }
 
-      const ativas = solicitacoesAtual.filter(
-        (item) => !["CANCELADA"].includes(item.status),
-      );
+      function isPix(metodo) {
+        if (!metodo) return false;
+        const texto = String(metodo).toLowerCase().trim();
+        return texto === "pix" || texto.includes("pix");
+      }
 
-      const pendentes = ativas.filter(
-        (item) =>
-          item.status === "PENDENTE" || item.status === "AGUARDANDO_CLIENTE",
-      );
+      function timestampParaDate(valor) {
+        if (!valor) return null;
+        if (typeof valor.toDate === "function") return valor.toDate();
+        const data = new Date(valor);
+        return Number.isNaN(data.getTime()) ? null : data;
+      }
 
-      const pedidoFinalizado = ["ENTREGUE", "CANCELADO"].includes(
-        pedido.status,
-      );
+      function formatarHorario(valor) {
+        const data = timestampParaDate(valor);
+        if (!data) return "—";
+        return data.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+      }
 
-      const temPrevisao = pendentes.some(
-        (item) => item.tipo === "PREVISAO_ENTREGA" || item.tipo === "ATRASO",
-      );
-      const temCancelamento = pendentes.some(
-        (item) => item.tipo === "CANCELAMENTO",
-      );
+      function escaparHtml(valor) {
+        return String(valor ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
 
-      const botoes = pedidoFinalizado
-        ? ""
-        : `
+      function renderSolicitacoes(pedido) {
+        const container = document.getElementById("solicitacoesPedido");
+        if (!container) return;
+
+        const ativas = solicitacoesAtual.filter(
+          (item) => !["CANCELADA"].includes(item.status),
+        );
+
+        const pendentes = ativas.filter(
+          (item) =>
+            item.status === "PENDENTE" ||
+            (item.status === "AGUARDANDO_CLIENTE" &&
+              !["ACEITA", "RECUSADA"].includes(item.respostaCliente)),
+        );
+
+        const pedidoFinalizado = ["ENTREGUE", "CANCELADO"].includes(
+          pedido.status,
+        );
+
+        const temPrevisao = pendentes.some(
+          (item) => item.tipo === "PREVISAO_ENTREGA" || item.tipo === "ATRASO",
+        );
+        const temCancelamento = pendentes.some(
+          (item) => item.tipo === "CANCELAMENTO",
+        );
+
+        const botoes = pedidoFinalizado
+          ? ""
+          : `
             <div class="d-grid gap-2 mt-3">
-              ${!temPrevisao
-          ? `
+              ${
+                !temPrevisao
+                  ? `
                 <button class="btn btn-outline-primary" id="btnSolicitarPrevisao" type="button">
                   🕐 Gostaria de uma previsão de entrega
                 </button>
@@ -201,123 +206,152 @@
                   ⚠️ Meu pedido está atrasado
                 </button>
               `
-          : ""
-        }
-              ${!temCancelamento
-          ? `
+                  : ""
+              }
+              ${
+                !temCancelamento
+                  ? `
                 <button class="btn btn-outline-danger" id="btnSolicitarCancelamento" type="button">
                   ❌ Quero cancelar este pedido
                 </button>
               `
-          : ""
-        }
+                  : ""
+              }
             </div>
           `;
 
-      const historico = ativas.length
-        ? ativas
-          .map((item) => {
-            const tipo =
-              item.tipo === "CANCELAMENTO"
-                ? "❌ Cancelamento"
-                : item.tipo === "ATRASO"
-                  ? "⚠️ Pedido atrasado"
-                  : "🕐 Nova previsão";
+        const historico = ativas.length
+          ? ativas
+              .map((item) => {
+                const tipo =
+                  item.tipo === "CANCELAMENTO"
+                    ? "❌ Cancelamento"
+                    : item.tipo === "ATRASO"
+                      ? "⚠️ Pedido atrasado"
+                      : "🕐 Nova previsão";
 
-            let conteudo = `<p class="mb-2"><strong>${tipo}</strong></p>
+                let conteudo = `<p class="mb-2"><strong>${tipo}</strong></p>
                   <p class="mb-2">${escaparHtml(item.mensagem || "")}</p>`;
 
-            if (item.status === "PENDENTE") {
-              conteudo += `<div class="alert alert-warning mb-0">Aguardando resposta do estabelecimento.</div>`;
-            } else if (item.status === "AGUARDANDO_CLIENTE") {
-              if (
-                item.tipo === "PREVISAO_ENTREGA" ||
-                item.tipo === "ATRASO"
-              ) {
-                conteudo += `
-                  <div class="alert alert-info">
-                    <strong>Nova previsão: ${formatarHorario(item.horarioProposto)}</strong><br>
-                    ${
-                      item.tempoAdicionalMinutos
-                        ? `Tempo adicional: ${item.tempoAdicionalMinutos} min.<br>`
-                        : ""
-                    }
-                    ${
-                      item.motivo
-                        ? `Motivo: ${escaparHtml(item.motivo)}<br>`
-                        : ""
-                    }
-                    <small>Responda até ${formatarHorario(item.aceitaAte)}.</small>
-                  </div>
+                if (
+                  pedido.status === "CANCELADO" &&
+                  item.tipo === "CANCELAMENTO"
+                ) {
+                  conteudo += `
+    <div class="alert alert-success mb-0">
+      ✅ Cancelamento aceito. Seu pedido foi cancelado.
+    </div>
+  `;
+                } else if (item.status === "PENDENTE") {
+                  conteudo += `
+    <div class="alert alert-warning mb-0">
+      Aguardando resposta do estabelecimento.
+    </div>
+  `;
+                } else if (item.status === "AGUARDANDO_CLIENTE") {
+                  if (item.respostaCliente === "RECUSADA") {
+                    conteudo += `
+      <div class="alert alert-secondary mb-0">
+        ${
+          item.tipo === "CANCELAMENTO"
+            ? "❌ Cancelamento recusado."
+            : "❌ Nova previsão recusada."
+        }
+      </div>
+    `;
+                  } else if (item.respostaCliente === "ACEITA") {
+                    conteudo += `
+      <div class="alert alert-success mb-0">
+        ${
+          item.tipo === "CANCELAMENTO"
+            ? "✅ Cancelamento aceito."
+            : "✅ Nova previsão aceita."
+        }
+      </div>
+    `;
+                  } else if (
+                    item.tipo === "PREVISAO_ENTREGA" ||
+                    item.tipo === "ATRASO"
+                  ) {
+                    conteudo += `
+      <div class="alert alert-info">
+        <strong>
+          Nova previsão: ${formatarHorario(item.horarioProposto)}
+        </strong><br>
 
-                  <div class="d-flex gap-2">
-                    <button
-                      class="btn btn-success flex-fill"
-                      type="button"
-                      data-aceitar-solicitacao="${item.id}"
-                    >
-                      ✅ Aceitar
-                    </button>
+        ${
+          item.tempoAdicionalMinutos
+            ? `Tempo adicional: ${item.tempoAdicionalMinutos} min.<br>`
+            : ""
+        }
 
-                    <button
-                      class="btn btn-outline-danger flex-fill"
-                      type="button"
-                      data-recusar-solicitacao="${item.id}"
-                    >
-                      ❌ Recusar
-                    </button>
-                  </div>
-                `;
-              }
-            } else if (
-              item.status === "ACEITA" ||
-              item.status === "ACEITA_TIMEOUT"
-            ) {
-              const timeout = item.status === "ACEITA_TIMEOUT";
+        ${item.motivo ? `Motivo: ${escaparHtml(item.motivo)}<br>` : ""}
 
-              if (item.tipo === "CANCELAMENTO") {
-                conteudo += `
-                  <div class="alert alert-success mb-0">
-                    ✅ Cancelamento aceito. Seu pedido foi cancelado.
-                  </div>
-                `;
-              } else if (item.tipo === "ATRASO") {
-                conteudo += `
-                  <div class="alert alert-success mb-0">
-                    ${timeout
-                      ? "✅ O prazo terminou sem resposta e a nova previsão foi considerada aceita."
-                      : "✅ Nova previsão aceita."
-                    }
-                  </div>
-                `;
-              } else {
-                conteudo += `
-                  <div class="alert alert-success mb-0">
-                    ${timeout
-                      ? "✅ O prazo terminou sem resposta e a nova previsão foi considerada aceita."
-                      : "✅ Nova previsão aceita."
-                    }
-                  </div>
-                `;
-              }
-            } else if (item.status === "RECUSADA") {
-              conteudo += `
-                <div class="alert alert-secondary mb-0">
-                  ${
-                    item.tipo === "CANCELAMENTO"
-                      ? "❌ Cancelamento recusado."
-                      : "❌ Solicitação recusada."
+        <small>
+          Responda até ${formatarHorario(item.aceitaAte)}.
+        </small>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-success flex-fill"
+          type="button"
+          data-aceitar-solicitacao="${item.id}"
+        >
+          ✅ Aceitar
+        </button>
+
+        <button
+          class="btn btn-outline-danger flex-fill"
+          type="button"
+          data-recusar-solicitacao="${item.id}"
+        >
+          ❌ Recusar
+        </button>
+      </div>
+    `;
                   }
-                </div>
+                } else if (
+                  item.status === "ACEITA" ||
+                  item.status === "ACEITA_TIMEOUT"
+                ) {
+                  const timeout = item.status === "ACEITA_TIMEOUT";
+
+                  if (item.tipo === "CANCELAMENTO") {
+                    conteudo += `
+                      <div class="alert alert-success mb-0">
+                        ✅ Cancelamento aceito. Seu pedido foi cancelado.
+                      </div>
+                    `;
+                  } else {
+                    conteudo += `
+                      <div class="alert alert-success mb-0">
+                        ${
+                          timeout
+                            ? "✅ O prazo terminou sem resposta e a nova previsão foi considerada aceita."
+                            : "✅ Nova previsão aceita."
+                        }
+                      </div>
+                    `;
+                  }
+                } else if (item.status === "RECUSADA") {
+                  conteudo += `
+                    <div class="alert alert-secondary mb-0">
+                      ${
+                        item.tipo === "CANCELAMENTO"
+                          ? "❌ Cancelamento recusado."
+                          : "❌ Solicitação recusada."
+                      }
+                    </div>
               `;
-            }
+                }
 
-            return `<div class="border rounded p-3 mb-3">${conteudo}</div>`;
-          })
-          .join("")
-        : "";
+                return `<div class="border rounded p-3 mb-3">${conteudo}</div>`;
+              })
+              .join("")
+          : "";
 
-      container.innerHTML = `
+        container.innerHTML = `
           <div class="status-section">
             <h4>💬 Comunicação com a loja</h4>
             <p class="text-secondary">Envie uma solicitação pelo próprio acompanhamento do pedido.</p>
@@ -326,53 +360,53 @@
           </div>
         `;
 
-      async function criarSolicitacao(tipo, mensagem) {
-        try {
-          await criarSolicitacaoPedido(pedido.id, tipo, mensagem);
-          renderSolicitacoes(pedido);
-        } catch (erro) {
-          console.error(erro);
-          alert("Não foi possível enviar a solicitação. Tente novamente.");
-        }
-      }
-
-      document
-        .getElementById("btnSolicitarPrevisao")
-        ?.addEventListener("click", () =>
-          criarSolicitacao(
-            "PREVISAO_ENTREGA",
-            "Gostaria de uma previsão de entrega.",
-          ),
-        );
-
-      document
-        .getElementById("btnSolicitarAtraso")
-        ?.addEventListener("click", () =>
-          criarSolicitacao(
-            "ATRASO",
-            "Meu pedido está atrasado e gostaria de uma nova previsão de entrega.",
-          ),
-        );
-
-      document
-        .getElementById("btnSolicitarCancelamento")
-        ?.addEventListener("click", () => {
-          const botao = document.getElementById("btnSolicitarCancelamento");
-
-          if (!botao) return;
-
-          const existente = document.getElementById("formCancelamento");
-
-          if (existente) {
-            existente.remove();
-            return;
+        async function criarSolicitacao(tipo, mensagem) {
+          try {
+            await criarSolicitacaoPedido(pedido.id, tipo, mensagem);
+            renderSolicitacoes(pedido);
+          } catch (erro) {
+            console.error(erro);
+            alert("Não foi possível enviar a solicitação. Tente novamente.");
           }
+        }
 
-          const formulario = document.createElement("div");
-          formulario.id = "formCancelamento";
-          formulario.className = "mt-3";
+        document
+          .getElementById("btnSolicitarPrevisao")
+          ?.addEventListener("click", () =>
+            criarSolicitacao(
+              "PREVISAO_ENTREGA",
+              "Gostaria de uma previsão de entrega.",
+            ),
+          );
 
-          formulario.innerHTML = `
+        document
+          .getElementById("btnSolicitarAtraso")
+          ?.addEventListener("click", () =>
+            criarSolicitacao(
+              "ATRASO",
+              "Meu pedido está atrasado e gostaria de uma nova previsão de entrega.",
+            ),
+          );
+
+        document
+          .getElementById("btnSolicitarCancelamento")
+          ?.addEventListener("click", () => {
+            const botao = document.getElementById("btnSolicitarCancelamento");
+
+            if (!botao) return;
+
+            const existente = document.getElementById("formCancelamento");
+
+            if (existente) {
+              existente.remove();
+              return;
+            }
+
+            const formulario = document.createElement("div");
+            formulario.id = "formCancelamento";
+            formulario.className = "mt-3";
+
+            formulario.innerHTML = `
       <div class="card border-danger">
         <div class="card-body">
           <label for="mensagemCancelamento" class="form-label">
@@ -408,84 +442,81 @@
       </div>
     `;
 
-          botao.insertAdjacentElement("afterend", formulario);
+            botao.insertAdjacentElement("afterend", formulario);
 
-          const campo = document.getElementById("mensagemCancelamento");
-          const btnEnviar = document.getElementById("btnEnviarCancelamento");
-          const btnFechar = document.getElementById("btnFecharCancelamento");
+            const campo = document.getElementById("mensagemCancelamento");
+            const btnEnviar = document.getElementById("btnEnviarCancelamento");
+            const btnFechar = document.getElementById("btnFecharCancelamento");
 
-          campo?.focus();
+            campo?.focus();
 
-          btnFechar?.addEventListener("click", () => {
-            formulario.remove();
+            btnFechar?.addEventListener("click", () => {
+              formulario.remove();
+            });
+
+            btnEnviar?.addEventListener("click", async () => {
+              const mensagem = campo?.value.trim() || "";
+
+              if (!mensagem) {
+                alert("Digite o motivo do cancelamento.");
+                campo?.focus();
+                return;
+              }
+
+              btnEnviar.disabled = true;
+              btnEnviar.textContent = "Enviando...";
+
+              try {
+                await criarSolicitacao("CANCELAMENTO", mensagem);
+              } catch {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = "Enviar solicitação";
+                return;
+              }
+
+              formulario.remove();
+            });
           });
 
-          btnEnviar?.addEventListener("click", async () => {
-            const mensagem = campo?.value.trim() || "";
-
-            if (!mensagem) {
-              alert("Digite o motivo do cancelamento.");
-              campo?.focus();
-              return;
-            }
-
-            btnEnviar.disabled = true;
-            btnEnviar.textContent = "Enviando...";
-
-            try {
-              await criarSolicitacao(
-                "CANCELAMENTO",
-                mensagem,
-              );
-            } catch {
-              btnEnviar.disabled = false;
-              btnEnviar.textContent = "Enviar solicitação";
-              return;
-            }
-
-            formulario.remove();
+        container
+          .querySelectorAll("[data-aceitar-solicitacao]")
+          .forEach((botao) => {
+            botao.addEventListener("click", async () => {
+              try {
+                await responderSolicitacaoCliente(
+                  pedido.id,
+                  botao.dataset.aceitarSolicitacao,
+                  "ACEITA",
+                );
+              } catch (erro) {
+                console.error(erro);
+                alert("Não foi possível registrar sua resposta.");
+              }
+            });
           });
-        });
 
-      container
-        .querySelectorAll("[data-aceitar-solicitacao]")
-        .forEach((botao) => {
-          botao.addEventListener("click", async () => {
-            try {
-              await responderSolicitacaoCliente(
-                pedido.id,
-                botao.dataset.aceitarSolicitacao,
-                "ACEITA",
-              );
-            } catch (erro) {
-              console.error(erro);
-              alert("Não foi possível registrar sua resposta.");
-            }
+        container
+          .querySelectorAll("[data-recusar-solicitacao]")
+          .forEach((botao) => {
+            botao.addEventListener("click", async () => {
+              try {
+                await responderSolicitacaoCliente(
+                  pedido.id,
+                  botao.dataset.recusarSolicitacao,
+                  "RECUSADA",
+                );
+              } catch (erro) {
+                console.error(erro);
+                alert("Não foi possível registrar sua resposta.");
+              }
+            });
           });
-        });
+      }
 
-      container
-        .querySelectorAll("[data-recusar-solicitacao]")
-        .forEach((botao) => {
-          botao.addEventListener("click", async () => {
-            try {
-              await responderSolicitacaoCliente(
-                pedido.id,
-                botao.dataset.recusarSolicitacao,
-                "RECUSADA",
-              );
-            } catch (erro) {
-              console.error(erro);
-              alert("Não foi possível registrar sua resposta.");
-            }
-          });
-        });
-    }
+      function getPixHtml(pedido) {
+        if (!isPix(pedido.pagamentoMetodo)) return "";
 
-    function getPixHtml(pedido) {
-      if (!isPix(pedido.pagamentoMetodo)) return "";
-
-      return `
+        return `
       <div class="pix-box">
         <div class="pix-pago-topo">
           <h4>Pagamento via PIX</h4>
@@ -525,108 +556,108 @@
         </div>
       </div>
     `;
-    }
+      }
 
-    function ativarBotaoCopiarPix() {
-      const botao = document.getElementById("btnCopiarPix");
-      if (!botao) return;
+      function ativarBotaoCopiarPix() {
+        const botao = document.getElementById("btnCopiarPix");
+        if (!botao) return;
 
-      const chavePix = "(19) 99162-0881";
-      const telefoneComprovante = "5519992522781";
+        const chavePix = "(19) 99162-0881";
+        const telefoneComprovante = "5519992522781";
 
-      botao.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(chavePix);
-
-          const textoOriginal = botao.textContent;
-          botao.textContent = "Chave copiada!";
-
-          setTimeout(() => {
-            botao.textContent = textoOriginal;
-          }, 2000);
-        } catch {
-          alert(
-            "Não foi possível copiar automaticamente.\n\nChave PIX: " +
-            chavePix,
-          );
-        }
-      });
-
-      const comprovante = document.getElementById("pixComprovante");
-
-      if (comprovante) {
-        comprovante.style.cursor = "pointer";
-        comprovante.title = "Clique para copiar";
-
-        comprovante.addEventListener("click", async () => {
+        botao.addEventListener("click", async () => {
           try {
-            await navigator.clipboard.writeText(telefoneComprovante);
+            await navigator.clipboard.writeText(chavePix);
 
-            const textoOriginal = comprovante.textContent;
-            comprovante.textContent = "Copiado!";
+            const textoOriginal = botao.textContent;
+            botao.textContent = "Chave copiada!";
 
             setTimeout(() => {
-              comprovante.textContent = textoOriginal;
-            }, 1500);
+              botao.textContent = textoOriginal;
+            }, 2000);
           } catch {
             alert(
-              "Telefone para envio do comprovante: " + telefoneComprovante,
+              "Não foi possível copiar automaticamente.\n\nChave PIX: " +
+                chavePix,
             );
           }
         });
+
+        const comprovante = document.getElementById("pixComprovante");
+
+        if (comprovante) {
+          comprovante.style.cursor = "pointer";
+          comprovante.title = "Clique para copiar";
+
+          comprovante.addEventListener("click", async () => {
+            try {
+              await navigator.clipboard.writeText(telefoneComprovante);
+
+              const textoOriginal = comprovante.textContent;
+              comprovante.textContent = "Copiado!";
+
+              setTimeout(() => {
+                comprovante.textContent = textoOriginal;
+              }, 1500);
+            } catch {
+              alert(
+                "Telefone para envio do comprovante: " + telefoneComprovante,
+              );
+            }
+          });
+        }
       }
-    }
 
-    function gerarProgresso(status, tipo) {
-      const isRetirada = tipo === "Retirada";
+      function gerarProgresso(status, tipo) {
+        const isRetirada = tipo === "Retirada";
 
-      const etapas = isRetirada
-        ? [
-          {
-            id: "RECEBIDO",
-            nome: "Recebido",
-            emoji: "📥",
-          },
-          {
-            id: "PREPARANDO",
-            nome: "Preparando",
-            emoji: "👨‍🍳",
-          },
-          {
-            id: "PRONTO",
-            nome: "Pronto",
-            emoji: "✅",
-          },
-        ]
-        : [
-          {
-            id: "RECEBIDO",
-            nome: "Recebido",
-            emoji: "📥",
-          },
-          {
-            id: "PREPARANDO",
-            nome: "Preparando",
-            emoji: "👨‍🍳",
-          },
-          {
-            id: "PRONTO",
-            nome: "Pronto",
-            emoji: "✅",
-          },
-          {
-            id: "SAIU_PARA_ENTREGA",
-            nome: "Saiu para entrega",
-            emoji: "🚚",
-          },
-        ];
+        const etapas = isRetirada
+          ? [
+              {
+                id: "RECEBIDO",
+                nome: "Recebido",
+                emoji: "📥",
+              },
+              {
+                id: "PREPARANDO",
+                nome: "Preparando",
+                emoji: "👨‍🍳",
+              },
+              {
+                id: "PRONTO",
+                nome: "Pronto",
+                emoji: "✅",
+              },
+            ]
+          : [
+              {
+                id: "RECEBIDO",
+                nome: "Recebido",
+                emoji: "📥",
+              },
+              {
+                id: "PREPARANDO",
+                nome: "Preparando",
+                emoji: "👨‍🍳",
+              },
+              {
+                id: "PRONTO",
+                nome: "Pronto",
+                emoji: "✅",
+              },
+              {
+                id: "SAIU_PARA_ENTREGA",
+                nome: "Saiu para entrega",
+                emoji: "🚚",
+              },
+            ];
 
-      const indiceAtual = etapas.findIndex((etapa) => etapa.id === status);
+        const indiceAtual = etapas.findIndex((etapa) => etapa.id === status);
 
-      const porcentagem =
-        indiceAtual < 0 ? 0 : (indiceAtual / (etapas.length - 1)) * 100;
+        const porcentagem =
+          indiceAtual < 0 ? 0 : (indiceAtual / (etapas.length - 1)) * 100;
 
-      return `
+        return `
         <div class="status-progresso">
 
           <div class="progresso-linha"></div>
@@ -639,18 +670,18 @@
           <div class="progresso-etapas">
 
             ${etapas
-          .map((etapa, index) => {
-            let classe = "";
+              .map((etapa, index) => {
+                let classe = "";
 
-            if (index < indiceAtual) {
-              classe = "concluida";
-            }
+                if (index < indiceAtual) {
+                  classe = "concluida";
+                }
 
-            if (index === indiceAtual) {
-              classe = "ativa";
-            }
+                if (index === indiceAtual) {
+                  classe = "ativa";
+                }
 
-            return `
+                return `
                   <div
                     class="progresso-etapa ${classe}"
                   >
@@ -663,30 +694,30 @@
                     </span>
                   </div>
                 `;
-          })
-          .join("")}
+              })
+              .join("")}
 
           </div>
         </div>
       `;
-    }
+      }
 
-    function gerarMensagemWhatsappPedido(pedido, pedidoId) {
-      const itens = (pedido.itens || [])
-        .map((item) => {
-          const adicionais = (item.adicionais || [])
-            .map((a) => ` + ${a.nome}`)
-            .join("");
+      function gerarMensagemWhatsappPedido(pedido, pedidoId) {
+        const itens = (pedido.itens || [])
+          .map((item) => {
+            const adicionais = (item.adicionais || [])
+              .map((a) => ` + ${a.nome}`)
+              .join("");
 
-          return `${item.quantidade || 1}x ${item.nome}${adicionais}`;
-        })
-        .join("\n");
+            return `${item.quantidade || 1}x ${item.nome}${adicionais}`;
+          })
+          .join("\n");
 
-      const endereco = pedido.endereco || {};
+        const endereco = pedido.endereco || {};
 
-      const linkStatusPedido = `https://marinilanches.vercel.app/status.html?id=${pedidoId}`;
+        const linkStatusPedido = `https://marinilanches.vercel.app/status.html?id=${pedidoId}`;
 
-      let mensagem = `*Pedido feito pelo Lanches Marini*
+        let mensagem = `*Pedido feito pelo Lanches Marini*
 
       Pedido nº *${pedido.numeroPedido || pedidoId}*
 
@@ -703,14 +734,15 @@
       *Telefone*: ${pedido.telefone || ""}
       *Tipo*: ${pedido.tipo || ""}`;
 
-      if (pedido.tipo === "Delivery") {
+        if (pedido.tipo === "Delivery") {
+          mensagem += `
+
+      *Endereço*: ${endereco.rua || ""}, ${endereco.numero || ""} - ${
+        endereco.bairro || pedido.bairro || ""
+      } - ${endereco.cidade || ""}`;
+        }
+
         mensagem += `
-
-      *Endereço*: ${endereco.rua || ""}, ${endereco.numero || ""} - ${endereco.bairro || pedido.bairro || ""
-          } - ${endereco.cidade || ""}`;
-      }
-
-      mensagem += `
 
       *Forma de Pagamento*: ${pedido.pagamentoMetodo || ""}
 
@@ -719,17 +751,17 @@
       Confira aqui o andamento do seu pedido:
       ${linkStatusPedido}`;
 
-      return mensagem;
-    }
+        return mensagem;
+      }
 
-    function gerarComprovanteWhatsappHtml(pedido, pedidoId) {
-      const mensagem = encodeURIComponent(
-        gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
-      );
+      function gerarComprovanteWhatsappHtml(pedido, pedidoId) {
+        const mensagem = encodeURIComponent(
+          gerarMensagemWhatsappPedido(pedido, pedidoId).replace(/^ +/gm, ""),
+        );
 
-      const telefone = "5519992522781";
+        const telefone = "5519992522781";
 
-      return `
+        return `
         <div class="comprovante-box">
 
           <h4>📲 Enviar comprovante</h4>
@@ -749,27 +781,27 @@
 
         </div>
         `;
-    }
+      }
 
-    function renderPedido(pedido, pedidoId) {
-      const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+      function renderPedido(pedido, pedidoId) {
+        const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
 
-      const itensHtml = itens.length
-        ? itens
-          .map((item) => {
-            const quantidade = Number(item.quantidade || 1);
-            const valorUnitario = Number(
-              item.valorUnitario || item.preco || 0,
-            );
-            const subtotal = Number(
-              item.subtotal || quantidade * valorUnitario,
-            );
+        const itensHtml = itens.length
+          ? itens
+              .map((item) => {
+                const quantidade = Number(item.quantidade || 1);
+                const valorUnitario = Number(
+                  item.valorUnitario || item.preco || 0,
+                );
+                const subtotal = Number(
+                  item.subtotal || quantidade * valorUnitario,
+                );
 
-            const adicionais = (item.adicionais || [])
-              .map((a) => `${a.nome} (+${formatarMoeda(a.preco)})`)
-              .join("<br>");
+                const adicionais = (item.adicionais || [])
+                  .map((a) => `${a.nome} (+${formatarMoeda(a.preco)})`)
+                  .join("<br>");
 
-            return `
+                return `
             <div class="status-item-linha">
 
               <strong>${quantidade}x ${item.nome || "Item"}</strong>
@@ -778,63 +810,65 @@
 
               <div>Subtotal: ${formatarMoeda(subtotal)}</div>
 
-              ${adicionais
-                ? `
+              ${
+                adicionais
+                  ? `
                   <div class="mt-2">
                     <strong>Adicionais:</strong><br>
                     ${adicionais}
                   </div>
                   `
-                : ""
+                  : ""
               }
 
-              ${item.observacaoItem
-                ? `
+              ${
+                item.observacaoItem
+                  ? `
                   <div class="mt-2">
                     <strong>Obs:</strong><br>
                     ${item.observacaoItem}
                   </div>
                   `
-                : ""
+                  : ""
               }
 
             </div>
           `;
-          })
-          .join("")
-        : "<p>Nenhum item.</p>";
+              })
+              .join("")
+          : "<p>Nenhum item.</p>";
 
-      const isDelivery = pedido.tipo === "Delivery";
-      const estimativaTempo = pedido.estimativaTempo;
+        const isDelivery = pedido.tipo === "Delivery";
+        const estimativaTempo = pedido.estimativaTempo;
 
-      let blocoEstimativa = "";
+        let blocoEstimativa = "";
 
-      if (
-        estimativaTempo &&
-        Number.isFinite(Number(estimativaTempo.maximo))
-      ) {
-        const criadoEm =
-          typeof pedido.criadoEm?.toDate === "function"
-            ? pedido.criadoEm.toDate()
-            : new Date(pedido.criadoEm);
+        if (
+          estimativaTempo &&
+          Number.isFinite(Number(estimativaTempo.maximo))
+        ) {
+          const criadoEm =
+            typeof pedido.criadoEm?.toDate === "function"
+              ? pedido.criadoEm.toDate()
+              : new Date(pedido.criadoEm);
 
-        const base =
-          criadoEm instanceof Date && !Number.isNaN(criadoEm.getTime())
-            ? criadoEm
-            : new Date();
+          const base =
+            criadoEm instanceof Date && !Number.isNaN(criadoEm.getTime())
+              ? criadoEm
+              : new Date();
 
-        const horarioFinal = calcularHorarioFinalEstimativa(
-          estimativaTempo,
-          base,
-        );
+          const horarioFinal = calcularHorarioFinalEstimativa(
+            estimativaTempo,
+            base,
+          );
 
-        const dia = textoDiaEstimativa(horarioFinal, new Date());
+          const dia = textoDiaEstimativa(horarioFinal, new Date());
 
-        const horario = formatarHorarioEstimativa(horarioFinal);
+          const horario = formatarHorarioEstimativa(horarioFinal);
 
-        const retirada = pedido.tipo === "Retirada";
+          const retirada = pedido.tipo === "Retirada";
 
-        blocoEstimativa = `
+          blocoEstimativa = `
           <div class="status-section">
             <h4>
               ${retirada ? "🛍️ Retirada" : "🚚 Entrega"}
@@ -856,74 +890,77 @@
             </p>
           </div>
         `;
-      }
-      let blocoNovaPrevisao = "";
+        }
+        let blocoNovaPrevisao = "";
 
-      if (pedido.previsaoEntrega?.horario) {
-        const resposta = pedido.previsaoEntrega.resposta;
-        const aceita = resposta === "ACEITA" || resposta === "ACEITA_TIMEOUT";
-        const recusada = resposta === "RECUSADA";
-        const titulo = aceita
-          ? "✅ Nova previsão aceita"
-          : recusada
-            ? "❌ Nova previsão recusada"
-            : "🕐 Nova previsão proposta";
+        if (pedido.previsaoEntrega?.horario) {
+          const resposta = pedido.previsaoEntrega.resposta;
+          const aceita = resposta === "ACEITA" || resposta === "ACEITA_TIMEOUT";
+          const recusada = resposta === "RECUSADA";
+          const titulo = aceita
+            ? "✅ Nova previsão aceita"
+            : recusada
+              ? "❌ Nova previsão recusada"
+              : "🕐 Nova previsão proposta";
 
-        blocoNovaPrevisao = `
+          blocoNovaPrevisao = `
             <div class="status-section">
               <h4>${titulo}</h4>
               <p>
                 <strong>${formatarHorario(pedido.previsaoEntrega.horario)}</strong>
               </p>
-              ${aceita
-            ? `
+              ${
+                aceita
+                  ? `
                 <p class="mb-0">
                   Envie o pedido até
                   <strong>${formatarHorario(pedido.previsaoEntrega.prazoFinal)}</strong>.
                 </p>
               `
-            : ""
-          }
-              ${!aceita && !recusada && pedido.previsaoEntrega.aceitaAte
-            ? `
+                  : ""
+              }
+              ${
+                !aceita && !recusada && pedido.previsaoEntrega.aceitaAte
+                  ? `
                 <p class="mb-0">
                   Responda até
                   <strong>${formatarHorario(pedido.previsaoEntrega.aceitaAte)}</strong>.
                 </p>
               `
-            : ""
-          }
-              ${pedido.previsaoEntrega.motivo
-            ? `
+                  : ""
+              }
+              ${
+                pedido.previsaoEntrega.motivo
+                  ? `
                 <p class="mb-0 mt-2">
                   <strong>Motivo:</strong> ${escaparHtml(pedido.previsaoEntrega.motivo)}
                 </p>
               `
-            : ""
-          }
+                  : ""
+              }
             </div>
           `;
-      }
+        }
 
-      const blocoPix = getPixHtml(pedido);
+        const blocoPix = getPixHtml(pedido);
 
-      const endereco = pedido.endereco || {};
+        const endereco = pedido.endereco || {};
 
-      const blocoComprovanteWhatsapp =
-        pedido.status === "RECEBIDO"
-          ? gerarComprovanteWhatsappHtml(pedido, pedidoId)
+        const blocoComprovanteWhatsapp =
+          pedido.status === "RECEBIDO"
+            ? gerarComprovanteWhatsappHtml(pedido, pedidoId)
+            : "";
+
+        const enderecoTexto = [endereco.rua, endereco.numero]
+          .filter(Boolean)
+          .join(", ");
+
+        const complementoTexto = endereco.complemento
+          ? ` - ${endereco.complemento}`
           : "";
 
-      const enderecoTexto = [endereco.rua, endereco.numero]
-        .filter(Boolean)
-        .join(", ");
-
-      const complementoTexto = endereco.complemento
-        ? ` - ${endereco.complemento}`
-        : "";
-
-      const blocoEntrega = isDelivery
-        ? `
+        const blocoEntrega = isDelivery
+          ? `
             <div class="status-section">
               <h4>Entrega</h4>
 
@@ -944,9 +981,9 @@
 
             </div>
           `
-        : "";
+          : "";
 
-      pedidoAtual.innerHTML = `
+        pedidoAtual.innerHTML = `
       <div class="item status-card" style="display:block;">
         <h3>Pedido #${pedido.numeroPedido || pedidoId}</h3>
 
@@ -999,14 +1036,14 @@
       </div>
     `;
 
-      pedidoAtualEmTela = pedido;
-      ativarBotaoCopiarPix();
-      renderSolicitacoes(pedido);
-    }
+        pedidoAtualEmTela = pedido;
+        ativarBotaoCopiarPix();
+        renderSolicitacoes(pedido);
+      }
 
-    function renderListaPedidos(pedidos, cliente) {
-      if (!pedidos.length) {
-        listaPedidos.innerHTML = `
+      function renderListaPedidos(pedidos, cliente) {
+        if (!pedidos.length) {
+          listaPedidos.innerHTML = `
         <div class="status-card mb-3">
           <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
           <p>Nenhum outro pedido encontrado.</p>
@@ -1019,40 +1056,42 @@
           Novo pedido
         </button>
       `;
-        return;
-      }
+          return;
+        }
 
-      listaPedidos.innerHTML = `
+        listaPedidos.innerHTML = `
       <h3>Olá ${cliente?.nome || "cliente"} 👋</h3>
 
       ${pedidos
-          .map(
-            (p) => `
+        .map(
+          (p) => `
         <div class="status-card mb-3">
           <h4>#${p.numeroPedido || p.id.slice(0, 6).toUpperCase()}</h4>
 
           <p>
           ${(p.itens || [])
-                .map((i) => {
-                  const adicionais = (i.adicionais || [])
-                    .map((a) => a.nome)
-                    .join(", ");
+            .map((i) => {
+              const adicionais = (i.adicionais || [])
+                .map((a) => a.nome)
+                .join(", ");
 
-                  return `
+              return `
                   <strong>${i.quantidade || 1}x ${i.nome}</strong>
 
-                  ${adicionais
+                  ${
+                    adicionais
                       ? `<br><small><strong>Adicionais:</strong> ${adicionais}</small>`
                       : ""
-                    }
+                  }
 
-                  ${i.observacaoItem
+                  ${
+                    i.observacaoItem
                       ? `<br><small><strong>Obs:</strong> ${i.observacaoItem}</small>`
                       : ""
-                    }
+                  }
               `;
-                })
-                .join("<hr>")}
+            })
+            .join("<hr>")}
           </p>
 
           <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
@@ -1068,8 +1107,8 @@
           </button>
         </div>
       `,
-          )
-          .join("")}
+        )
+        .join("")}
 
       <button
         class="btn btn-danger w-100 mt-3"
@@ -1078,85 +1117,90 @@
         Novo pedido
       </button>
     `;
-    }
-
-    async function carregarStatus() {
-      const params = new URLSearchParams(window.location.search);
-      const pedidoId = params.get("id");
-
-      await garantirClienteAuth();
-
-      console.log(
-        "[DEBUG STATUS] UID Firebase:",
-        (await garantirClienteAuth()).uid,
-      );
-
-      console.log(
-        "[DEBUG STATUS] clienteId local:",
-        localStorage.getItem("mesaFacilClienteId"),
-      );
-
-      console.log("[DEBUG STATUS] Iniciando buscarCliente...");
-
-      const cliente = await buscarCliente();
-
-      console.log("[DEBUG STATUS] Cliente encontrado:", cliente);
-
-      registrarNotificacoesCliente().catch((erro) =>
-        console.warn("Notificações do cliente indisponíveis:", erro),
-      );
-
-      // Mostra o pedido atual no topo, se vier ?id=
-      if (pedidoId) {
-        ouvirPedidoPorId(
-          pedidoId,
-          (pedido) => {
-            renderPedido(pedido, pedidoId);
-          },
-          () => {
-            renderMensagem("Pedido não encontrado.");
-          },
-        );
-
-        ouvirSolicitacoesPedido(pedidoId, (solicitacoes) => {
-          solicitacoesAtual = solicitacoes;
-          if (pedidoAtualEmTela?.id === pedidoId) {
-            renderSolicitacoes(pedidoAtualEmTela);
-          }
-        });
-      } else {
-        pedidoAtual.innerHTML = "";
-        solicitacoesAtual = [];
-        pedidoAtualEmTela = null;
       }
 
-      // Lista os demais pedidos, sem duplicar o que já está no topo
-      ouvirPedidosCliente((pedidos) => {
-        const pedidosFiltrados = pedidoId
-          ? pedidos.filter((p) => p.id !== pedidoId)
-          : pedidos;
+      async function carregarStatus() {
+        const params = new URLSearchParams(window.location.search);
+        const pedidoId = params.get("id");
 
-        renderListaPedidos(pedidosFiltrados, cliente);
-      });
-    }
+        await garantirClienteAuth();
 
-    carregarStatus();
-  </script>
+        console.log(
+          "[DEBUG STATUS] UID Firebase:",
+          (await garantirClienteAuth()).uid,
+        );
 
-  <!-- RODAPÉ -->
-  <footer class="footer">
-    <div class="container text-center py-4">
-      <p class="mb-2">
-        <a href="/privacidade.html">Privacidade</a>
-      </p>
+        console.log(
+          "[DEBUG STATUS] clienteId local:",
+          localStorage.getItem("mesaFacilClienteId"),
+        );
 
-      <p class="mb-0 text-secondary">
-        &copy; 2026 Lanches Marini. Todos os direitos reservados.
-      </p>
-    </div>
-  </footer>
+        console.log("[DEBUG STATUS] Iniciando buscarCliente...");
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        const cliente = await buscarCliente();
 
+        console.log("[DEBUG STATUS] Cliente encontrado:", cliente);
+
+        registrarNotificacoesCliente().catch((erro) =>
+          console.warn("Notificações do cliente indisponíveis:", erro),
+        );
+
+        // Mostra o pedido atual no topo, se vier ?id=
+        if (pedidoId) {
+          ouvirPedidoPorId(
+            pedidoId,
+            (pedido) => {
+              pedidoAtualEmTela = pedido;
+
+              renderPedido(pedido, pedidoId);
+
+              // Garante que a comunicação seja atualizada
+              // imediatamente junto com o status do pedido.
+              renderSolicitacoes(pedido);
+            },
+            () => {
+              renderMensagem("Pedido não encontrado.");
+            },
+          );
+
+          ouvirSolicitacoesPedido(pedidoId, (solicitacoes) => {
+            solicitacoesAtual = solicitacoes;
+            if (pedidoAtualEmTela?.id === pedidoId) {
+              renderSolicitacoes(pedidoAtualEmTela);
+            }
+          });
+        } else {
+          pedidoAtual.innerHTML = "";
+          solicitacoesAtual = [];
+          pedidoAtualEmTela = null;
+        }
+
+        // Lista os demais pedidos, sem duplicar o que já está no topo
+        ouvirPedidosCliente((pedidos) => {
+          const pedidosFiltrados = pedidoId
+            ? pedidos.filter((p) => p.id !== pedidoId)
+            : pedidos;
+
+          renderListaPedidos(pedidosFiltrados, cliente);
+        });
+      }
+
+      carregarStatus();
+    </script>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+      <div class="container text-center py-4">
+        <p class="mb-2">
+          <a href="/privacidade.html">Privacidade</a>
+        </p>
+
+        <p class="mb-0 text-secondary">
+          &copy; 2026 Lanches Marini. Todos os direitos reservados.
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

@@ -288,6 +288,9 @@
       const numeroEl = document.getElementById("numero");
       const ruaSugestoesEl = document.getElementById("ruaSugestoes");
 
+      let cidadeCliente = "";
+      let estadoCliente = "";
+
       let timeoutRua = null;
 
       const ruaSemNumeroEl = document.getElementById("ruaSemNumero");
@@ -1657,6 +1660,37 @@
 
             cepEl.value = cliente.endereco?.cep || "";
 
+            if (cepEl.value) {
+              try {
+                const cepLimpo = cepEl.value.replace(/\D/g, "");
+
+                if (cepLimpo.length === 8) {
+                  const resposta = await fetch(
+                    `https://viacep.com.br/ws/${cepLimpo}/json/`,
+                  );
+
+                  const dadosCEP = await resposta.json();
+
+                  if (!dadosCEP.erro) {
+                    cidadeCliente = dadosCEP.localidade || "";
+                    estadoCliente = dadosCEP.uf || "";
+
+                    if (!bairroEl.value) {
+                      bairroEl.value = dadosCEP.bairro || "";
+                    }
+
+                    console.log("DADOS DO CEP DO CLIENTE:", {
+                      bairro: bairroEl.value,
+                      cidade: cidadeCliente,
+                      estado: estadoCliente,
+                    });
+                  }
+                }
+              } catch (erro) {
+                console.error("Erro ao recuperar dados do CEP:", erro);
+              }
+            }
+
             numeroEl.value = cliente.endereco?.numero || "";
 
             // Recupera bairro salvo
@@ -1676,7 +1710,14 @@
                 if (!dadosCEP.erro) {
                   bairroEl.value = dadosCEP.bairro || "";
 
-                  console.log("BAIRRO RECUPERADO PELO CEP:", bairroEl.value);
+                  cidadeCliente = dadosCEP.localidade || "";
+                  estadoCliente = dadosCEP.uf || "";
+
+                  console.log("DADOS RECUPERADOS PELO CEP:", {
+                    bairro: bairroEl.value,
+                    cidade: cidadeCliente,
+                    estado: estadoCliente,
+                  });
                 }
               } catch (erro) {
                 console.error("Erro ao buscar bairro pelo CEP:", erro);
@@ -1693,8 +1734,8 @@
               const coordenadas = await buscarCoordenadasEndereco(
                 ruaEl.value,
                 bairroEl.value,
-                dados.localidade,
-                dados.uf,
+                cidadeCliente,
+                estadoCliente,
                 cepEl.value.replace(/\D/g, ""),
                 numeroEl.value,
               );
@@ -1746,8 +1787,8 @@
             const coordenadas = await buscarCoordenadasEndereco(
               ruaEl.value,
               bairroEl.value,
-              cidadeEl.value,
-              estadoEl.value,
+              cidadeCliente,
+              estadoCliente,
               cepEl.value.replace(/\D/g, ""),
               numeroEl.value,
             );
