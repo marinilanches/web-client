@@ -14,9 +14,9 @@ import {
   updateDoc,
   doc,
   onSnapshot,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
 import { authPronto } from "../../js/services/firebase.js";
 
@@ -24,7 +24,7 @@ import {
   getMessaging,
   getToken,
   onMessage,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
 
 /* ==========================================================
    CONFIGURAÇÃO
