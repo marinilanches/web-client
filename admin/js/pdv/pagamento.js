@@ -8,7 +8,7 @@ import {
 import {
     doc,
     getDoc,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 import { db } from "../../../js/services/firebase.js";
 
