@@ -48,28 +48,20 @@ export async function garantirClienteAuth() {
   const caminhoAtual = window.location.pathname || "";
 
   const estaNoAdmin =
-    caminhoAtual === "/admin" ||
-    caminhoAtual.startsWith("/admin/");
+    caminhoAtual === "/admin" || caminhoAtual.startsWith("/admin/");
 
   if (estaNoAdmin) {
     if (!usuarioAtual) {
-      throw new Error(
-        "CLIENTE_AUTH_BLOQUEADO_NO_ADMIN",
-      );
+      throw new Error("CLIENTE_AUTH_BLOQUEADO_NO_ADMIN");
     }
 
-    const tokenResult =
-      await usuarioAtual.getIdTokenResult();
+    const tokenResult = await usuarioAtual.getIdTokenResult();
 
     if (tokenResult.claims.admin === true) {
-      throw new Error(
-        "CLIENTE_AUTH_CHAMADO_COM_USUARIO_ADMIN",
-      );
+      throw new Error("CLIENTE_AUTH_CHAMADO_COM_USUARIO_ADMIN");
     }
 
-    throw new Error(
-      "USUARIO_CLIENTE_INVALIDO_NO_ADMIN",
-    );
+    throw new Error("USUARIO_CLIENTE_INVALIDO_NO_ADMIN");
   }
 
   /*
@@ -90,9 +82,7 @@ export async function garantirIdentidadeCliente() {
   const tokenResult = await user.getIdTokenResult();
 
   if (tokenResult.claims.admin === true) {
-    throw new Error(
-      "CONTA_ADMIN_NAO_PODE_SER_USADA_COMO_CLIENTE",
-    );
+    throw new Error("CONTA_ADMIN_NAO_PODE_SER_USADA_COMO_CLIENTE");
   }
 
   console.log("[CLIENTE DEBUG] claims do token:", {
@@ -107,11 +97,7 @@ export async function garantirIdentidadeCliente() {
     uid: user.uid,
     isAnonymous: user.isAnonymous,
   });
-  const identidadeRef = doc(
-    db,
-    "clienteIdentidades",
-    user.uid,
-  );
+  const identidadeRef = doc(db, "clienteIdentidades", user.uid);
 
   console.log(
     "[CLIENTE DEBUG] lendo identidade:",
@@ -126,15 +112,10 @@ export async function garantirIdentidadeCliente() {
     console.log(
       "[CLIENTE DEBUG] leitura identidade OK:",
       identidadeSnap.exists(),
-      identidadeSnap.exists()
-        ? identidadeSnap.data()
-        : null,
+      identidadeSnap.exists() ? identidadeSnap.data() : null,
     );
   } catch (erro) {
-    console.error(
-      "[CLIENTE DEBUG] ERRO ao ler identidade:",
-      erro,
-    );
+    console.error("[CLIENTE DEBUG] ERRO ao ler identidade:", erro);
 
     throw erro;
   }
@@ -143,15 +124,10 @@ export async function garantirIdentidadeCliente() {
     const dados = identidadeSnap.data();
 
     if (!dados.clienteId) {
-      throw new Error(
-        "Identidade do cliente encontrada sem clienteId.",
-      );
+      throw new Error("Identidade do cliente encontrada sem clienteId.");
     }
 
-    localStorage.setItem(
-      CLIENTE_ID_STORAGE_KEY,
-      dados.clienteId,
-    );
+    localStorage.setItem(CLIENTE_ID_STORAGE_KEY, dados.clienteId);
 
     return {
       uid: user.uid,
@@ -164,19 +140,13 @@ export async function garantirIdentidadeCliente() {
   if (!clienteId) {
     clienteId = gerarClienteId();
 
-    localStorage.setItem(
-      CLIENTE_ID_STORAGE_KEY,
-      clienteId,
-    );
+    localStorage.setItem(CLIENTE_ID_STORAGE_KEY, clienteId);
   }
 
-  console.log(
-    "[CLIENTE DEBUG] criando identidade:",
-    {
-      uid: user.uid,
-      clienteId,
-    },
-  );
+  console.log("[CLIENTE DEBUG] criando identidade:", {
+    uid: user.uid,
+    clienteId,
+  });
 
   try {
     await setDoc(identidadeRef, {
@@ -186,14 +156,9 @@ export async function garantirIdentidadeCliente() {
       atualizadoEm: serverTimestamp(),
     });
 
-    console.log(
-      "[CLIENTE DEBUG] identidade criada com sucesso",
-    );
+    console.log("[CLIENTE DEBUG] identidade criada com sucesso");
   } catch (erro) {
-    console.error(
-      "[CLIENTE DEBUG] ERRO ao criar identidade:",
-      erro,
-    );
+    console.error("[CLIENTE DEBUG] ERRO ao criar identidade:", erro);
 
     throw erro;
   }
@@ -211,16 +176,9 @@ export async function garantirIdentidadeCliente() {
 export async function buscarCliente() {
   const identidade = await garantirIdentidadeCliente();
 
-  console.log(
-    "[CLIENTE DEBUG] identidade obtida:",
-    identidade,
-  );
+  console.log("[CLIENTE DEBUG] identidade obtida:", identidade);
 
-  const ref = doc(
-    db,
-    "clientes",
-    identidade.clienteId,
-  );
+  const ref = doc(db, "clientes", identidade.clienteId);
 
   console.log(
     "[CLIENTE DEBUG] lendo cliente:",
@@ -232,15 +190,9 @@ export async function buscarCliente() {
   try {
     snap = await getDoc(ref);
 
-    console.log(
-      "[CLIENTE DEBUG] leitura cliente OK:",
-      snap.exists(),
-    );
+    console.log("[CLIENTE DEBUG] leitura cliente OK:", snap.exists());
   } catch (erro) {
-    console.error(
-      "[CLIENTE DEBUG] ERRO ao ler cliente:",
-      erro,
-    );
+    console.error("[CLIENTE DEBUG] ERRO ao ler cliente:", erro);
 
     throw erro;
   }
@@ -363,11 +315,9 @@ export async function registrarNotificacoesCliente() {
 
     if (!token) return null;
 
-    const user = auth.currentUser;
+    const identidade = await garantirIdentidadeCliente();
 
     const tokensRef = collection(db, "clienteNotificationTokens");
-
-    const identidade = await garantirIdentidadeCliente();
 
     const existente = await getDocs(
       query(
@@ -379,7 +329,7 @@ export async function registrarNotificacoesCliente() {
 
     if (!existente.empty) {
       await updateDoc(existente.docs[0].ref, {
-        uid: user.uid,
+        uid: identidade.uid,
         clienteId: identidade.clienteId,
         token,
         ativo: true,
@@ -389,7 +339,7 @@ export async function registrarNotificacoesCliente() {
       });
     } else {
       await addDoc(tokensRef, {
-        uid: user.uid,
+        uid: identidade.uid,
         clienteId: identidade.clienteId,
         token,
         ativo: true,

@@ -26,6 +26,7 @@ let listenerIniciado = false;
 let solicitacoesListenerIniciado = false;
 let timerSolicitacoes = null;
 let timerVendas = null;
+let timerPushPendentes = null;
 
 /* ==========================================================
    HELPERS
@@ -77,6 +78,7 @@ function obterUrlStatus(pedidoId) {
    TOKENS
 ========================================================== */
 
+
 async function removerTokensInvalidos(db, collectionName, tokens, responses) {
   for (let i = 0; i < responses.length; i++) {
     const response = responses[i];
@@ -97,12 +99,32 @@ async function removerTokensInvalidos(db, collectionName, tokens, responses) {
         .where("token", "==", token)
         .get();
 
+      if (snapshot.empty) continue;
+
       const batch = db.batch();
-      snapshot.forEach((documento) => batch.delete(documento.ref));
-      await batch.commit();
+      let removidos = 0;
+
+      for (const documento of snapshot.docs) {
+        const atual = await documento.ref.get();
+
+        if (!atual.exists || atual.data()?.token !== token) continue;
+
+        batch.delete(documento.ref);
+        removidos++;
+      }
+
+      if (removidos > 0) {
+        await batch.commit();
+      }
+
+      console.warn("[FCM] Limpeza de token inválido concluída:", {
+        collectionName,
+        codigo,
+        documentosRemovidos: removidos,
+      });
     } catch (erro) {
       console.error(
-        `[FCM] Erro ao remover token inválido de ${collectionName}:`,
+        `[FCM] Erro ao remover token inválido em ${collectionName}:`,
         erro,
       );
     }
@@ -135,16 +157,25 @@ async function obterTokensAtivos(db, collectionName, filtro = {}) {
 }
 
 async function enviarMulticast(db, collectionName, tokens, messageBase) {
-  if (!tokens.length) return;
+  const resultadoTotal = {
+    successCount: 0,
+    failureCount: 0,
+  };
+
+  if (!tokens.length) return resultadoTotal;
 
   const messaging = getMessaging();
 
   for (let i = 0; i < tokens.length; i += 500) {
     const grupo = tokens.slice(i, i + 500);
+
     const resposta = await messaging.sendEachForMulticast({
       ...messageBase,
       tokens: grupo,
     });
+
+    resultadoTotal.successCount += resposta.successCount;
+    resultadoTotal.failureCount += resposta.failureCount;
 
     console.log(
       `[FCM] ${resposta.successCount} notificação(ões) enviada(s). ${resposta.failureCount} falha(s).`,
@@ -152,6 +183,8 @@ async function enviarMulticast(db, collectionName, tokens, messageBase) {
 
     await removerTokensInvalidos(db, collectionName, grupo, resposta.responses);
   }
+
+  return resultadoTotal;
 }
 
 /* ==========================================================
@@ -246,45 +279,60 @@ async function enviarNotificacaoSolicitacaoAdmin(db, pedido, solicitacao) {
 
 async function enviarNotificacaoCliente(db, clienteId, pedido, titulo, corpo) {
   try {
-    if (!clienteId) return;
+    if (!clienteId || !pedido?.id) {
+      console.warn("[FCM] Cliente ou ID do pedido ausente.");
+      return { successCount: 0, failureCount: 0 };
+    }
 
     const tokens = await obterTokensAtivos(db, CLIENT_TOKENS_COLLECTION, {
       clienteId,
     });
 
-    if (!tokens.length) return;
+    if (!tokens.length) {
+      console.warn(
+        `[FCM] Nenhum token ativo para o cliente do pedido ${pedido.numeroPedido || pedido.id}.`,
+      );
+      return { successCount: 0, failureCount: 0 };
+    }
 
     const url = obterUrlStatus(pedido.id);
 
-    await enviarMulticast(db, CLIENT_TOKENS_COLLECTION, tokens, {
-      notification: {
-        title: titulo,
-        body: corpo,
-      },
-
-      data: {
-        pedidoId: String(pedido.id),
-        numeroPedido: String(pedido.numeroPedido || ""),
-        status: String(pedido.status || ""),
-        url,
-        title: titulo,
-        body: corpo,
-      },
-
-      webpush: {
-        fcmOptions: {
-          link: url,
-        },
-
+    const resultado = await enviarMulticast(
+      db,
+      CLIENT_TOKENS_COLLECTION,
+      tokens,
+      {
         notification: {
-          icon: "/assets/avatar.png",
-          badge: "/assets/avatar.png",
-          tag: `pedido-cliente-${pedido.id}`,
+          title: titulo,
+          body: corpo,
+        },
+        data: {
+          pedidoId: String(pedido.id),
+          numeroPedido: String(pedido.numeroPedido || ""),
+          status: String(pedido.status || ""),
+          url,
+          origem: "CLIENTE",
+          title: titulo,
+          body: corpo,
+        },
+        webpush: {
+          notification: {
+            icon: "/assets/avatar.png",
+            badge: "/assets/avatar.png",
+            tag: `pedido-cliente-${pedido.id}`,
+          },
         },
       },
-    });
+    );
+
+    console.log(
+      `[FCM] Pedido ${pedido.numeroPedido || pedido.id}: ${resultado.successCount} envio(s) concluído(s), ${resultado.failureCount} falha(s).`,
+    );
+
+    return resultado;
   } catch (erro) {
     console.error("[FCM] Erro ao notificar cliente:", erro);
+    return { successCount: 0, failureCount: 0 };
   }
 }
 
@@ -638,9 +686,7 @@ async function processarRespostaCancelamento(db, solicitacaoRef) {
       db,
       resultado.clienteId,
       resultado.pedido,
-      resultado.aceita
-        ? "✅ Pedido cancelado"
-        : "❌ Cancelamento recusado",
+      resultado.aceita ? "✅ Pedido cancelado" : "❌ Cancelamento recusado",
       resultado.aceita
         ? "O estabelecimento aceitou o cancelamento do seu pedido."
         : "O estabelecimento recusou o cancelamento do seu pedido.",
@@ -865,37 +911,254 @@ function iniciarNotificacoesPedidos(db) {
 
   listenerIniciado = true;
 
-  console.log("[FCM] Iniciando listener de novos pedidos...");
+  console.log("[FCM] Iniciando listener de pedidos e status...");
 
   let primeiraLeitura = true;
+  const statusConhecidos = new Map();
+  const processamentosEmAndamento = new Set();
+
+  const mensagensPorStatus = {
+    RECEBIDO: {
+      titulo: "Pedido recebido",
+      corpo: (numero) => `Seu pedido #${numero} foi recebido.`,
+    },
+    PREPARANDO: {
+      titulo: "Em preparação",
+      corpo: (numero) => `Seu pedido #${numero} está sendo preparado.`,
+    },
+    PRONTO: {
+      titulo: "Pedido pronto",
+      corpo: (numero) => `Seu pedido #${numero} está pronto!`,
+    },
+    SAIU_PARA_ENTREGA: {
+      titulo: "Saiu para entrega",
+      corpo: (numero) => `Seu pedido #${numero} saiu para entrega.`,
+    },
+    CANCELADO: {
+      titulo: "Pedido cancelado",
+      corpo: (numero) => `Seu pedido #${numero} foi cancelado.`,
+    },
+  };
+
+  const campoEnviado = "ultimoStatusPushNotificado";
+  const campoPendente = "statusPushPendente";
+  const campoProcessando = "statusPushEmProcessamento";
+  const campoInicio = "statusPushIniciadoEm";
+
+  async function processarStatusCliente(pedidoId, pedido) {
+    const status = String(pedido.status || "");
+    const mensagem = mensagensPorStatus[status];
+
+    if (!mensagem || !pedido.clienteId) return;
+
+    const chave = `${pedidoId}:${status}`;
+
+    if (processamentosEmAndamento.has(chave)) return;
+
+    processamentosEmAndamento.add(chave);
+
+    const pedidoRef = db.collection(PEDIDOS_COLLECTION).doc(pedidoId);
+
+    try {
+      const podeProcessar = await db.runTransaction(async (transaction) => {
+        const snapshot = await transaction.get(pedidoRef);
+
+        if (!snapshot.exists) return false;
+
+        const atual = snapshot.data() || {};
+
+        // Não enviar uma notificação de um status que já mudou.
+        if (atual.status !== status) return false;
+
+        // Se já foi enviado, limpa qualquer pendência antiga.
+        if (atual[campoEnviado] === status) {
+          transaction.update(pedidoRef, {
+            [campoPendente]: FieldValue.delete(),
+            [campoProcessando]: FieldValue.delete(),
+            [campoInicio]: FieldValue.delete(),
+          });
+
+          return false;
+        }
+
+        // Evita concorrência. Uma tentativa abandonada pode ser
+        // retomada depois de dois minutos.
+        const inicio = obterDataTimestamp(atual[campoInicio]);
+        const processamentoRecente =
+          atual[campoProcessando] === status &&
+          inicio &&
+          Date.now() - inicio.getTime() < 120000;
+
+        if (processamentoRecente) return false;
+
+        // Persiste a pendência antes de chamar o FCM.
+        transaction.update(pedidoRef, {
+          [campoPendente]: status,
+          [campoProcessando]: status,
+          [campoInicio]: FieldValue.serverTimestamp(),
+        });
+
+        return true;
+      });
+
+      if (!podeProcessar) return;
+
+      const numero = String(pedido.numeroPedido || pedidoId);
+
+      const resultado = await enviarNotificacaoCliente(
+        db,
+        pedido.clienteId,
+        {
+          ...pedido,
+          id: pedidoId,
+          status,
+        },
+        mensagem.titulo,
+        mensagem.corpo(numero),
+      );
+
+      if (resultado.successCount > 0) {
+        await pedidoRef.update({
+          [campoEnviado]: status,
+          statusPushEnviadoEm: FieldValue.serverTimestamp(),
+          [campoPendente]: FieldValue.delete(),
+          [campoProcessando]: FieldValue.delete(),
+          [campoInicio]: FieldValue.delete(),
+        });
+
+        console.log(
+          `[FCM] Status ${status} enviado para o pedido ${numero}. ` +
+            `Sucessos: ${resultado.successCount}; falhas: ${resultado.failureCount}.`,
+        );
+
+        if (resultado.failureCount > 0) {
+          console.warn(
+            `[FCM] Houve falhas parciais no pedido ${numero}. ` +
+              "O status foi marcado como enviado para evitar duplicações.",
+          );
+        }
+      } else {
+        // Mantém a pendência para uma nova tentativa automática.
+        await pedidoRef.update({
+          [campoPendente]: status,
+          [campoProcessando]: FieldValue.delete(),
+          [campoInicio]: FieldValue.delete(),
+        });
+
+        console.warn(
+          `[FCM] Nenhum envio confirmado para o pedido ${numero}. ` +
+            "A notificação permanecerá pendente.",
+        );
+      }
+    } catch (erro) {
+      console.error(
+        `[FCM] Erro no status ${status} do pedido ${pedidoId}:`,
+        erro,
+      );
+
+      // Preserva a pendência e libera uma tentativa posterior.
+      await pedidoRef
+        .update({
+          [campoPendente]: status,
+          [campoProcessando]: FieldValue.delete(),
+          [campoInicio]: FieldValue.delete(),
+        })
+        .catch((erroLimpeza) => {
+          console.error(
+            `[FCM] Não foi possível liberar a pendência do pedido ${pedidoId}:`,
+            erroLimpeza,
+          );
+        });
+    } finally {
+      processamentosEmAndamento.delete(chave);
+    }
+  }
+
+  async function processarPushPendentes() {
+    for (const status of Object.keys(mensagensPorStatus)) {
+      try {
+        const snapshot = await db
+          .collection(PEDIDOS_COLLECTION)
+          .where(campoPendente, "==", status)
+          .limit(100)
+          .get();
+
+        for (const documento of snapshot.docs) {
+          const pedido = {
+            id: documento.id,
+            ...documento.data(),
+          };
+
+          await processarStatusCliente(documento.id, pedido);
+        }
+      } catch (erro) {
+        console.error(
+          `[FCM] Erro ao recuperar pendências do status ${status}:`,
+          erro,
+        );
+      }
+    }
+  }
 
   db.collection(PEDIDOS_COLLECTION).onSnapshot(
     async (snapshot) => {
       if (primeiraLeitura) {
         primeiraLeitura = false;
+
+        for (const documento of snapshot.docs) {
+          statusConhecidos.set(documento.id, documento.data()?.status || null);
+        }
+
         console.log(
           `[FCM] Primeira leitura ignorada: ${snapshot.size} pedido(s).`,
         );
+
+        // Recupera pendências deixadas por uma execução anterior.
+        await processarPushPendentes();
         return;
       }
 
       for (const change of snapshot.docChanges()) {
-        if (change.type !== "added") continue;
+        const pedidoId = change.doc.id;
+
+        if (change.type === "removed") {
+          statusConhecidos.delete(pedidoId);
+          continue;
+        }
 
         const pedido = {
-          id: change.doc.id,
+          id: pedidoId,
           ...change.doc.data(),
         };
 
-        if (pedido.status !== "RECEBIDO") continue;
+        const statusAtual = pedido.status || null;
+        const statusAnterior = statusConhecidos.has(pedidoId)
+          ? statusConhecidos.get(pedidoId)
+          : null;
 
-        console.log("[FCM] Novo pedido detectado:", pedido.numeroPedido);
+        statusConhecidos.set(pedidoId, statusAtual);
 
-        await contabilizarVendasPedido(db, pedido).catch((erro) =>
-          console.error("[VENDAS] Erro ao contabilizar vendas:", erro),
-        );
+        if (!statusAtual) continue;
 
-        await enviarNotificacaoNovoPedido(db, pedido);
+        if (change.type === "added") {
+          if (statusAtual === "RECEBIDO") {
+            console.log("[FCM] Novo pedido detectado:", pedido.numeroPedido);
+
+            await contabilizarVendasPedido(db, pedido).catch((erro) =>
+              console.error("[VENDAS] Erro ao contabilizar vendas:", erro),
+            );
+
+            await enviarNotificacaoNovoPedido(db, pedido);
+          }
+
+          await processarStatusCliente(pedidoId, pedido);
+          continue;
+        }
+
+        // Atualizações de campos auxiliares não geram um novo push.
+        if (statusAtual === statusAnterior) continue;
+
+        await processarStatusCliente(pedidoId, pedido);
       }
     },
     (erro) => {
@@ -906,9 +1169,17 @@ function iniciarNotificacoesPedidos(db) {
   iniciarListenerSolicitacoes(db);
 
   processarVendasPendentes(db).catch(() => {});
+
   timerVendas = setInterval(() => {
     processarVendasPendentes(db).catch((erro) =>
       console.error("[VENDAS] Erro no timer:", erro),
+    );
+  }, 30000);
+
+  // Recupera falhas transitórias e notificações sem tokens disponíveis.
+  timerPushPendentes = setInterval(() => {
+    processarPushPendentes().catch((erro) =>
+      console.error("[FCM] Erro na recuperação de pendências:", erro),
     );
   }, 30000);
 }

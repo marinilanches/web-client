@@ -34,6 +34,39 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const URL_ADMIN = "/admin/pedidos.html";
+const URL_STATUS_CLIENTE = "/status.html";
+
+/* ==========================================================
+   VALIDAR DESTINO DA NOTIFICAÇÃO
+========================================================== */
+
+function obterUrlNotificacao(data) {
+  const urlInformada = data.url || "";
+  const origem = String(data.origem || "").toUpperCase();
+
+  if (
+    origem === "CLIENTE" &&
+    urlInformada.startsWith(URL_STATUS_CLIENTE + "?id=")
+  ) {
+    return urlInformada;
+  }
+
+  if (
+    origem === "ADMIN" ||
+    urlInformada.startsWith(URL_ADMIN)
+  ) {
+    return URL_ADMIN;
+  }
+
+  // Compatibilidade com notificações antigas de clientes.
+  if (urlInformada.startsWith(URL_STATUS_CLIENTE + "?id=")) {
+    return urlInformada;
+  }
+
+  return URL_ADMIN;
+}
+
 /* ==========================================================
    MENSAGEM EM SEGUNDO PLANO
 ========================================================== */
@@ -57,28 +90,29 @@ messaging.onBackgroundMessage((payload) => {
     data.body ||
     "Há um novo pedido aguardando atendimento.";
 
-  const numeroPedido =
-    data.numeroPedido || "";
+  const numeroPedido = data.numeroPedido || "";
+  const url = obterUrlNotificacao(data);
+  const origem =
+    String(data.origem || "").toUpperCase() ||
+    (url.startsWith("/admin/") ? "ADMIN" : "CLIENTE");
 
-  const url =
-    data.url ||
-    "/admin/pedidos.html";
+  const icone =
+    origem === "ADMIN"
+      ? "/assets/admin-icon.png"
+      : "/assets/avatar.png";
 
   const notificationOptions = {
     body: corpo,
-    icon: "/assets/admin-icon.png",
-    badge: "/assets/admin-icon.png",
-
+    icon: icone,
+    badge: icone,
     tag: numeroPedido
       ? `pedido-${numeroPedido}`
-      : "novo-pedido",
-
+      : `notificacao-${origem.toLowerCase()}`,
     renotify: true,
-
     data: {
       url,
       numeroPedido,
-      origem: data.origem || (url.includes("/admin/") ? "ADMIN" : "CLIENTE"),
+      origem,
     },
   };
 
@@ -92,36 +126,56 @@ messaging.onBackgroundMessage((payload) => {
    CLIQUE NA NOTIFICAÇÃO
 ========================================================== */
 
-self.addEventListener(
-  "notificationclick",
-  (event) => {
-    event.notification.close();
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
 
-    const url =
-      event.notification?.data?.url ||
-      "/admin/pedidos.html";
+  const data = event.notification?.data || {};
+  const url = obterUrlNotificacao(data);
 
-    event.waitUntil(
-      clients
-        .matchAll({
-          type: "window",
-          includeUncontrolled: true,
-        })
-        .then((clientList) => {
-          for (const client of clientList) {
-            if ("focus" in client) {
-              return client.focus().then(() => {
-                if ("navigate" in client) {
-                  return client.navigate(url);
-                }
-              });
-            }
+  event.waitUntil(
+    clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })
+      .then(async (clientList) => {
+        // Prioriza uma aba que já esteja no destino correto.
+        const destinoAtual = new URL(url, self.location.origin);
+
+        const clienteExistente = clientList.find((client) => {
+          try {
+            const urlCliente = new URL(client.url);
+
+            return (
+              urlCliente.origin === destinoAtual.origin &&
+              urlCliente.pathname === destinoAtual.pathname &&
+              urlCliente.search === destinoAtual.search
+            );
+          } catch {
+            return false;
           }
+        });
 
-          if (clients.openWindow) {
-            return clients.openWindow(url);
-          }
-        })
-    );
-  }
-);
+        if (clienteExistente) {
+          await clienteExistente.focus();
+          return;
+        }
+
+        // Reutiliza outra aba aberta, se possível.
+        const abaDisponivel = clientList.find(
+          (client) => "focus" in client && "navigate" in client
+        );
+
+        if (abaDisponivel) {
+          await abaDisponivel.focus();
+          await abaDisponivel.navigate(destinoAtual.href);
+          return;
+        }
+
+        // Abre uma nova aba se não houver nenhuma disponível.
+        if (clients.openWindow) {
+          return clients.openWindow(destinoAtual.href);
+        }
+      })
+  );
+});
