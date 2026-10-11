@@ -65,6 +65,8 @@
         criarSolicitacaoPedido,
         ouvirSolicitacoesPedido,
         responderSolicitacaoCliente,
+        solicitarConfirmacaoRecebimento,
+        ouvirConfirmacaoRecebimento,
       } from "./js/services/orders.js";
 
       import {
@@ -83,6 +85,7 @@
       const listaPedidos = document.getElementById("listaPedidos");
       let solicitacoesAtual = [];
       let pedidoAtualEmTela = null;
+      let confirmacaoRecebimentoAtual = null;
 
       function formatarMoeda(valor) {
         return Number(valor || 0).toLocaleString("pt-BR", {
@@ -112,7 +115,7 @@
       </div>
     `;
       }
-      function getStatusLabel(status) {
+      function getStatusLabel(status, tipo = "") {
         switch (status) {
           case "RECEBIDO":
             return "🟡 Recebido";
@@ -125,6 +128,9 @@
 
           case "SAIU_PARA_ENTREGA":
             return "🚚 Saiu para entrega";
+
+          case "ENTREGUE":
+            return tipo === "Retirada" ? "🛍️ Retirado" : "📦 Entregue";
 
           case "CANCELADO":
             return "❌ Cancelado";
@@ -628,6 +634,11 @@
                 nome: "Pronto",
                 emoji: "✅",
               },
+              {
+                id: "ENTREGUE",
+                nome: "Retirado",
+                emoji: "🛍️",
+              },
             ]
           : [
               {
@@ -649,6 +660,11 @@
                 id: "SAIU_PARA_ENTREGA",
                 nome: "Saiu para entrega",
                 emoji: "🚚",
+              },
+              {
+                id: "ENTREGUE",
+                nome: "Entregue",
+                emoji: "📦",
               },
             ];
 
@@ -780,6 +796,73 @@
           </a>
 
         </div>
+        `;
+      }
+
+      function gerarConfirmacaoRecebimentoHtml(pedido) {
+        const tipo = String(pedido.tipo || "").trim();
+        const podeConfirmar =
+          (tipo === "Delivery" && pedido.status === "SAIU_PARA_ENTREGA") ||
+          (tipo === "Retirada" && pedido.status === "PRONTO");
+
+        if (pedido.recebimentoConfirmado === true || pedido.status === "ENTREGUE") {
+          return `
+            <div class="status-section">
+              <div class="alert alert-success mb-0" role="status">
+                <strong>✅ Recebimento confirmado</strong><br>
+                ${tipo === "Retirada" ? "Você confirmou que retirou o pedido." : "Você confirmou que recebeu o pedido."}
+                ${pedido.recebimentoConfirmadoEm ? `<br><small>Confirmado em ${formatarData(pedido.recebimentoConfirmadoEm)}.</small>` : ""}
+              </div>
+            </div>
+          `;
+        }
+
+        const estadoSolicitacao = confirmacaoRecebimentoAtual?.status;
+        if (estadoSolicitacao === "CONFIRMADA") {
+          return `
+            <div class="status-section">
+              <div class="alert alert-success mb-0" role="status">
+                ✅ Confirmação recebida. Estamos atualizando o status do pedido.
+              </div>
+            </div>
+          `;
+        }
+
+        if (estadoSolicitacao === "PENDENTE") {
+          return `
+            <div class="status-section">
+              <div class="alert alert-info mb-0" role="status">
+                ⏳ Sua confirmação foi enviada. Estamos finalizando o pedido.
+              </div>
+            </div>
+          `;
+        }
+
+        if (["RECUSADA", "REJEITADA"].includes(estadoSolicitacao)) {
+          return `
+            <div class="status-section">
+              <div class="alert alert-warning mb-0" role="status">
+                Não foi possível confirmar o recebimento porque o status do pedido mudou. Atualize a página ou entre em contato com a loja.
+              </div>
+            </div>
+          `;
+        }
+
+        if (!podeConfirmar) return "";
+
+        const texto = tipo === "Retirada"
+          ? "Confirme quando retirar o pedido no estabelecimento."
+          : "Confirme somente depois de receber o pedido.";
+
+        return `
+          <section class="status-section" aria-labelledby="tituloConfirmarRecebimento">
+            <h4 id="tituloConfirmarRecebimento">📦 Você recebeu seu pedido?</h4>
+            <p>${texto}</p>
+            <button class="btn btn-success w-100" id="btnConfirmarRecebimento" type="button">
+              ✅ Confirmar recebimento
+            </button>
+            <small class="text-secondary d-block mt-2">Esta ação finaliza o pedido e não pode ser desfeita pelo cliente.</small>
+          </section>
         `;
       }
 
@@ -951,6 +1034,9 @@
             ? gerarComprovanteWhatsappHtml(pedido, pedidoId)
             : "";
 
+        const blocoConfirmacaoRecebimento =
+          gerarConfirmacaoRecebimentoHtml(pedido);
+
         const enderecoTexto = [endereco.rua, endereco.numero]
           .filter(Boolean)
           .join(", ");
@@ -994,7 +1080,7 @@
 
         <p>
           <strong>Status:</strong>
-          ${getStatusLabel(pedido.status)}
+          ${getStatusLabel(pedido.status, pedido.tipo)}
         </p>
 
         <p><strong>Data:</strong> ${formatarData(pedido.criadoEm || pedido.createdAt)}</p>
@@ -1015,6 +1101,7 @@
         ${blocoPix}
         ${blocoEntrega}
         ${blocoComprovanteWhatsapp}
+        ${blocoConfirmacaoRecebimento}
         <div id="solicitacoesPedido"></div>
 
         <div class="status-section">
@@ -1038,6 +1125,39 @@
 
         pedidoAtualEmTela = pedido;
         ativarBotaoCopiarPix();
+
+        document
+          .getElementById("btnConfirmarRecebimento")
+          ?.addEventListener("click", async (evento) => {
+            const botao = evento.currentTarget;
+            if (!botao || botao.disabled) return;
+
+            const confirmar = window.confirm(
+              pedido.tipo === "Retirada"
+                ? "Confirma que você retirou este pedido?"
+                : "Confirma que você recebeu este pedido?",
+            );
+            if (!confirmar) return;
+
+            botao.disabled = true;
+            botao.textContent = "Enviando confirmação...";
+
+            try {
+              await solicitarConfirmacaoRecebimento(pedido.id);
+              confirmacaoRecebimentoAtual = { status: "PENDENTE" };
+              renderPedido(pedido, pedidoId);
+            } catch (erro) {
+              console.error("Erro ao confirmar recebimento:", erro);
+              botao.disabled = false;
+              botao.textContent = "✅ Confirmar recebimento";
+              alert(
+                erro?.code === "permission-denied"
+                  ? "Não foi possível enviar a confirmação. Verifique sua sessão e tente novamente."
+                  : "Não foi possível confirmar o recebimento. Tente novamente.",
+              );
+            }
+          });
+
         renderSolicitacoes(pedido);
       }
 
@@ -1095,7 +1215,7 @@
           </p>
 
           <p><strong>Total:</strong> ${formatarMoeda(p.valorTotal)}</p>
-          <p><strong>Status:</strong> ${getStatusLabel(p.status)}</p>
+          <p><strong>Status:</strong> ${getStatusLabel(p.status, p.tipo)}</p>
 
           ${gerarProgresso(p.status, p.tipo)}
 
@@ -1173,6 +1293,7 @@
           pedidoAtual.innerHTML = "";
           solicitacoesAtual = [];
           pedidoAtualEmTela = null;
+          confirmacaoRecebimentoAtual = null;
         }
 
         // Lista os demais pedidos, sem duplicar o que já está no topo

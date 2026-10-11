@@ -161,6 +161,61 @@ function pedidoDoCliente(pedidoId) {
 
         allow delete: if ehAdmin();
       }
+
+      
+      match /confirmacoesRecebimento/{confirmacaoId} {
+        // O administrador pode ler; o cliente só lê sua própria confirmação.
+        
+        allow read: if ehAdmin()
+          || (
+            ehCliente()
+            && confirmacaoId == "cliente"
+            && pedidoDoCliente(pedidoId)
+            && (
+              !exists(
+                /databases/$(database)/documents/pedidos/$(pedidoId)/confirmacoesRecebimento/$(confirmacaoId)
+              )
+              || resource.data.uid == request.auth.uid
+            )
+          );
+
+        // O cliente pode apenas solicitar a confirmação do próprio pedido,
+        // quando o status corresponde à modalidade de entrega.
+        allow create: if ehCliente()
+          && confirmacaoId == "cliente"
+          && pedidoDoCliente(pedidoId)
+          && request.resource.data.keys().hasAll([
+            "uid",
+            "clienteId",
+            "status",
+            "criadaEm"
+          ])
+          && request.resource.data.keys().hasOnly([
+            "uid",
+            "clienteId",
+            "status",
+            "criadaEm"
+          ])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.clienteId == clienteIdDoUsuario()
+          && request.resource.data.status == "PENDENTE"
+          && request.resource.data.criadaEm == request.time
+          && (
+            (
+              get(/databases/$(database)/documents/pedidos/$(pedidoId)).data.tipo == "Delivery"
+              && get(/databases/$(database)/documents/pedidos/$(pedidoId)).data.status == "SAIU_PARA_ENTREGA"
+            )
+            ||
+            (
+              get(/databases/$(database)/documents/pedidos/$(pedidoId)).data.tipo == "Retirada"
+              && get(/databases/$(database)/documents/pedidos/$(pedidoId)).data.status == "PRONTO"
+            )
+          );
+
+        // O cliente não pode alterar nem apagar a solicitação.
+        // O servidor processa e atualiza os documentos com Admin SDK.
+        allow update, delete: if false;
+      }
     }
 
     match /pagamentos/{pagamentoId} {

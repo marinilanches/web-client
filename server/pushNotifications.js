@@ -27,6 +27,7 @@ let solicitacoesListenerIniciado = false;
 let timerSolicitacoes = null;
 let timerVendas = null;
 let timerPushPendentes = null;
+let timerConfirmacoesRecebimento = null;
 
 /* ==========================================================
    HELPERS
@@ -78,7 +79,6 @@ function obterUrlStatus(pedidoId) {
    TOKENS
 ========================================================== */
 
-
 async function removerTokensInvalidos(db, collectionName, tokens, responses) {
   for (let i = 0; i < responses.length; i++) {
     const response = responses[i];
@@ -99,32 +99,12 @@ async function removerTokensInvalidos(db, collectionName, tokens, responses) {
         .where("token", "==", token)
         .get();
 
-      if (snapshot.empty) continue;
-
       const batch = db.batch();
-      let removidos = 0;
-
-      for (const documento of snapshot.docs) {
-        const atual = await documento.ref.get();
-
-        if (!atual.exists || atual.data()?.token !== token) continue;
-
-        batch.delete(documento.ref);
-        removidos++;
-      }
-
-      if (removidos > 0) {
-        await batch.commit();
-      }
-
-      console.warn("[FCM] Limpeza de token inválido concluída:", {
-        collectionName,
-        codigo,
-        documentosRemovidos: removidos,
-      });
+      snapshot.forEach((documento) => batch.delete(documento.ref));
+      await batch.commit();
     } catch (erro) {
       console.error(
-        `[FCM] Erro ao remover token inválido em ${collectionName}:`,
+        `[FCM] Erro ao remover token inválido de ${collectionName}:`,
         erro,
       );
     }
@@ -903,6 +883,128 @@ function iniciarListenerSolicitacoes(db) {
    LISTENER DOS PEDIDOS
 ========================================================== */
 
+/* ==========================================================
+   CONFIRMAÇÃO DE RECEBIMENTO PELO CLIENTE
+========================================================== */
+
+const CONFIRMACOES_RECEBIMENTO_COLLECTION = "confirmacoesRecebimento";
+let confirmacoesRecebimentoListenerIniciado = false;
+
+function obterPedidoDaConfirmacao(confirmacaoRef) {
+  return confirmacaoRef?.parent?.parent || null;
+}
+
+async function processarConfirmacaoRecebimento(db, confirmacaoRef) {
+  const pedidoRef = obterPedidoDaConfirmacao(confirmacaoRef);
+  if (!pedidoRef) return;
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const [confirmacaoSnap, pedidoSnap] = await Promise.all([
+        transaction.get(confirmacaoRef),
+        transaction.get(pedidoRef),
+      ]);
+
+      if (!confirmacaoSnap.exists || !pedidoSnap.exists) return;
+
+      const confirmacao = confirmacaoSnap.data() || {};
+      const pedido = pedidoSnap.data() || {};
+
+      if (confirmacao.status !== "PENDENTE") return;
+
+      const identidadeValida =
+        Boolean(confirmacao.uid) &&
+        confirmacao.uid === pedido.firebaseUid &&
+        Boolean(confirmacao.clienteId) &&
+        confirmacao.clienteId === pedido.clienteId;
+
+      const tipo = String(pedido.tipo || "").trim();
+      const statusElegivel =
+        (tipo === "Delivery" && pedido.status === "SAIU_PARA_ENTREGA") ||
+        (tipo === "Retirada" && pedido.status === "PRONTO");
+
+      const agora = agoraTimestamp();
+
+      if (pedido.recebimentoConfirmado === true && pedido.status === "ENTREGUE") {
+        transaction.update(confirmacaoRef, {
+          status: "CONFIRMADA",
+          processadoEm: agora,
+        });
+        return;
+      }
+
+      if (!identidadeValida || !statusElegivel) {
+        transaction.update(confirmacaoRef, {
+          status: "REJEITADA",
+          motivo: "PEDIDO_NAO_ELEGIVEL",
+          processadoEm: agora,
+        });
+        console.warn(
+          `[RECEBIMENTO] Solicitação rejeitada para pedido ${pedidoRef.id}: identidade ou status não elegível.`,
+        );
+        return;
+      }
+
+      transaction.update(pedidoRef, {
+        status: "ENTREGUE",
+        recebimentoConfirmado: true,
+        recebimentoConfirmadoEm: agora,
+        recebimentoConfirmadoPor: confirmacao.uid,
+        atualizadoEm: agora,
+      });
+
+      transaction.update(confirmacaoRef, {
+        status: "CONFIRMADA",
+        processadoEm: agora,
+      });
+    });
+  } catch (erro) {
+    console.error(
+      `[RECEBIMENTO] Erro ao processar confirmação do pedido ${pedidoRef.id}:`,
+      erro,
+    );
+  }
+}
+
+async function processarConfirmacoesRecebimentoPendentes(db) {
+  try {
+    const snapshot = await db
+      .collectionGroup(CONFIRMACOES_RECEBIMENTO_COLLECTION)
+      .where("status", "==", "PENDENTE")
+      .limit(100)
+      .get();
+
+    for (const documento of snapshot.docs) {
+      await processarConfirmacaoRecebimento(db, documento.ref);
+    }
+  } catch (erro) {
+    console.error("[RECEBIMENTO] Erro ao recuperar confirmações pendentes:", erro);
+  }
+}
+
+function iniciarListenerConfirmacoesRecebimento(db) {
+  if (confirmacoesRecebimentoListenerIniciado) return;
+  confirmacoesRecebimentoListenerIniciado = true;
+
+  console.log("[RECEBIMENTO] Iniciando listener de confirmações do cliente...");
+
+  db.collectionGroup(CONFIRMACOES_RECEBIMENTO_COLLECTION).onSnapshot(
+    async (snapshot) => {
+      // Também recupera solicitações pendentes presentes quando o servidor sobe.
+      for (const documento of snapshot.docs) {
+        const dados = documento.data() || {};
+        if (dados.status === "PENDENTE") {
+          await processarConfirmacaoRecebimento(db, documento.ref);
+        }
+      }
+    },
+    (erro) => {
+      console.error("[RECEBIMENTO] Erro no listener de confirmações:", erro);
+      confirmacoesRecebimentoListenerIniciado = false;
+    },
+  );
+}
+
 function iniciarNotificacoesPedidos(db) {
   if (listenerIniciado) {
     console.warn("[FCM] Listener de pedidos já está ativo.");
@@ -1167,6 +1269,17 @@ function iniciarNotificacoesPedidos(db) {
   );
 
   iniciarListenerSolicitacoes(db);
+  iniciarListenerConfirmacoesRecebimento(db);
+
+  processarConfirmacoesRecebimentoPendentes(db).catch(() => {});
+
+  if (!timerConfirmacoesRecebimento) {
+    timerConfirmacoesRecebimento = setInterval(() => {
+      processarConfirmacoesRecebimentoPendentes(db).catch((erro) =>
+        console.error("[RECEBIMENTO] Erro no timer de recuperação:", erro),
+      );
+    }, 30000);
+  }
 
   processarVendasPendentes(db).catch(() => {});
 

@@ -9,6 +9,7 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  setDoc,
   deleteDoc,
   getDoc,
   getDocs,
@@ -430,6 +431,87 @@ export function ouvirPedidoPorId(pedidoId, onSuccess, onNotFound) {
     },
     (erro) => {
       console.error("Erro ao ouvir pedido por ID:", erro);
+    },
+  );
+}
+
+/* ==========================================================
+   CONFIRMAÇÃO DE RECEBIMENTO PELO CLIENTE
+========================================================== */
+
+const CONFIRMACOES_RECEBIMENTO_COLLECTION = "confirmacoesRecebimento";
+const CONFIRMACAO_RECEBIMENTO_DOC_ID = "cliente";
+
+function confirmacaoRecebimentoRef(pedidoId) {
+  return doc(
+    db,
+    "pedidos",
+    pedidoId,
+    CONFIRMACOES_RECEBIMENTO_COLLECTION,
+    CONFIRMACAO_RECEBIMENTO_DOC_ID,
+  );
+}
+
+/**
+ * Solicita ao servidor a confirmação de recebimento.
+ * O navegador não altera diretamente o status do pedido; o backend valida
+ * o tipo/status atual e só então muda o pedido para ENTREGUE.
+ */
+export async function solicitarConfirmacaoRecebimento(pedidoId) {
+  if (!pedidoId) throw new Error("PEDIDO_ID_OBRIGATORIO");
+
+  const identidade = await garantirIdentidadeCliente();
+  if (!identidade?.uid || !identidade?.clienteId) {
+    throw new Error("IDENTIDADE_CLIENTE_INVALIDA");
+  }
+
+  const ref = confirmacaoRecebimentoRef(pedidoId);
+  const existente = await getDoc(ref);
+
+  if (existente.exists()) {
+    return { id: existente.id, ...existente.data(), jaExistia: true };
+  }
+
+  const dados = {
+    uid: identidade.uid,
+    clienteId: identidade.clienteId,
+    status: "PENDENTE",
+    criadaEm: serverTimestamp(),
+  };
+
+  try {
+    await setDoc(ref, dados);
+  } catch (erro) {
+    // Evita erro aparente se duas abas criarem a solicitação quase ao mesmo tempo.
+    const aposErro = await getDoc(ref).catch(() => null);
+    if (aposErro?.exists()) {
+      return { id: aposErro.id, ...aposErro.data(), jaExistia: true };
+    }
+    console.error("Erro ao solicitar confirmação de recebimento:", erro);
+    throw erro;
+  }
+
+  return { id: ref.id, ...dados, status: "PENDENTE" };
+}
+
+/** Observa o estado da solicitação criada pelo cliente para este pedido. */
+export function ouvirConfirmacaoRecebimento(pedidoId, callback, onError) {
+  if (!pedidoId || typeof callback !== "function") {
+    throw new Error("PARAMETROS_CONFIRMacao_RECEBIMENTO_INVALIDOS");
+  }
+
+  return onSnapshot(
+    confirmacaoRecebimentoRef(pedidoId),
+    (snapshot) => {
+      callback(
+        snapshot.exists()
+          ? { id: snapshot.id, ...snapshot.data() }
+          : null,
+      );
+    },
+    (erro) => {
+      console.error("Erro ao ouvir confirmação de recebimento:", erro);
+      onError?.(erro);
     },
   );
 }
