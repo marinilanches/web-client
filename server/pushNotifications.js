@@ -31,8 +31,8 @@ let timerConfirmacoesRecebimento = null;
 
 let timerLembretesRecebimento = null;
 
-const TEMPO_LEMBRETE_RECEBIMENTO_MS = 1 * 1000;
-const INTERVALO_LEMBRETES_RECEBIMENTO_MS = 1 * 1000;
+const TEMPO_LEMBRETE_RECEBIMENTO_MS = 30 * 60 * 1000;
+const INTERVALO_LEMBRETES_RECEBIMENTO_MS = 30 * 1000;
 const TEMPO_RECUPERACAO_LEMBRETE_MS = 2 * 60 * 1000;
 
 const CAMPO_STATUS_LEMBRETE = "lembreteRecebimentoStatus";
