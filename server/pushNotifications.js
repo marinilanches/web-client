@@ -29,6 +29,17 @@ let timerVendas = null;
 let timerPushPendentes = null;
 let timerConfirmacoesRecebimento = null;
 
+let timerLembretesRecebimento = null;
+
+const TEMPO_LEMBRETE_RECEBIMENTO_MS = 1 * 1000;
+const INTERVALO_LEMBRETES_RECEBIMENTO_MS = 1 * 1000;
+const TEMPO_RECUPERACAO_LEMBRETE_MS = 2 * 60 * 1000;
+
+const CAMPO_STATUS_LEMBRETE = "lembreteRecebimentoStatus";
+const CAMPO_PRAZO_LEMBRETE = "lembreteRecebimentoEnviarEm";
+const CAMPO_STATUS_ESPERADO_LEMBRETE = "lembreteRecebimentoStatusEsperado";
+const CAMPO_PROCESSAMENTO_LEMBRETE = "lembreteRecebimentoProcessandoEm";
+
 /* ==========================================================
    HELPERS
 ========================================================== */
@@ -880,10 +891,6 @@ function iniciarListenerSolicitacoes(db) {
 }
 
 /* ==========================================================
-   LISTENER DOS PEDIDOS
-========================================================== */
-
-/* ==========================================================
    CONFIRMAÇÃO DE RECEBIMENTO PELO CLIENTE
 ========================================================== */
 
@@ -925,7 +932,10 @@ async function processarConfirmacaoRecebimento(db, confirmacaoRef) {
 
       const agora = agoraTimestamp();
 
-      if (pedido.recebimentoConfirmado === true && pedido.status === "ENTREGUE") {
+      if (
+        pedido.recebimentoConfirmado === true &&
+        pedido.status === "ENTREGUE"
+      ) {
         transaction.update(confirmacaoRef, {
           status: "CONFIRMADA",
           processadoEm: agora,
@@ -978,7 +988,10 @@ async function processarConfirmacoesRecebimentoPendentes(db) {
       await processarConfirmacaoRecebimento(db, documento.ref);
     }
   } catch (erro) {
-    console.error("[RECEBIMENTO] Erro ao recuperar confirmações pendentes:", erro);
+    console.error(
+      "[RECEBIMENTO] Erro ao recuperar confirmações pendentes:",
+      erro,
+    );
   }
 }
 
@@ -1003,6 +1016,253 @@ function iniciarListenerConfirmacoesRecebimento(db) {
       confirmacoesRecebimentoListenerIniciado = false;
     },
   );
+}
+
+function statusElegivelParaLembrete(pedido) {
+  return (
+    (pedido.tipo === "Delivery" && pedido.status === "SAIU_PARA_ENTREGA") ||
+    (pedido.tipo === "Retirada" && pedido.status === "PRONTO")
+  );
+}
+
+async function atualizarAgendamentoLembreteRecebimento(
+  db,
+  pedidoId,
+  statusNovo,
+) {
+  const pedidoRef = db.collection(PEDIDOS_COLLECTION).doc(pedidoId);
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(pedidoRef);
+
+      if (!snapshot.exists) return;
+
+      const pedido = snapshot.data() || {};
+
+      // Ignora eventos antigos do listener.
+      if (pedido.status !== statusNovo) return;
+
+      if (
+        pedido.recebimentoConfirmado === true ||
+        pedido.status === "ENTREGUE"
+      ) {
+        transaction.update(pedidoRef, {
+          [CAMPO_STATUS_LEMBRETE]: "CANCELADO",
+          [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+        });
+
+        return;
+      }
+
+      if (!statusElegivelParaLembrete(pedido)) {
+        const lembreteAtual = pedido[CAMPO_STATUS_LEMBRETE];
+
+        if (lembreteAtual === "AGENDADO" || lembreteAtual === "ENVIANDO") {
+          transaction.update(pedidoRef, {
+            [CAMPO_STATUS_LEMBRETE]: "CANCELADO",
+            [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+          });
+        }
+
+        return;
+      }
+
+      const prazo = Timestamp.fromDate(
+        new Date(Date.now() + TEMPO_LEMBRETE_RECEBIMENTO_MS),
+      );
+
+      transaction.update(pedidoRef, {
+        [CAMPO_STATUS_LEMBRETE]: "AGENDADO",
+        [CAMPO_PRAZO_LEMBRETE]: prazo,
+        [CAMPO_STATUS_ESPERADO_LEMBRETE]: statusNovo,
+        [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+      });
+
+      console.log(
+        `[LEMBRETE] Pedido ${pedido.numeroPedido || pedidoId}: ` +
+          `lembrete agendado para daqui a 30 minutos.`,
+      );
+    });
+  } catch (erro) {
+    console.error(
+      `[LEMBRETE] Erro ao atualizar agendamento do pedido ${pedidoId}:`,
+      erro,
+    );
+  }
+}
+
+async function processarLembretesRecebimento(db) {
+  try {
+    const snapshot = await db
+      .collection(PEDIDOS_COLLECTION)
+      .where(CAMPO_STATUS_LEMBRETE, "==", "AGENDADO")
+      .limit(100)
+      .get();
+
+    for (const documento of snapshot.docs) {
+      const prazo = obterDataTimestamp(documento.get(CAMPO_PRAZO_LEMBRETE));
+
+      if (!prazo || prazo.getTime() > Date.now()) continue;
+
+      await enviarLembreteRecebimento(db, documento.ref);
+    }
+
+    // Recupera lembretes interrompidos por reinicialização do servidor.
+    const enviando = await db
+      .collection(PEDIDOS_COLLECTION)
+      .where(CAMPO_STATUS_LEMBRETE, "==", "ENVIANDO")
+      .limit(100)
+      .get();
+
+    for (const documento of enviando.docs) {
+      const inicio = obterDataTimestamp(
+        documento.get(CAMPO_PROCESSAMENTO_LEMBRETE),
+      );
+
+      if (
+        inicio &&
+        Date.now() - inicio.getTime() < TEMPO_RECUPERACAO_LEMBRETE_MS
+      ) {
+        continue;
+      }
+
+      await enviarLembreteRecebimento(db, documento.ref);
+    }
+  } catch (erro) {
+    console.error(
+      "[LEMBRETE] Erro ao processar lembretes de recebimento:",
+      erro,
+    );
+  }
+}
+
+async function enviarLembreteRecebimento(db, pedidoRef) {
+  let pedidoParaEnviar = null;
+
+  try {
+    const podeEnviar = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(pedidoRef);
+
+      if (!snapshot.exists) return false;
+
+      const pedido = snapshot.data() || {};
+      const statusLembrete = pedido[CAMPO_STATUS_LEMBRETE];
+
+      if (statusLembrete !== "AGENDADO" && statusLembrete !== "ENVIANDO") {
+        return false;
+      }
+
+      const inicio = obterDataTimestamp(pedido[CAMPO_PROCESSAMENTO_LEMBRETE]);
+
+      if (
+        statusLembrete === "ENVIANDO" &&
+        inicio &&
+        Date.now() - inicio.getTime() < TEMPO_RECUPERACAO_LEMBRETE_MS
+      ) {
+        return false;
+      }
+
+      const prazo = obterDataTimestamp(pedido[CAMPO_PRAZO_LEMBRETE]);
+
+      if (
+        statusLembrete === "AGENDADO" &&
+        (!prazo || prazo.getTime() > Date.now())
+      ) {
+        return false;
+      }
+
+      const statusEsperado = pedido[CAMPO_STATUS_ESPERADO_LEMBRETE];
+
+      if (
+        pedido.status !== statusEsperado ||
+        !statusElegivelParaLembrete(pedido) ||
+        pedido.recebimentoConfirmado === true ||
+        pedido.status === "ENTREGUE"
+      ) {
+        transaction.update(pedidoRef, {
+          [CAMPO_STATUS_LEMBRETE]: "CANCELADO",
+          [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+        });
+
+        return false;
+      }
+
+      if (!pedido.clienteId) {
+        transaction.update(pedidoRef, {
+          [CAMPO_STATUS_LEMBRETE]: "CANCELADO",
+          [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+        });
+
+        return false;
+      }
+
+      transaction.update(pedidoRef, {
+        [CAMPO_STATUS_LEMBRETE]: "ENVIANDO",
+        [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.serverTimestamp(),
+      });
+
+      pedidoParaEnviar = {
+        ...pedido,
+        id: pedidoRef.id,
+      };
+
+      return true;
+    });
+
+    if (!podeEnviar || !pedidoParaEnviar) return;
+
+    const resultado = await enviarNotificacaoCliente(
+      db,
+      pedidoParaEnviar.clienteId,
+      pedidoParaEnviar,
+      "🔔 Você recebeu seu pedido?",
+      "Você poderia confirmar se o pedido foi realmente recebido?",
+    );
+
+    if (resultado.successCount > 0) {
+      await pedidoRef.update({
+        [CAMPO_STATUS_LEMBRETE]: "ENVIADO",
+        lembreteRecebimentoEnviadoEm: FieldValue.serverTimestamp(),
+        [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+      });
+
+      console.log(
+        `[LEMBRETE] Notificação enviada para o pedido ` +
+          `${pedidoParaEnviar.numeroPedido || pedidoRef.id}.`,
+      );
+    } else {
+      // Tenta novamente depois de um minuto se o FCM falhar.
+      await pedidoRef.update({
+        [CAMPO_STATUS_LEMBRETE]: "AGENDADO",
+        [CAMPO_PRAZO_LEMBRETE]: Timestamp.fromDate(
+          new Date(Date.now() + 60 * 1000),
+        ),
+        [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+      });
+    }
+  } catch (erro) {
+    console.error(
+      `[LEMBRETE] Erro ao enviar lembrete do pedido ${pedidoRef.id}:`,
+      erro,
+    );
+
+    // Evita deixar o pedido permanentemente preso em ENVIANDO.
+    await pedidoRef
+      .update({
+        [CAMPO_STATUS_LEMBRETE]: "AGENDADO",
+        [CAMPO_PRAZO_LEMBRETE]: Timestamp.fromDate(
+          new Date(Date.now() + 60 * 1000),
+        ),
+        [CAMPO_PROCESSAMENTO_LEMBRETE]: FieldValue.delete(),
+      })
+      .catch((erroAtualizacao) => {
+        console.error(
+          "[LEMBRETE] Não foi possível liberar o lembrete:",
+          erroAtualizacao,
+        );
+      });
+  }
 }
 
 function iniciarNotificacoesPedidos(db) {
@@ -1243,6 +1503,15 @@ function iniciarNotificacoesPedidos(db) {
         if (!statusAtual) continue;
 
         if (change.type === "added") {
+          // Agenda o lembrete se o pedido já entrar em um status elegível.
+          if (statusElegivelParaLembrete(pedido)) {
+            await atualizarAgendamentoLembreteRecebimento(
+              db,
+              pedidoId,
+              statusAtual,
+            );
+          }
+
           if (statusAtual === "RECEBIDO") {
             console.log("[FCM] Novo pedido detectado:", pedido.numeroPedido);
 
@@ -1257,8 +1526,15 @@ function iniciarNotificacoesPedidos(db) {
           continue;
         }
 
-        // Atualizações de campos auxiliares não geram um novo push.
+        // Não reagenda lembretes quando apenas campos auxiliares mudam.
         if (statusAtual === statusAnterior) continue;
+
+        // Agenda ao entrar em um status elegível e cancela se sair dele.
+        await atualizarAgendamentoLembreteRecebimento(
+          db,
+          pedidoId,
+          statusAtual,
+        );
 
         await processarStatusCliente(pedidoId, pedido);
       }
@@ -1280,6 +1556,19 @@ function iniciarNotificacoesPedidos(db) {
       );
     }, 30000);
   }
+
+  if (!timerLembretesRecebimento) {
+    timerLembretesRecebimento = setInterval(() => {
+      processarLembretesRecebimento(db).catch((erro) =>
+        console.error("[LEMBRETE] Erro no timer de recebimento:", erro),
+      );
+    }, INTERVALO_LEMBRETES_RECEBIMENTO_MS);
+  }
+
+  // Recupera os lembretes que já venceram após iniciar o servidor.
+  processarLembretesRecebimento(db).catch((erro) =>
+    console.error("[LEMBRETE] Erro na recuperação inicial:", erro),
+  );
 
   processarVendasPendentes(db).catch(() => {});
 

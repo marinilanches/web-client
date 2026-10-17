@@ -11,15 +11,12 @@ const { initializeApp, cert } = require("firebase-admin/app");
 const {
   getFirestore,
   FieldValue,
+  Timestamp,
 } = require("firebase-admin/firestore");
 
-const serviceAccount =
-  require("./serviceAccountKey.json");
+const serviceAccount = require("./serviceAccountKey.json");
 
-const {
-  iniciarNotificacoesPedidos,
-} = require("./pushNotifications");
-const { solicitarEntregador } = require("./bee/bee.orders");
+const { iniciarNotificacoesPedidos } = require("./pushNotifications");
 
 /* ==========================================================
    FIREBASE ADMIN
@@ -323,17 +320,15 @@ function montarMensagemStatus(pedido) {
 
   const linkPedido = gerarLinkPedido(pedido.id);
 
-  const tipoPedido =
-    String(pedido.tipo || "").trim().toLowerCase();
+  const tipoPedido = String(pedido.tipo || "")
+    .trim()
+    .toLowerCase();
 
-  const isRetirada =
-    tipoPedido === "retirada";
+  const isRetirada = tipoPedido === "retirada";
 
-  const isDelivery =
-    tipoPedido === "delivery";
+  const isDelivery = tipoPedido === "delivery";
 
   switch (pedido.status) {
-
     case "RECEBIDO":
       return `Olá *${cliente}*!
 
@@ -367,7 +362,6 @@ ${linkPedido}
 Obrigado pela preferência!`;
 
     case "PRONTO":
-
       if (isRetirada) {
         return `Olá *${cliente}*!
 
@@ -401,7 +395,6 @@ ${linkPedido}
 Obrigado pela preferência!`;
 
     case "SAIU_PARA_ENTREGA":
-
       if (!isDelivery) {
         return null;
       }
@@ -857,6 +850,373 @@ async function reconciliarPedidosPendentes() {
 }
 
 /* ==========================================================
+   LEMBRETE DE CONFIRMAÇÃO DE RECEBIMENTO
+========================================================== */
+
+const TEMPO_LEMBRETE_RECEBIMENTO_MS = 30 * 60 * 1000;
+const INTERVALO_VERIFICACAO_LEMBRETES_MS = 30 * 1000;
+
+let timerLembretesRecebimento = null;
+let processandoLembretesRecebimento = false;
+
+function obterStatusElegivelLembrete(pedido) {
+  const tipo = String(pedido?.tipo || "").trim();
+  const status = String(pedido?.status || "").trim();
+
+  if (tipo === "Retirada" && status === "PRONTO") {
+    return "PRONTO";
+  }
+
+  if (tipo === "Delivery" && status === "SAIU_PARA_ENTREGA") {
+    return "SAIU_PARA_ENTREGA";
+  }
+
+  return null;
+}
+
+function montarMensagemLembreteRecebimento(pedidoId, pedido) {
+  const cliente = pedido.cliente || "Cliente";
+  const numeroPedido = pedido.numeroPedido || pedidoId;
+  const linkPedido = `https://marinilanches.vercel.app/status.html?id=${encodeURIComponent(pedidoId)}`;
+
+  return (
+    `Olá *${cliente}*! 😊\n\n` +
+    `Gostaríamos de confirmar se você já recebeu seu pedido *#${numeroPedido}*.\n\n` +
+    `Você poderia confirmar se o pedido foi realmente recebido?\n\n` +
+    `Para confirmar, acesse o link abaixo e toque em *"Confirmar recebimento"*:\n\n` +
+    `${linkPedido}\n\n` +
+    `Se ainda não recebeu, não confirme por enquanto. ` +
+    `Você pode continuar acompanhando seu pedido pela mesma página. 💚`
+  );
+}
+
+/*
+ * Agenda o lembrete apenas quando o pedido entra
+ * em um dos status elegíveis.
+ */
+async function agendarLembreteRecebimento(pedidoId, pedido) {
+  const statusEsperado = obterStatusElegivelLembrete(pedido);
+
+  if (!statusEsperado) {
+    return;
+  }
+
+  const pedidoRef = db.collection("pedidos").doc(pedidoId);
+  const enviarEm = Timestamp.fromDate(
+    new Date(Date.now() + TEMPO_LEMBRETE_RECEBIMENTO_MS),
+  );
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(pedidoRef);
+
+      if (!snapshot.exists) {
+        return;
+      }
+
+      const atual = snapshot.data();
+
+      if (
+        atual.status !== statusEsperado ||
+        atual.recebimentoConfirmado === true ||
+        atual.status === "ENTREGUE" ||
+        atual.status === "CANCELADO"
+      ) {
+        return;
+      }
+
+      const estadoLembrete = atual.lembreteRecebimentoStatus;
+
+      /*
+       * Não recria um lembrete já enviado ou em envio
+       * para o mesmo status.
+       */
+      if (
+        atual.lembreteRecebimentoStatusEsperado === statusEsperado &&
+        ["AGENDADO", "ENVIANDO", "ENVIADO"].includes(estadoLembrete)
+      ) {
+        return;
+      }
+
+      transaction.update(pedidoRef, {
+        lembreteRecebimentoStatus: "AGENDADO",
+        lembreteRecebimentoStatusEsperado: statusEsperado,
+        lembreteRecebimentoEnviarEm: enviarEm,
+        lembreteRecebimentoAgendadoEm: FieldValue.serverTimestamp(),
+      });
+    });
+
+    console.log(
+      `[BOT] Verificação de agendamento do lembrete concluída: pedido ${pedidoId}.`,
+    );
+  } catch (erro) {
+    console.error(
+      `[BOT] Erro ao agendar lembrete do pedido ${pedidoId}:`,
+      erro,
+    );
+  }
+}
+
+/*
+ * Invalida um lembrete pendente quando o pedido sai
+ * do status esperado. A transação evita cancelar um
+ * lembrete novo que tenha sido agendado em paralelo.
+ */
+async function cancelarLembreteRecebimento(pedidoId, statusAnterior) {
+  const pedidoRef = db.collection("pedidos").doc(pedidoId);
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(pedidoRef);
+
+      if (!snapshot.exists) {
+        return;
+      }
+
+      const pedido = snapshot.data();
+
+      if (
+        pedido.lembreteRecebimentoStatusEsperado !== statusAnterior ||
+        !["AGENDADO", "ENVIANDO"].includes(pedido.lembreteRecebimentoStatus)
+      ) {
+        return;
+      }
+
+      transaction.update(pedidoRef, {
+        lembreteRecebimentoStatus: "CANCELADO",
+        lembreteRecebimentoCanceladoEm: FieldValue.serverTimestamp(),
+      });
+    });
+  } catch (erro) {
+    console.error(
+      `[BOT] Erro ao cancelar lembrete do pedido ${pedidoId}:`,
+      erro,
+    );
+  }
+}
+
+/*
+ * Reserva o lembrete transacionalmente antes de enviar.
+ * A reserva impede dois ciclos do monitor de processarem
+ * simultaneamente o mesmo lembrete.
+ */
+async function reservarLembreteRecebimento(pedidoRef) {
+  return db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(pedidoRef);
+
+    if (!snapshot.exists) {
+      return null;
+    }
+
+    const pedido = snapshot.data();
+    const statusEsperado = pedido.lembreteRecebimentoStatusEsperado;
+
+    if (
+      pedido.lembreteRecebimentoStatus !== "AGENDADO" ||
+      !statusEsperado ||
+      pedido.status !== statusEsperado ||
+      pedido.recebimentoConfirmado === true ||
+      pedido.status === "ENTREGUE" ||
+      pedido.status === "CANCELADO"
+    ) {
+      return null;
+    }
+
+    const prazo = pedido.lembreteRecebimentoEnviarEm;
+
+    if (!prazo || prazo.toMillis() > Date.now()) {
+      return null;
+    }
+
+    transaction.update(pedidoRef, {
+      lembreteRecebimentoStatus: "ENVIANDO",
+      lembreteRecebimentoTentativaEm: FieldValue.serverTimestamp(),
+    });
+
+    return pedido;
+  });
+}
+
+async function processarLembretesRecebimento() {
+  if (
+    processandoLembretesRecebimento ||
+    !whatsappPronto ||
+    reconectando ||
+    !client ||
+    botEncerrando
+  ) {
+    return;
+  }
+
+  processandoLembretesRecebimento = true;
+
+  try {
+    const snapshot = await db
+      .collection("pedidos")
+      .where("lembreteRecebimentoStatus", "==", "AGENDADO")
+      .where("lembreteRecebimentoEnviarEm", "<=", Timestamp.now())
+      .get();
+
+    for (const doc of snapshot.docs) {
+      if (!whatsappPronto || reconectando || !client || botEncerrando) {
+        break;
+      }
+
+      let pedidoReservado;
+
+      try {
+        pedidoReservado = await reservarLembreteRecebimento(doc.ref);
+      } catch (erro) {
+        console.error(
+          `[BOT] Erro ao reservar lembrete do pedido ${doc.id}:`,
+          erro,
+        );
+        continue;
+      }
+
+      if (!pedidoReservado) {
+        continue;
+      }
+
+      const telefone =
+        pedidoReservado.telefoneWhatsapp ||
+        normalizarTelefone(pedidoReservado.telefone);
+
+      if (!telefone) {
+        await doc.ref.update({
+          lembreteRecebimentoStatus: "ERRO",
+          lembreteRecebimentoErro: "TELEFONE_INVALIDO",
+        });
+
+        continue;
+      }
+
+      try {
+        const clienteAtual = client;
+        const sessaoAtual = idSessaoWhatsapp;
+
+        if (!clienteAtual || !whatsappPronto || reconectando) {
+          throw new Error("WhatsApp indisponível.");
+        }
+
+        /*
+         * Revalida o pedido imediatamente antes do envio.
+         */
+        const atualSnapshot = await doc.ref.get();
+
+        if (!atualSnapshot.exists) {
+          continue;
+        }
+
+        const atual = atualSnapshot.data();
+
+        if (
+          atual.lembreteRecebimentoStatus !== "ENVIANDO" ||
+          atual.status !== atual.lembreteRecebimentoStatusEsperado ||
+          atual.recebimentoConfirmado === true ||
+          atual.status === "ENTREGUE" ||
+          atual.status === "CANCELADO"
+        ) {
+          await doc.ref.update({
+            lembreteRecebimentoStatus: "CANCELADO",
+            lembreteRecebimentoCanceladoEm: FieldValue.serverTimestamp(),
+          });
+
+          continue;
+        }
+
+        if (client !== clienteAtual || idSessaoWhatsapp !== sessaoAtual) {
+          throw new Error("Sessão WhatsApp substituída.");
+        }
+
+        const estado = await clienteAtual.getState();
+
+        if (estado !== "CONNECTED") {
+          throw new Error("WhatsApp não está CONNECTED.");
+        }
+
+        await clienteAtual.sendMessage(
+          `${telefone}@c.us`,
+          montarMensagemLembreteRecebimento(doc.id, atual),
+          { sendSeen: false },
+        );
+
+        /*
+         * O envio já foi aceito pelo WhatsApp.
+         */
+        await doc.ref.update({
+          lembreteRecebimentoStatus: "ENVIADO",
+          lembreteRecebimentoEnviadoEm: FieldValue.serverTimestamp(),
+          lembreteRecebimentoErro: FieldValue.delete(),
+        });
+
+        whatsappState.mensagensHoje++;
+
+        console.log(
+          `[BOT] Lembrete de recebimento enviado para o pedido ${doc.id}.`,
+        );
+      } catch (erro) {
+        console.error(
+          `[BOT] Erro ao enviar lembrete do pedido ${doc.id}:`,
+          erro,
+        );
+
+        /*
+         * Não reenviamos automaticamente uma mensagem cujo
+         * resultado pode ser incerto. Isso evita duplicações
+         * se o WhatsApp aceitou o envio, mas houve uma falha
+         * ao registrar o resultado.
+         */
+        try {
+          await doc.ref.update({
+            lembreteRecebimentoStatus: "ERRO",
+            lembreteRecebimentoErro: String(erro?.message || erro).slice(
+              0,
+              500,
+            ),
+            lembreteRecebimentoErroEm: FieldValue.serverTimestamp(),
+          });
+        } catch (erroRegistro) {
+          console.error(
+            `[BOT] Não foi possível registrar o erro do lembrete ${doc.id}:`,
+            erroRegistro,
+          );
+        }
+      }
+    }
+  } catch (erro) {
+    console.error("[BOT] Erro ao consultar lembretes vencidos:", erro);
+  } finally {
+    processandoLembretesRecebimento = false;
+  }
+}
+
+function iniciarMonitorLembretesRecebimento() {
+  if (timerLembretesRecebimento) {
+    return;
+  }
+
+  /*
+   * Executa imediatamente e depois verifica os vencimentos
+   * periodicamente, inclusive os recuperados após reiniciar.
+   */
+  processarLembretesRecebimento();
+
+  timerLembretesRecebimento = setInterval(() => {
+    processarLembretesRecebimento();
+  }, INTERVALO_VERIFICACAO_LEMBRETES_MS);
+
+  console.log("[BOT] Monitor de lembretes de recebimento iniciado.");
+}
+
+function pararMonitorLembretesRecebimento() {
+  if (timerLembretesRecebimento) {
+    clearInterval(timerLembretesRecebimento);
+    timerLembretesRecebimento = null;
+  }
+}
+
+/* ==========================================================
    LISTENER DOS PEDIDOS
 ========================================================== */
 
@@ -972,7 +1332,20 @@ function iniciarListenerPedidos() {
 
         /*
          * Status mudou.
+         *
+         * O lembrete é controlado separadamente das mensagens
+         * normais de mudança de status.
          */
+
+        if (statusAtual !== statusAnterior) {
+          if (statusAnterior) {
+            cancelarLembreteRecebimento(pedidoId, statusAnterior);
+          }
+
+          if (obterStatusElegivelLembrete(pedido)) {
+            agendarLembreteRecebimento(pedidoId, pedido);
+          }
+        }
 
         if (pedido.ultimoStatusNotificado !== statusAtual) {
           adicionarPedidoFila(pedidoId, pedido);
@@ -1668,6 +2041,8 @@ async function criarClienteWhatsapp() {
 
         await reconciliarPedidosPendentes();
 
+        iniciarMonitorLembretesRecebimento();
+
         processarFilaPedidos();
       } catch (erro) {
         console.error("[BOT] Erro durante READY:");
@@ -1927,29 +2302,6 @@ app.post("/api/whatsapp/reconnect", async (req, res) => {
   }
 });
 
-/*
- * BEE
- */
-
-app.post("/api/bee/solicitar-entrega", async (req, res) => {
-  try {
-    const resposta = await solicitarEntregador(req.body.pedido);
-
-    res.json({
-      success: true,
-      resposta,
-    });
-  } catch (error) {
-    console.error("[BEE]", error);
-
-    res.status(500).json({
-      success: false,
-
-      message: "Erro ao solicitar entregador",
-    });
-  }
-});
-
 /* ==========================================================
    START
 ========================================================== */
@@ -2143,6 +2495,8 @@ async function encerrarBot() {
   reconexaoAgendada = false;
 
   pararListenerPedidos();
+
+  pararMonitorLembretesRecebimento();
 
   /*
    * Invalida eventos do cliente atual.
